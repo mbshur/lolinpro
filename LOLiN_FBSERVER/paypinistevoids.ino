@@ -17,7 +17,6 @@ Serial.print("\n"+ istek+"\n");
             Serial.print("[HTTP] GET...\n");
             // start connection and send HTTP header and body
             int http2Code1 = http21.GET();
-
             // httpCode will be negative on error
             if (http2Code1 > 0) {
 
@@ -63,8 +62,6 @@ Serial.print("\n"+ istek+"\n");
             }
 
             http21.end();
-            
-
-
+           
 
 }

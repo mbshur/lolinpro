@@ -575,7 +575,7 @@ void htpcl(WiFiClient xilent) {
               xilent.println("</td></tr></table>");
               xilent.println("<label style='font-size:14px;'>");
               xilent.println("Altta bir ornek verilmistir.<br>");
-              xilent.println("<a href=\"https://mbscyclone.github.io/lolin/Help/Turkce/lolin_tr.pdf\" target=\"_blank\">Yardım [TR]</a>");
+              xilent.println("<a href=\"https://github.com/mbshur/lolinpro/raw/main/lolinhelp/turkce/lolin_tr.pdf\" target=\"_blank\">Yardım [TR]</a>");
               xilent.println("D1|OUT|DIG|0|0|1|0|0|Sarj1_pirizi<br>");
               xilent.println("</label><br>");
 
@@ -1074,7 +1074,7 @@ void htpcl(WiFiClient xilent) {
 
 
               xilent.println("<br><font size=\"3\" color=\"#FF0000\">Dikkat Ayarlar yapılıp kaydedilirken ESP ye bağlı tüm cihazların gücünü kapatın.<br> Kayıttan sonra Reset anında pinlere İstek dışında enerji yollanabilir.<br> cihazlar istek dışı çalışabilir.</font><br><br>");
-              xilent.println("<a href=\"https://mbscyclone.github.io/lolin/Help/Turkce/lolin_tr.pdf\" target=\"_blank\">Yardım [TR]</a>");
+              xilent.println("<a href=\"https://github.com/mbshur/lolinpro/raw/main/lolinhelp/turkce/lolin_tr.pdf\" target=\"_blank\">Yardım [TR]</a>");
               xilent.println("<br>");
 
               // Clear the header variable

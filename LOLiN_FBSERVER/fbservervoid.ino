@@ -128,6 +128,7 @@ void fbSpinstatelerioku(int islemgoren)
                                   Serial.println("\nFBdengelenpindeger:"+resul+"\n");
 
                               String mqyol = "/" + YOL + "/"  + na[islemgoren];
+                              pi[islemgoren]=resul;
                               String fbpin = "FBP>"+resul;
                               mqttsend(mqyol,fbpin);
                               fbSrguncelle(islemgoren);

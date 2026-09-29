@@ -1052,7 +1052,7 @@ uint8_t paypinistesirasi=0;
 unsigned long paypinistemesuresi=millis();
 
 
-
+u_int8_t aclsorsayac=0;
 
 void loop() {
   //Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
@@ -1141,14 +1141,26 @@ MDNS.update(); // mDNS sorgularini guncellemek icindir
     mqttclient.loop();
 
 
-    ///////////////// ACL sormak için
-    if(ACL=="9")
+    ///////////////// ACL sormak için ACL 9 ile başlıyor....
+    if(ACL=="8")  // 120 saniyede bir
+    {
+      if(aclsor<millis())
+      {
+        aclsor=millis()+10000;
+        aclsorsayac+=1;
+        if(aclsorsayac>11){ACL="9";aclsorsayac=0;}
+      }
+    }
+
+    if(ACL=="9")   // ilk başladığında 2 defa sormak için
     {
       if(aclsor<millis())
       {
         aclsor=millis()+10000;
         String myol = "/"+YOL + "/" + esphostname;
         mqttsend(myol, "/" + YOL + "/ALLDEV=ACIL:"+esphostname);
+        aclsorsayac+=1;
+        if(aclsorsayac>1)ACL=8;  // 8 olunca sormayıp fb bilgileri alma işlerini görüyor.
       }
     }
     ////////////////
