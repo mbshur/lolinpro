@@ -21,7 +21,7 @@
 
 #include <sMQTTBroker.h>
 
-#include <ESP8266mDNS.h> // mDNS kütüphanesini dahil ediyoruz
+
 
 int fbresulsay=0;
 
@@ -1387,13 +1387,6 @@ httpserver.setNoDelay(true);
     {Serial.println("Broker init ok");}
     else
     {Serial.println("Broker init failed");}
-
-
-  // mDNS sunucusunu esphostname ismiyle baslatiyoruz
-  if (MDNS.begin(esphostname)) {
-    Serial.println("mDNS sunucusu baslatildi. Adres: http://" + esphostname + ".local");
-  }
-
 }
 
 
@@ -1453,7 +1446,7 @@ if(WiFi.status() != WL_CONNECTED)
 
 
 
-MDNS.update(); // mDNS sorgularini guncellemek icindir
+
 
 
 
