@@ -284,6 +284,7 @@ void dosyaOkupinayar() {
     String gecicipinayar = dosya.readString();
     pinayartmp = gecicipinayar.substring(0, gecicipinayar.length());
 
+    pinayartmp.replace("\n\n","");
 
 int contpih = 0;
 int n = 0;
@@ -299,7 +300,7 @@ while ((n = pinayartmp.indexOf('|', n)) != -1)
       pinayar="";
       return;
       }
-      else {pinayartmp.replace("\n\n","");pinayar=pinayartmp;}
+      else {pinayar=pinayartmp;}
 
 
 
@@ -1157,6 +1158,23 @@ if(usrname.length()<2 || usrpaz.length()<2)
 }
 */
 dosyaOkuusers();
+
+
+
+            if (habp == 3) {
+                  //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
+                  if (fben!=0 && pinayar.length()>0 && ACL.toInt() !=9 && fbisleniyor==false)
+                    if (mqttclient.connected() == true)mqttclient.unsubscribe("/"+YOL+"/#");
+                  fbisleniyor=true;
+                  fbdataguncelle();
+                    if (mqttclient.connected() == true)mqttclient.subscribe("/"+YOL+"/#");
+            }
+
+
+
+
+
+
 }
 
 
@@ -1186,8 +1204,6 @@ WiFiClient xilent;
 bool htpcldepindegisti=false;
 int test=1;
 
-
-bool htpclilepindegisti=false;
 
 WiFiUDP udp;
 
@@ -1235,7 +1251,7 @@ void loop() {
 
   if (mqttclient.connected() == true)
   {
-    if (habp==2 && pinayarchg==true && rutingonder10s<millis()-10000)
+    if (habp==2 && pinayarchg==true && millis()-10000>rutingonder10s)
     {
       IPAddress lip = WiFi.localIP();
       mylocalip = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
@@ -1270,15 +1286,14 @@ MDNS.update(); // mDNS sorgularini guncellemek icindir
 
 
   xilent = httpserver.available();
-  if (xilent){
+  if (xilent && fbisleniyor==false){
     if(habp==3)timereski=millis()+4000;
     if(habp==2)timereski=millis()+10;
     if(habp==1)timereski=millis()+10;
     if(habp==0)timereski=millis()+10;
     htpcl(xilent);
-    if(htpcldepindegisti){
+    if(htpcldepindegisti==true){
       pinuygula();
-        htpclilepindegisti=true;
       }
   }
   
@@ -1366,47 +1381,46 @@ if(millis() - harcananzaman> 100)Serial.println("mqttclient.loop vaik uzadı: ms
     if (habp == 3) upd = 50;
 
     
-      if (millis()-timereski % upd == 0) {
+      if (millis()-timereski % upd == 0 && fbisleniyor==false) {
         headerold="";
         harcananzaman=millis();
         if (pinayar.length() > 0) updateinput();
-        if (pinayar.length()>0 && programdata.length()>0) programrun();
+        if (pinayar.length() > 0 && programdata.length()>0) programrun();
         if (pinayar.length() > 0) updateoutput();
         if (pinayar.length() > 0) vrkontrol();
         if(millis() - harcananzaman> 100)Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis()-harcananzaman));
       }
 
-    if (habp <3) {
-      if (millis() - timereski  >= 1000) {
-          timereski  = millis();
 
-          if(habp==2)
-          {
-            if(psco==true || psci==true || htpclilepindegisti==true)
-            {
-              String mqyo="/"+ YOL + "/FBSERVER";
-              String mqda="FBSERVER>"+esphostname +"pin";
-              for (int hh=0;hh<11;hh++)
-              {
-                if(pinname[hh]!="")
-                {
-                  mqda += pinname[hh]+":"+PinState[hh]+",";
-                }
+            if (habp>0 && habp <3) {
+                if(habp==2){
+                    if(psco==true || psci==true || htpcldepindegisti==true)
+                    {
+                      String mqyo="/"+ YOL + "/FBSERVER";
+                      String mqda="FBSERVER>"+esphostname +"pin";
+                      for (int hh=0;hh<11;hh++)
+                      {
+                        if(pinname[hh]!="")
+                        {
+                          mqda += pinname[hh]+":"+PinState[hh]+",";
+                        }
+                      }
+                      mqttsend(mqyo,mqda);
+                      psci=false;psco=false;
+                    }
               }
-              mqttsend(mqyo,mqda);
-              psci=false;psco=false;htpclilepindegisti=false;
             }
-          }
-      }
-    }
-    if (habp == 3) {
-      if (millis() - timereski  >= 5000) {
-          timereski  = millis();
-          //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
-          if (fben!=0 && pinayar.length()>0 && ACL.toInt() !=100 && fbisleniyor==false)fbsayacoku();
-      }
-    }
-
+            if (habp == 3) {
+              if (millis() - timereski  >= 5000) {
+                  timereski  = millis();
+                  //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
+                  if (fben!=0 && pinayar.length()>0 && ACL.toInt() !=9 && fbisleniyor==false)
+                  mqttclient.unsubscribe("/"+YOL+"/#");
+                  fbisleniyor=true;
+                  fbsayacoku();
+                  mqttclient.subscribe("/"+YOL+"/#");
+              }
+            }
 
 
 
@@ -1476,11 +1490,13 @@ void pinuygula()
                     if (PinState[x] == "0.00" || PinState[x] == "0" || PinState[x] == "LOW" || PinState[x] == "OFF") {
                       if (yildizli == false) digitalWrite(Pin[x], LOW);
                       else digitalWrite(Pin[x], HIGH);
+                    Serial.println("yazdım::: " + pinname[x] + ":" +PinState[x]);
                     }
 
                     if (PinState[x] == "1.00" || PinState[x] == "1" || PinState[x] == "HIGH" || PinState[x] == "ON") {
                       if (yildizli == false) digitalWrite(Pin[x], HIGH);
                       else digitalWrite(Pin[x], LOW);
+                      Serial.println("yazdım::: " + pinname[x] + ":" +PinState[x]);
                     }
                   }
 
@@ -1499,7 +1515,7 @@ void pinuygula()
                   }
                 }
               }
-              htpcldepindegisti=false;
+              if(htpcldepindegisti==true)htpcldepindegisti=false;
 }
 
 void vrkontrol() {

@@ -6,11 +6,11 @@ String tamUrl;
 
 void fbsayacoku()
 {
-      timereski=millis();
+      //timereski=millis();
 
-                                  if(psci==true || htpclilepindegisti==true){
+                                  if(psci==true || htpcldepindegisti==true){
                                     fbpinstateleriyaz();
-                                    htpclilepindegisti=false;
+                                    htpcldepindegisti=false;
                                   }
 
 
@@ -32,7 +32,7 @@ void fbsayacoku()
                                   }
                                 }
                           
-                          
+fbisleniyor=false;
 }
 
 
@@ -47,7 +47,7 @@ void fbsayacguncelle()
 
                             // save
                             firebasePutData(tamUrl.c_str(),(String)fbsayac);
-
+fbisleniyor=false;
 }
 
 
@@ -66,6 +66,7 @@ Serial.println("fbdataguncelle------------");
                               //pinstateleri yaz
                                   fbpinstateleriyaz();
                               /////////////////////////////
+fbisleniyor=false;
 }
 
 void fbpinstatelerioku()
@@ -95,7 +96,7 @@ void fbpinstatelerioku()
                                   String pnm=reslt.substring(0,reslt.indexOf(":"));
                                   String pns=reslt.substring(reslt.indexOf(":")+1,reslt.indexOf(","));
                                   reslt = reslt.substring(reslt.indexOf(",")+1,reslt.length());
-                                  //Serial.println(pnm+" "+pns);
+                                  Serial.println(pnm+" "+pns);
                                   
                                 for(int hh=0;hh<pinsayisi;hh++)
                                     {
@@ -103,6 +104,10 @@ void fbpinstatelerioku()
                                       { 
 
                                         if(pinmode[hh]!="INP"){
+                                            Serial.println(pns + "*"+fbPinState[hh]);
+                                            Serial.print("psco:");
+                                            if(psco==true)Serial.println("true");
+                                            else Serial.println("false");
                                             if(psco==false && pns!=fbPinState[hh])
                                             {
                                               
@@ -124,11 +129,13 @@ void fbpinstatelerioku()
                                 Serial.print(psco);
                                 Serial.print("  psci:");
                                 Serial.println(psci);
+                                programrun();pinuygula();
 
                               if(psco==true || psci==true){fbpinstateleriyaz();}
 
 
                           }
+fbisleniyor=false;
 }
 
 void fbpinstateleriyaz()
@@ -172,7 +179,7 @@ void fbpinstateleriyaz()
                             psco=false;
                             psci=false;
 
-
+fbisleniyor=false;
 }
 
 
@@ -186,16 +193,15 @@ void fbpinayarlarioku()
                           String resul;
                           resul = firebaseGetData(tamUrl.c_str());
 
-                            String dats="";
+                                String dats="";
                                 for(int h=0;h<pinsayisi;h++)
                                 {
                                   if( pinsatir[h].length()>0) dats+="[" + pinsatir[h] + "]";
                                 }
-
                                 dats="[" + pinayar;
                                 dats.replace("\n","][");
                                 dats.replace("[]","");
-                                if(dats.length()>1)dats=dats.substring(0,dats.length()-1);
+                                dats = dats+"]";
 
                           if(resul=="null")
                           {
@@ -211,7 +217,7 @@ void fbpinayarlarioku()
 
 
 
-
+fbisleniyor=false;
                             /////////////////////////////
 }
 
@@ -232,12 +238,12 @@ void fbpinayarlariyaz()
                                 dats="[" + pinayar;
                                 dats.replace("\n","][");
                                 dats.replace("[]","");
-                                if(dats.length()>1)dats=dats.substring(0,dats.length()-1);
-
+                                dats =dats+"]";
                                 firebasePutData(tamUrl.c_str(),dats);
 
                             // save
                                 fbpinstateleriyaz();
+fbisleniyor=false;
                             /////////////////////////////
 }
 

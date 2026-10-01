@@ -4,11 +4,13 @@ void httpgonder()
             WiFiClient client;
             HTTPClient http;
             http.setTimeout(1000);
+            if(htyolla.indexOf("resetle")>-1)http.setTimeout(3000);
             //Serial.print("[HTTP] begin...\n");
             // configure traged server and url
             http.begin(client, htyolla);  // HTTP
             //Serial.print("[HTTP] GET...\n");
             // start connection and send HTTP header and body
+            Serial.print("[HTTP] begin...\n"+htyolla+"\n");
             int httpCode = http.GET();
             // httpCode will be negative on error
             if (httpCode > 0) {

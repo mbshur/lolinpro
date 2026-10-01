@@ -33,13 +33,13 @@ void MQTTConnect() {
     mqtterror=false;
     Serial.println("\nconnected!");
     mqttclient.subscribe("/"+YOL+"/#");
+    subscribed=true;
     // client.unsubscribe("/hello");
     mqttconnectsayac = 0;
     //String pat= "/"+YOL+"/#";
     //String msghello = "hello:" + esphostname; 
     //mqttsend(pat,msghello);
   }
-
 }
 
 String Gelenmsg;
@@ -65,6 +65,8 @@ void messageReceived(String& topic, String& payload) {
   //if(Gelenmsg == degisenmq[v])return;
   //}
   
+
+if(millis()-startbek>100000){ 
   if(ACLilanciyim==true)
   {
     if(Gelenmsg.indexOf("ACIL:")>-1)
@@ -78,10 +80,12 @@ void messageReceived(String& topic, String& payload) {
         return;
       }
   }
+}
+
 
 if(Gelenmsg.indexOf("ALLDEV=")<1)
 if(Gelenmsg.indexOf("payM:")>-1 || Gelenmsg.indexOf("ACIL:")>-1 )
-{
+{   
         String ma0="";
         String nm0="";
         String ip0="";
@@ -105,12 +109,12 @@ if(Gelenmsg.indexOf("payM:")>-1 || Gelenmsg.indexOf("ACIL:")>-1 )
             ma[m]=ma0;
             na[m]=nm0;
             ip[m]=ip0;
-            Serial.println("// isteyelim bakalım.");
             totalmac=m;
             break;
           }
         }
         //mqttsend(myol,FBPIN);
+        paypinistemesuresi=millis();
 }
 
 /*
@@ -165,7 +169,7 @@ if(Gelenmsg.indexOf("payM:")>-1 || Gelenmsg.indexOf("ACIL:")>-1 )
     if(Gelenmsg.indexOf("ACIL:"+esphostname)<0) mqttisyap(payload);
 
     if(Gelenmsg.indexOf("FBSERVER>")>-1)
-    {
+    { 
       int islemgorenesp;
       String espname=Gelenmsg.substring(Gelenmsg.indexOf("FBSERVER>")+9,Gelenmsg.indexOf("pin"));
       Gelenmsg=Gelenmsg.substring(Gelenmsg.indexOf("pin")+3,Gelenmsg.length());
@@ -178,7 +182,7 @@ if(Gelenmsg.indexOf("payM:")>-1 || Gelenmsg.indexOf("ACIL:")>-1 )
     }
 
     if(Gelenmsg.indexOf("PAYNEW>")>-1)
-    {
+    {  if( subscribed==true){mqttclient.unsubscribe("/"+YOL+"/#");subscribed=false;}
         String ma0="";
         String nm0="";
         String ip0="";
@@ -211,7 +215,7 @@ if(Gelenmsg.indexOf("payM:")>-1 || Gelenmsg.indexOf("ACIL:")>-1 )
           }
         }
         //mqttsend(myol,FBPIN);
-
+        paypinistemesuresi=millis();
     }
 
 
@@ -220,6 +224,7 @@ if(Gelenmsg.indexOf("payM:")>-1 || Gelenmsg.indexOf("ACIL:")>-1 )
 
     if(Gelenmsg.indexOf("PAYCHG>")>-1)
     {
+        if( subscribed==true){mqttclient.unsubscribe("/"+YOL+"/#");subscribed=false;}
         String ma0="";
         String nm0="";
         String ip0="";

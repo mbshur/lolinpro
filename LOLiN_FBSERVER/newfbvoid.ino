@@ -18,8 +18,10 @@ void firebasePutData(const char* url, String stringVeri) {
 
   if (httpResponseCode > 0) {
     Serial.printf("Yazma Başarılı! Kod: %d\n", httpResponseCode);
+      fbyazmaeror=false;
   } else {
     Serial.printf("Yazma Hatası: %s\n", http.errorToString(httpResponseCode).c_str());
+      fbyazmaeror=true;
   }
   http.end();
     fbisleniyor=false;

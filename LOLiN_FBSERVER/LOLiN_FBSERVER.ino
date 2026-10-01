@@ -116,7 +116,7 @@ String pinmaxvalue[10];
 String acilseviyesi[10];
 String acildeger[10];
 String pinlabel[10];
-String ACL="9";String eACL="9";
+String ACL="10";String eACL="10";
 bool ACLilanciyim=false;
 unsigned long acltekrar=millis();
 unsigned long aclsor=millis();
@@ -554,6 +554,9 @@ int Menu = 0;
 
 String mylocalip;
 
+unsigned long startbek=millis();
+unsigned long istimer=millis();
+bool subscribed=false;
 
 bool testWifi(void) {
   if (ssid.length() < 2) {
@@ -672,6 +675,7 @@ void connectWifi(void) {
     IPAddress lip = WiFi.localIP();
     mylocalip = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
 
+    startbek=millis();
     //buzzercal(2000, 3); delay(100);
     //buzzercal(3000, 2); delay(10);
   } else {
@@ -1046,7 +1050,7 @@ bool htpclilepindegisti=false;  //fbokuyaz daki fbsayacoku için
 
 
 
-int http2setTimeout = 5000;
+int http2setTimeout = 8000;
 bool adiste=false;  // güç geldi bağlandı ilk MQTT den ad ve mac istemek için
 uint8_t paypinistesirasi=0;
 unsigned long paypinistemesuresi=millis();
@@ -1059,20 +1063,40 @@ void loop() {
 
   //Serial.println(httpserver.status());
 
-
   // put your main code here, to run repeatedly:
   otaloop();
 
+istimer=millis()-startbek;
+if(istimer>10000 && istimer<11000)
+{
+  if( subscribed==true){mqttclient.unsubscribe("/"+YOL+"/#");subscribed=false;}
+}
+
+if (istimer>100000)
+{
+  if(subscribed == false){ mqttclient.subscribe("/"+YOL+"/#");subscribed=true;}
+}
+
+if(istimer>11000 && istimer<100000)
 if(fben!=0 && totalmac>0)
 {
   if(na[paypinistesirasi+1].length()>0 && paypinistesirasi+1 < totalmac+1)
-  {
-    if(millis()-paypinistemesuresi>5000){
+  { 
+    if(millis()-paypinistemesuresi>8000){
+
       paypinistesirasi+=1;
       Serial.println("// isteyelim bakalım.");
       paypinistevoid(paypinistesirasi);
+
+  if(paypinistesirasi+1 == totalmac+1)
+  {
+    if(mqttclient.connected()){startbek=millis()-100000;}
+    Serial.println("işlemler tamam.");
+  }
+
     }
   }
+
 }
 
 /* ///////////////////
@@ -1108,7 +1132,13 @@ if(fben!=0 && totalmac>0)
 
 MDNS.update(); // mDNS sorgularini guncellemek icindir
 
-  
+
+
+
+
+
+  if(istimer>100000 ){
+    if(ACL=="10")ACL="9";
   xilent = httpserver.available();
   if (xilent){
     if(habp==2)timereski=millis()+4000;
@@ -1120,7 +1150,7 @@ MDNS.update(); // mDNS sorgularini guncellemek icindir
         htpclilepindegisti=true;
       }
   }
-  
+  }
   
 
 
@@ -1212,7 +1242,7 @@ MDNS.update(); // mDNS sorgularini guncellemek icindir
     
 
     
-      if (millis()-timereski % upd == 0) {
+      if (istimer>100000 && millis()-timereski % upd == 0) {
         headerold="";
         if (pinayar.length() > 0) updateinput();
         if (pinayar.length() > 0) updateoutput();
@@ -1224,12 +1254,12 @@ MDNS.update(); // mDNS sorgularini guncellemek icindir
           timereski  = millis();
       }
     }
-    if (habp ==2) {
+    if (istimer>100000 &&  habp ==2) {
       if (millis() - timereski  >= 10000) {
           timereski  = millis();
-          //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
-          if (esphostname.indexOf("FBSERV")<0 && fben!=0 && pinayar.length()>0 && ACL.toInt() !=100 && fbisleniyor==false)fbsayacoku();
-          if (esphostname.indexOf("FBSERV")>-1 && fben!=0 && pinayar.length()>0 && ACL.toInt() !=100 && fbisleniyor==false)fbSroku();
+          
+          //if (esphostname.indexOf("FBSERV")>-1 && fben!=0 && pinayar.length()>0 && ACL.toInt() !=9 && fbisleniyor==false)fbsayacoku();
+          if (esphostname.indexOf("FBSERV")>-1 && fben!=0 && pinayar.length()>0 && ACL.toInt() !=9 && fbisleniyor==false)fbSroku();
       }
     }
 

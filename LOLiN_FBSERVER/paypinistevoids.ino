@@ -1,22 +1,25 @@
 #include <WiFiClient.h>
 void paypinistevoid(int pps)
 {
+
+  mqttclient.loop();
+
 int pp;
 if(paypinistesirasi+1<totalmac+1)pp=paypinistesirasi;
 else pp=pps;
 
 String istek="http://" + ip[pp] + "/payM";
 Serial.print("\n"+ istek+"\n");
-
+            Serial.println("// isteyelim bakalım.");
             WiFiClient client21;
             HTTPClient http21;
             http21.setTimeout(http2setTimeout);
 
             http21.begin(client21, istek);  // HTTP
-
             Serial.print("[HTTP] GET...\n");
             // start connection and send HTTP header and body
             int http2Code1 = http21.GET();
+            delay(200);
             // httpCode will be negative on error
             if (http2Code1 > 0) {
 
@@ -37,10 +40,10 @@ Serial.print("\n"+ istek+"\n");
                   
                                 if(gpay.indexOf("\n")<0)gpay+="\n";
                                 String dats=gpay;
-                                dats="[" + gpay +"ğ";
+                                dats= gpay;
                                 dats.replace("\n","][");
-                                if(dats.indexOf("[ğ")>1)dats=dats.substring(0,dats.length()-3);
-
+      if(dats.substring(dats.length()-1,dats.length()-1)=="[")dats="["+dats.substring(0,dats.length()-1);
+      else dats="["+dats+"]";
                   pa[pp] = dats;
                   istekp = istekp.substring(istekp.indexOf("<br><br>")+8,istekp.length());
                   String pig=istekp.substring(istekp.indexOf("pinĞ")+5,istekp.indexOf("<br><br>"));
@@ -62,6 +65,6 @@ Serial.print("\n"+ istek+"\n");
             }
 
             http21.end();
-           
+
 
 }

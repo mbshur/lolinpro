@@ -197,6 +197,15 @@ void updateoutput()
       
         for(int x=0;x<pinsayisi;x++){
                   
+  int mod = bitRead(GPE, 5); 
+  
+  if (mod == 1) {
+    Serial.println("Pin D1 şu an: OUTPUT");
+  } else {
+    Serial.println("Pin D1 şu an: INPUT");
+  }
+
+
                   if(pinmode[x]=="OUT"){
                     String pinstatesakla;
 
@@ -220,12 +229,14 @@ void updateoutput()
                                     {
                                       if(yildizli==false)digitalWrite(Pin[x], HIGH); else  digitalWrite(Pin[x], LOW);
                                     }
+                                    Serial.println("\npinmod: >>");
+
                         }
 
 
           if(ePinState[x]!=PinState[x])
           {
-              //Serial.println("Farklı olan e: " + pinname[x] + " " +ePinState[x] + " >> " + PinState[x]);
+              Serial.println("Farklı olan e: " + pinname[x] + " " +ePinState[x] + " >> " + PinState[x]);
 
                        if(pinmode[x]=="OUT")
                        {
@@ -248,14 +259,14 @@ void updateoutput()
                 dosyayazpindurum();
               }
 */
+        pinuygula();
         }
-      if(degisenler!="" && degisenler!= edegisenler){
-        //if(htServerip.length()>3)sendserver80(htServerip, "8080", degisenler);
 
-      }
+        /*
+      if(degisenler!="" && degisenler!= edegisenler){
+        if(htServerip.length()>3)sendserver80(htServerip, "8080", degisenler);
+
+      }*/
 
 }
-
-
-
 

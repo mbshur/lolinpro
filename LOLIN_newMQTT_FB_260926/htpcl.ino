@@ -100,7 +100,7 @@ void httpheader(WiFiClient xilent) {
   if (header.indexOf("/serveripayar") > -1) xilent.println("Server ip ayar sayfas");
   if (header.indexOf("/mqttipayar") > -1) xilent.println("MQTT ayar sayfası");
   if (header.indexOf("/firebaseset") > -1) xilent.println("Firebase ayar sayfası");
-  if (header.indexOf("/kulupayr") > -1) xilent.println("Kullanıcılar sayfası");
+  if (header.indexOf("/kulupayr") > -1) xilent.println("Kullanıcı sayfası");
 
   xilent.println("<hr style=\"height:8px;border-width:1;color: #" + menutextcol + ";background-color: #" + menutextcol + "\">");
 }
@@ -228,7 +228,7 @@ void htpcl(WiFiClient xilent) {
           //if (header.indexOf("/Menu0") > -1){ Menu = 0;aut=0}
           if (header.indexOf("/Menu1") > -1) Menu = 1;
 
-          aut = 1;
+          //aut = 1;
 
           if (header.indexOf("/logcancel") > -1) aut = 0;
 
@@ -254,6 +254,7 @@ void htpcl(WiFiClient xilent) {
           if (aut == 0 && remoteip.indexOf(lipstrhost) == 0) aut = 2;
 
           if (header.indexOf("/login") > -1) aut = -1;
+          if (header.indexOf("/logout") > -1) aut = 2;
 
           if (header.indexOf("SPAYPIN") > -1)aut = 1;
 
@@ -774,7 +775,7 @@ void htpcl(WiFiClient xilent) {
 
             if (header.indexOf("/mqttipayar") > -1) {
 
-              xilent.println("<br>Dikkat!!! MQTT server ip ya da Yol kaydedilir veya değiştirilirse Cihaz yeniden başlatılacak.<br><br>MQTT yolu ile firebase yolu aydıdır.<br><form method='get' action='mqttipayar'><label>Abone olunacak MQTT yolu: </label><input name='yol'  style='width:100px;' maxlength='32' value=");
+              xilent.println("<br>Dikkat!!! MQTT server ip ya da Yol kaydedilir veya değiştirilirse Cihaz yeniden başlatılacak.<br><br>MQTT yolu ile firebase yolu aynıdır.<br><form method='get' action='mqttipayar'><label>Abone olunacak MQTT yolu: </label><input name='yol'  style='width:100px;' maxlength='32' value=");
               xilent.println(YOL);
               //xilent.println("><br>");
               //xilent.println("<label>Baglanilacak SERVER adressi: </label><input name='mq' length=32 value=");
@@ -990,7 +991,7 @@ void htpcl(WiFiClient xilent) {
               xilent.println("<input name='fburl' id='fburl' style=\"width:350px;\" value='");
               xilent.println(DATABASE_URL);
               xilent.println("'><br><br>");
-              xilent.println("<label>Database deki Yol (Örnek: Balıkesir ev1: bev1, yazlık 10Yz1, gibi kısa kodlar kullanın)<br> YOL : </label><input name='fbyol' id='fbyol' style=\"width:70px;\" value='");
+              xilent.println("<label>Database deki Yol (Örnek: Balıkesir ev1: bev1, yazlık 10Yz1, gibi kısa kodlar kullanın)<br><br>MQTT yolu ile firebase yolu aynıdır.<br> YOL : </label><input name='fbyol' id='fbyol' style=\"width:70px;\" value='");
               xilent.println(YOL);
               xilent.println("'><input type='submit'>");
               xilent.println("</form>");
@@ -1085,8 +1086,8 @@ void htpcl(WiFiClient xilent) {
               else xilent.println("<br>Pin ayarları tamam");
               xilent.println("<br>Bağlanılacak MQTT server ip:" + MQTTip);
               xilent.println("<br>MQTT subscribe yolu:" + YOL);
-              //xilent.println("<br>Firebase data ve MQTT subscribe yolu:" + YOL);
-              //xilent.println("<br>Firebase url     :" + DATABASE_URL);
+              xilent.println("<br>Firebase data ve MQTT subscribe yolu:" + YOL);
+              xilent.println("<br>Firebase url     :" + DATABASE_URL);
               //xilent.println("<br>FB RTD kullanıcısı:" + USER_EMAIL);
 
 
@@ -1451,7 +1452,8 @@ void htpcl(WiFiClient xilent) {
             // Web Page Heading
             xilent.println("<body>");
             String sonek = esphostname.substring(esphostname.indexOf("-") + 1, esphostname.length());
-            if (aut > 1) xilent.println("<div align=\"left\"><form action=\"/login\" method=\"POST\"><input type=\"submit\" value=\"Giriş\" style='width:60px;background-color:white;'></form></div>");
+            if (aut >  1) xilent.println("<div align=\"left\"><form action=\"/login\" method=\"POST\"><input type=\"submit\" value=\"Giriş\" style='width:60px;background-color:white;'></form></div>");
+            if (aut == 1) xilent.println("<div align=\"left\"><form action=\"/logout\" method=\"POST\"><input type=\"submit\" value=\"Çıkış\" style='width:60px;background-color:white;'></form></div>");
             xilent.println("<div align=\"center\">");
             xilent.println("<label style='font-size: 10px;'>Sayfayı yenileme için alttaki düğmeyi kullanabilirsiniz</label>");
             if (sayfayenile > 0) xilent.println("<label style='font-size: 10px;'> : Sayfayı yenile Açık " + String(sayfayenile) + " saniyede bir yenilenecek</label>");
@@ -1481,11 +1483,11 @@ void htpcl(WiFiClient xilent) {
 
             xilent.println("<form action=\"/rr0\" method=\"POST\"><input type=\"submit\" value=\"Kapat\" style='width:50px;'></form></td>");
 
-            xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
+            //xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
 
-            xilent.println("<form action='/rr0' method=\"POST\"><input type=\"submit\" value=\" Yenile\" style='width:80px;'></form>");
-            //xilent.println("<form action='/' method=\"POST\"><input type=\"submit\" value=\" Yenile\" style='width:80px;'></form>");
-            xilent.println("</td></table></div>");
+            //xilent.println("<form action='/rr0' method=\"POST\"><input type=\"submit\" value=\" Yenile\" style='width:80px;'></form></td>");
+
+            xilent.println("</table></div>");
             xilent.println("<label style='font-size: 20px;'>" + sonek + "</label> &emsp;&emsp;");
             //xilent.println("> Device_ident: ");
             //xilent.println(esphostname + "<br>");
@@ -1498,6 +1500,7 @@ void htpcl(WiFiClient xilent) {
               if (habp > 0 && mqtterror == true) xilent.println("<br><label style='font-size: 15px;'>  MQTT bağlantı sorunu!" + MQTTip + "</label>");
             }
             xilent.println("Acil seviyesi:" + ACL);
+            //xilent.println("<br>aut:"+String(aut)+"<br>");
 /*
             if (header.indexOf("fireb=On") > -1) {
               fben = true;
@@ -1908,7 +1911,7 @@ if (uri.indexOf("?") > 0) {
             // url variable hidden url , url hide
 
             // menu0bitti
-
+  xilent.println("<br>");
   xilent.println("<script>");
   xilent.println("function ekraniKilitle() {");
   // Sayfa içeriğini tamamen silip temiz bir beyaz ekran yapar ("Clear" mantığı)

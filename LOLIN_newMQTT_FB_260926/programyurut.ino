@@ -64,6 +64,7 @@ void programrun() {
 
 // en son işlem burası //////////////////////////////////
 
+  if (ACL.toInt()<6){
   if (eACL.toInt() != ACL.toInt()) {
     for (int sta = 0; sta < 11; sta++) {
       if(acilseviyesi[sta]!=" "){
@@ -77,7 +78,7 @@ void programrun() {
     }
     }
     eACL = ACL;
-
+  }
 
   }
 ////////////////////////////////////////////////////////
@@ -631,7 +632,7 @@ void yap(String yapilacakis, int islemno) {
       if (dsol == degis[indis]) {
         degdeg[indis] = dsag;
         PinState[indis] = dsag;
-
+        if(indis < 11 && ePinState[indis]!=PinState[indis])psco=true;
         progmsg += (String)satirsayisip + " satır>" + yapilacakis + " degisti.<br>";
         //Serial.print(pinname[indis] + " ------> ");Serial.println(degis[indis]);
         //Serial.print(pinname[indis] + " ------> ");Serial.println(dsag);

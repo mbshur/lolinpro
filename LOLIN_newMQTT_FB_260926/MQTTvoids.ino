@@ -38,6 +38,16 @@ void MQTTConnect() {
     //String pat= "/"+YOL+"/#";
     //String msghello = "hello:" + esphostname; 
     //mqttsend(pat,msghello);
+
+if(habp==2){
+      IPAddress lip = WiFi.localIP();
+      mylocalip = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
+
+      String mqyol="/" + YOL + "/FBSERVER";
+      String mqdat="PAYNEW>" + WiFi.macAddress() +"<" + esphostname + ">" + mylocalip;
+      rutingonder10s=millis();
+      mqttsend(mqyol,mqdat);
+}
   }
 
 }
@@ -172,11 +182,11 @@ Serial.println("\ntampon  indexofFBP> " + tampon.indexOf("FBP>"));
         String pnm1 = tampon.substring(0,tampon.indexOf(":"));
         String pns1 = tampon.substring(tampon.indexOf(":")+1,tampon.indexOf(","));
         tampon = tampon.substring(tampon.indexOf(",")+1,tampon.length());
-        Serial.println("\npnm1:"+pnm1+ " pns1" + pns1);  
+        Serial.println("\npnm:"+pnm1+ " pns:" + pns1);  
           for(int jj=0;jj<11;jj++){
                 if(pnm1 == pinname[jj])
                 { 
-                      if(pns1!=PinState[jj] && PinState[jj]==ePinState[jj] && pinmode[jj]!="INP")
+                      if(pinmode[jj]!="INP")
                       {
                         PinState[jj] = pns1;
                       }
@@ -185,6 +195,7 @@ Serial.println("\ntampon  indexofFBP> " + tampon.indexOf("FBP>"));
           }
           if(tampon.length()<2)break;
       }
+      programrun();pinuygula();
     }
     else mqttisyap(payload);
   }

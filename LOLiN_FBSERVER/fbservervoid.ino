@@ -1,10 +1,11 @@
 int islemgorenespsira;
 String espname;
-
+String tamUrl;
+bool fbyazmaeror;
 void fbSroku()
 {
       timereski=millis();
-
+      
 
 
                               String anaUrl = DATABASE_URL;
@@ -34,6 +35,14 @@ void fbSroku()
                                       //Serial.println("na[j] " + na[j] +"\n");
                                       if(arananname==na[j])
                                       {
+                                        if(arananr=="rst")
+                                        {
+                                          htyolla="http://" + ip[j]+"/resetle\r\n";
+                                          httpgonder();
+                                          fbSrguncelle(j);
+                                        }
+                                        else
+                                        {
                                         r[j]=arananr;
                                         if(arananr.toInt()>4)
                                         {
@@ -41,9 +50,8 @@ void fbSroku()
                                           Serial.println("fbSpinstatelerioku("+ arananname +")");
                                           fbSpinstatelerioku(islemgorenespsira);
                                         }
-
-
                                         break;
+                                        }
                                       }
                                       if(na[j]=="")break;
                                       if(resul.length()<3)break;
@@ -80,6 +88,11 @@ void fbSrguncelle(int islemgoren)
 
                             // save
                             firebasePutData(tamUrl.c_str(),(String)r[islemgoren]);
+                            if(fbyazmaeror==true)
+                                {
+                                  delay(500);
+                                 firebasePutData(tamUrl.c_str(),(String)r[islemgoren]);
+                                }
 
 }
 
@@ -87,13 +100,14 @@ void fbSrguncelle(int islemgoren)
 void fbSdataguncelle(int islemgoren)
 {
 Serial.println("fbdataguncelle------------");
-
+mqttclient.loop();
                               //sayac zaman guncelle 0 yap
                                   fbSrguncelle(islemgoren);
                               ////////////////////////////
 mqttclient.loop();
                               // pin ayarlarını yaz
                                   fbSpinayarlariyaz(islemgoren);
+
                               /////////////////////////////
 
                               //pinstateleri //////    yaz pinayarları yaz kısmında yapılıyor.
@@ -139,7 +153,7 @@ void fbSpinstateleriyaz(int islemgoren)
 {
                             //fbsayacguncelle();
                             //String setpath="/" + YOL + "/pins/" + esphostname+ "pin";
-                            
+mqttclient.loop();
                                 String anaUrl = DATABASE_URL;
                                 String hedefYol ="/" + YOL + "/pins/" + na[islemgoren]+ "pin";
                                 String tamUrl = anaUrl + hedefYol + ".json" ; 
@@ -150,7 +164,11 @@ void fbSpinstateleriyaz(int islemgoren)
                             // save
 
                                 firebasePutData(tamUrl.c_str(),dats);
-
+                                if(fbyazmaeror==true)
+                                {
+                                  delay(500);
+                                firebasePutData(tamUrl.c_str(),dats);
+                                }
 
 }
 
@@ -201,11 +219,17 @@ void fbSpinayarlariyaz(int islemgoren)
                                 String hedefYol = "/" + YOL + "/pays/" + na[islemgoren] + "pay";
                                 String tamUrl = anaUrl + hedefYol + ".json" ; 
                                 String dats=pa[islemgoren];
-                                dats="[" + pa[islemgoren];
+                                dats=pa[islemgoren];
+                                Serial.println("paislemgoren:" + pa[islemgoren]);
                                 dats.replace("\n","][");
                                 dats.replace("[]","");
                                 
                                 firebasePutData(tamUrl.c_str(),dats);
+                                if(fbyazmaeror==true)
+                                {
+                                  delay(500);
+                                firebasePutData(tamUrl.c_str(),dats);
+                                }
                             // save
                                 fbSpinstateleriyaz(islemgoren);
                             /////////////////////////////
