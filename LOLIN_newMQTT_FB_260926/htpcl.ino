@@ -181,12 +181,17 @@ void htpcl(WiFiClient xilent) {
             xilent.println("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n");
             xilent.println("payĞ" + pinayar + "<br><br>");
             String pis="";
+            if(ACLilanciyim==true){pis+="ACL:"+String(ACL)+",";}
+            
             for(int k=0;k<11;k++)
             {
               if(pinname[k]!=""){
                 pis+=pinname[k] + ":" + PinState[k] +",";
               }
             }
+            
+
+
             xilent.println("pinĞ" + pis + "<br><br>");
             xilent.println("rĞ" + String(fbsayac) + "<br><br>");
             xilent.println("\r\n\r\n");

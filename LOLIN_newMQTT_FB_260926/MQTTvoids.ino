@@ -172,7 +172,7 @@ if(Gelenmsg.indexOf("FBWPA:")>-1 && habp==2)
   String tampon = Gelenmsg;
   
   if(Gelentopic.indexOf(esphostname)>-1 || Gelentopic.indexOf("ALLDEV")>-1)
-Serial.println("\ntampon  indexofFBP> " + tampon.indexOf("FBP>"));
+    Serial.println("\ntampon  indexofFBP> " + tampon.indexOf("FBP>"));
     if(tampon.indexOf("FBP>")==0)
     {
       tampon = tampon.substring(4,tampon.length());
@@ -195,7 +195,7 @@ Serial.println("\ntampon  indexofFBP> " + tampon.indexOf("FBP>"));
           }
           if(tampon.length()<2)break;
       }
-      programrun();pinuygula();
+      programrun();pinuygula();fbpinstateleriyaz();
     }
     else mqttisyap(payload);
   }

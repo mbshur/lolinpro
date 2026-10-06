@@ -14,6 +14,10 @@ String ptm;
 
 void programrun() {
 
+  String pdt=programdata;
+  pdt.toUpperCase();
+  if(pdt.indexOf("ACLTUT")<0) ACLilanciyim=false;
+  pdt="";
   for (int i = 0; i < 11; i++)  // İLK 10 SAYI 10 PİN İSİM VE DEĞERLERİNİ AL degis degdeg e yaz
   {
     if (programdata.substring(0, 1) == "\n") programdata = programdata.substring(1, programdata.length());  //arada programdata için temizlik yap
@@ -228,7 +232,8 @@ bool paranteziciislem(String parantezi) {
 
   aktifpinno = -10000;
 
-
+  if (sol == "ACL") solstate = ACL;
+  else
   for (int pinbul = 0; pinbul < 16; pinbul++) {  //Serial.print("pinname: "); Serial.println(pinname[pinbul]);
     if (sol == degis[pinbul]) {
       solstate = degdeg[pinbul];
@@ -247,40 +252,41 @@ bool paranteziciislem(String parantezi) {
 
   /*
   Serial.println("PARANTEZ İÇİ");
-  Serial.print("sol ");
+  Serial.print("sol:");
   Serial.print(sol);
-  Serial.print("  ");
-  Serial.print(sag);
+  Serial.print("  sag:");
+  Serial.println(sag);
 
-  Serial.println(" sag");
-  Serial.print("Pinstate[2] ");
-  Serial.println(PinState[2]);
-
+  Serial.print(" solstate:" + solstate);
+  if(aktifpinno>-1){
+  Serial.print(" Pinstate[aktifpinno] ");
+  Serial.println( PinState[aktifpinno]);
+  } else Serial.println("aktifpinno="+aktifpinno);
   Serial.print("op ");
   Serial.println(op);
-*/
+  */
 
-  if (op == 1) {
+  if (op == 1) {           // ==
     if (solstate.toFloat() == sag.toFloat()) ifsonucu = true;
     else ifsonucu = false;
-  } else if (op == 2) {
+  } else if (op == 2) {    // >=
     if (solstate.toFloat() >= sag.toFloat()) ifsonucu = true;
     else ifsonucu = false;
-  } else if (op == 3) {
+  } else if (op == 3) {    //  >
     if (solstate.toFloat() > sag.toFloat()) {
       ifsonucu = true;
-      /*Serial.print("solstate ");
-      Serial.print(solstate.toFloat());
-      Serial.print("   sagfloat true çıktı");
-      Serial.println(sag.toFloat());
-      */
+      //Serial.print("solstate ");
+      //Serial.print(solstate.toFloat());
+      //Serial.print("   sagfloat true çıktı");
+      //Serial.println(sag.toFloat());
+      
     } else {
       ifsonucu = false;
-      /*Serial.print("solfloat ");
-      Serial.print(solstate.toFloat());
-      Serial.print("   sagfloat false çıktı");
-      Serial.println(sag.toFloat());
-      */
+      //Serial.print("solfloat ");
+      //Serial.print(solstate.toFloat());
+      //Serial.print("   sagfloat false çıktı");
+      //Serial.println(sag.toFloat());
+      
     }
   } else if (op == 4) {
     if (solstate.toFloat() <= sag.toFloat()) ifsonucu = true;
@@ -288,27 +294,27 @@ bool paranteziciislem(String parantezi) {
   } else if (op == 5) {
     if (solstate.toFloat() < sag.toFloat()) {
       ifsonucu = true;
-      /*Serial.print("solfloat ");
+      Serial.print("solfloat ");
       Serial.print(solstate.toFloat());
       Serial.print("   sagfloat true çıktı");
       Serial.println(sag.toFloat());
-      */
+      
     } else {
       ifsonucu = false;
-      /*Serial.print("solfloat ");
+      Serial.print("solfloat ");
       Serial.print(solstate.toFloat());
       Serial.print("   sagfloat false çıktı");
       Serial.println(sag.toFloat());
-      */
+      
     }
   } else if (op == 6) {
     if (solstate.toFloat() != sag.toFloat()) ifsonucu = true;
     else ifsonucu = false;
   }
 
-
-
-
+  Serial.print("kiyaslanacak:"+parantezi + " sonuç:");
+  if(ifsonucu)Serial.println(" true");
+  else Serial.println(" false");
   //Serial.print(parantezici + " ->  ");Serial.println (ifsonuc);
 
   //PinStatetmp[aktifpinno]=sonucdegeri;
@@ -497,6 +503,7 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
       }  //baştaki boşlukları sil
 
       yapilacakis = yapilacaklar.substring(0, yapilacaklar.indexOf(";"));
+      if(yapilacakis.indexOf("{")==0)yapilacakis=yapilacakis.substring(1, yapilacakis.length());
       yapilacaklarislemsayisi = i;
       //Serial.print("yapılacak ");
       //Serial.println(yapilacakis);
@@ -602,11 +609,12 @@ void yap(String yapilacakis, int islemno) {
 
   String noktalivirgulekadar = yapilacakis;
   String dsol = noktalivirgulekadar.substring(0, noktalivirgulekadar.indexOf("="));
-  dsol.toUpperCase();
+  if(dsol.indexOf("{")>-1)dsol=dsol.substring(dsol.indexOf("{")+1, dsol.length());
+    dsol.toUpperCase();
   String dsag = noktalivirgulekadar.substring(noktalivirgulekadar.indexOf("=") + 1, noktalivirgulekadar.indexOf(";"));
 
-  
-  if(dsol=="ACL") {Serial.println("ACL: "+dsag);ACL = dsag;return;}
+  Serial.print("\ndsol:"+dsol +"  dsag:"+dsag+"\n");
+  if(dsol=="ACL") {Serial.println("ACL: "+dsag); ACL = dsag;return;}
 
 
   for (int indis = 0; indis < 16; indis++)  // her islem için döngü

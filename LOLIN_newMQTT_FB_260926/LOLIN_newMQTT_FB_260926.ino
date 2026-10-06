@@ -1398,6 +1398,9 @@ if(millis() - harcananzaman> 100)Serial.println("mqttclient.loop vaik uzadı: ms
                     {
                       String mqyo="/"+ YOL + "/FBSERVER";
                       String mqda="FBSERVER>"+esphostname +"pin";
+
+                      if(ACLilanciyim==true){mqda+="ACL:"+String(ACL)+",";}
+
                       for (int hh=0;hh<11;hh++)
                       {
                         if(pinname[hh]!="")

@@ -89,6 +89,8 @@ void fbpinstatelerioku()
                           else
                           {
                             String reslt=resul;
+                                if(reslt.indexOf("ACL:")>-1 && reslt.indexOf("ACL:")<2)
+                                reslt.substring(reslt.indexOf(",")+1,reslt.length());
                                 degisenler="";
                                 for(int h=0;h<pinsayisi;h++)
                                 {
@@ -147,6 +149,7 @@ void fbpinstateleriyaz()
                                 String hedefYol ="/" + YOL + "/pins/" + esphostname+ "pin";
                                 String tamUrl = anaUrl + hedefYol + ".json" ; 
                                 String dats="";
+                                if(ACLilanciyim==true)dats="ACL:"+String(ACL)+",";
 
                                  //Serial.println(" v-- fbpinstateleriyaz  (pinname[h].toCharArray)> char < ascii code int value ");
                                 for(int h=0;h<pinsayisi+1;h++)
