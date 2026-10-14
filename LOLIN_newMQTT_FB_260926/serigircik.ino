@@ -183,11 +183,12 @@ void serin()
             Serial.println(httpserver.status());
       }
 
+/*
       if(sergel.indexOf("htserverip")==0)
       {
             Serial.println("http 8080 Serveri : "+ htServerip);
       }
-
+*/
 
       if(sergel.indexOf("dosyasil:")==0)
       {
@@ -195,6 +196,10 @@ void serin()
                 dosya.close();
                 LittleFS.remove(ds);
                 Serial.println(ds + " dosyası silindi.");
+      }
+      if(sergel.indexOf("userlist")==0)
+      {
+        Serial.println(users);
       }
 
       if(sergel.indexOf("dosyaoku:")==0)

@@ -5,10 +5,11 @@
 #include <Arduino.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <ESP8266mDNS.h> // mDNS kütüphanesini dahil ediyoruz
+#include <ESP8266mDNS.h>  // mDNS kütüphanesini dahil ediyoruz
 
 //#include <EEPROM.h>
 #include <ESP8266WiFi.h>
+#include "FS.h"
 #include "LittleFS.h"
 #include <MQTT.h>
 #include <Servo.h>
@@ -54,7 +55,7 @@ bool psci;
 
 // firebaseServer isem
 String FBSERVER;
-unsigned long rutingonder10s=millis();
+unsigned long rutingonder10s = millis();
 /*
 bool BenFbServerim=false;
 String espna[20];
@@ -82,7 +83,7 @@ unsigned long harcananzaman;
 String progmsg;
 
 
-unsigned long timereski=millis();
+unsigned long timereski = millis();
 
 
 
@@ -91,7 +92,7 @@ String pass = "";
 
 bool rescanwifi = false;
 
-bool htpcldis=false;
+bool htpcldis = false;
 
 
 
@@ -101,7 +102,7 @@ String pwrd;
 String capt;
 unsigned long logintimeout;
 int aut;
-int logintimeoutmax=240000;
+int logintimeoutmax = 240000;
 
 
 
@@ -109,36 +110,40 @@ int PIN_TONE;
 String Host;
 
 int sayfayenile = 0;
-int Pin[10];
+
 String VRP[5];
 int pinsayisi = 10;
 // pin Adı|pinmode|pin baslangic degeri|pin değeri|pin degerleri|Pin label"
 
-
-bool pinayarchg=false;
-bool habpchg=false;
+bool pinayarchg = false;
+bool habpchg = false;
 String pinsatir[10];
 String pinname[10];
 String pinmode[10];
 String pinsignaltype[10];
 String pinminvalue[10];
 String pinval[10];
-String PinState[10];String ePinState[10];
+String PinState[10];
+String ePinState[10];
 bool acildeyim[10];
 String fbPinState[10];
 String pinmaxvalue[10];
 String acilseviyesi[10];
 String acildeger[10];
 String pinlabel[10];
-String ACL="9";String eACL="9";
-bool ACLilanciyim=false;
-unsigned long acltekrar=millis();
-unsigned long aclsor=millis();
+String ACL = "9";
+String eACL = "9";
+bool ACLilanciyim = false;
+unsigned long acltekrar = millis();
+unsigned long aclsor = millis();
 
 String Abonelik;
 //String pindurumrec;
 //bool pindurumrecyap;
-int dhtsayac = 0;
+int dhtsayac = 1;
+// 10 elemanlı boş bir pointer dizisi. Başlangıçta hepsi NULL (boş)
+DHT* DHTA[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+
 int hcsrT[10];
 int hcsrE[10];
 int edistance[10];
@@ -179,9 +184,9 @@ String yazi;
 File dosya;
 
 
-String erlog = "";
-String perlog = "";
-//int erlogsatir=0;
+String pinayarerrorlog = "";
+String programerrorlog = "";
+//int pinayarerrorlogsatir=0;
 String programdata;
 
 
@@ -198,6 +203,7 @@ String fberror = "";
 
 
 String htServerip;
+
 String edegisenler;
 String degisenler;
 
@@ -253,7 +259,7 @@ void handleNotFound() {
 }
 */
 
-bool LED_BUILTIN_devredisi=false;
+bool LED_BUILTIN_devredisi = false;
 
 //String macadr1="8"; // SALON
 String macadr1 = "5";  // BAHCE
@@ -264,6 +270,53 @@ String macadr;
 //String macadr2="c:ce:4e:ca:0e:56"; // SALON
 String macadr2 = "0:02:91:E0:43:9E";  //BAHCE
 
+
+
+
+
+
+int getGPIOPin(String pinStr) {
+  pinStr.trim();         // Boşlukları temizler
+  pinStr.toUpperCase();  // Küçük harf girilse bile (a0 -> A0) eşleşmesini sağlar
+
+  // Analog Pin Eşleşmeleri
+  if (pinStr == "A0") return A0;
+#ifdef A1
+  if (pinStr == "A1") return A1;  // Kartınızda A1, A2 vb. varsa otomatik eklenir
+  if (pinStr == "A2") return A2;
+  if (pinStr == "A3") return A3;
+#endif
+
+  // Dijital Pin Eşleşmeleri
+  if (pinStr == "D0") return D0;
+  if (pinStr == "D1") return D1;
+  if (pinStr == "D2") return D2;
+  if (pinStr == "D3") return D3;
+  if (pinStr == "D4") return D4;
+  if (pinStr == "D5") return D5;
+  if (pinStr == "D6") return D6;
+  if (pinStr == "D7") return D7;
+  if (pinStr == "D8") return D8;
+
+  // Eğer başında harf yoksa ve direkt sayısal bir GPIO stringi ise ("4" gibi)
+  if (pinStr.length() > 0 && isDigit(pinStr.charAt(0))) {
+    return pinStr.toInt();
+  }
+
+  return -1;  // Hatalı veya bilinmeyen pin ismi durumunda -1 döner
+}
+
+
+
+
+
+
+
+
+
+
+
+
 void dosyaOkupinayar() {
   String strtmp;
   dosya.close();
@@ -271,10 +324,12 @@ void dosyaOkupinayar() {
 
   dosya = LittleFS.open("/pinayar.txt", "r");
   if (dosya) {
-    for (int p=0;p<11;p++)
-    {
+    for (int p = 0; p < 11; p++) {
       String gp = dosya.readStringUntil('\n');
-      if(gp.length()<5){pinsayisi=p+1;break;}
+      if (gp.length() < 5) {
+        pinsayisi = p + 1;
+        break;
+      }
     }
   }
   dosya.close();
@@ -284,33 +339,33 @@ void dosyaOkupinayar() {
     String gecicipinayar = dosya.readString();
     pinayartmp = gecicipinayar.substring(0, gecicipinayar.length());
 
-    pinayartmp.replace("\n\n","");
+    pinayartmp.replace("\n\n", "");
 
-int contpih = 0;
-int n = 0;
+    int contpih = 0;
+    int n = 0;
 
-while ((n = pinayartmp.indexOf('|', n)) != -1)
-{
-   n++;
-   contpih++;
-}
-    
-    if(contpih % 8 != 0 ){
-      erlog="pinayar hatalı";
-      pinayar="";
+    while ((n = pinayartmp.indexOf('|', n)) != -1) {
+      n++;
+      contpih++;
+    }
+
+    if (contpih % 8 != 0) {
+      pinayarerrorlog = "pinayar hatalı";
+      pinayar = "";
       return;
-      }
-      else {pinayar=pinayartmp;}
+    } else {
+      pinayar = pinayartmp;
+    }
 
 
 
     dosya.close();
     strtmp = pinayar;
-  Serial.println("dosyaokupinayar.");
+    Serial.println("dosyaokupinayar.");
     Serial.println(pinayar);
 
     if (strtmp.length() > 0) {
-      for (int x = 0; x < pinsayisi + 1; x++) {
+      for (int x = 0; x < 12; x++) {
         pinname[x] = "";
         pinmode[x] = "";
         pinsignaltype[x] = "";
@@ -321,105 +376,124 @@ while ((n = pinayartmp.indexOf('|', n)) != -1)
         //fbPinState[x] = "";
         pinmaxvalue[x] = "";
         pinlabel[x] = "";
-        acilseviyesi[x]="";
-        acildeger[x]="";
+        acilseviyesi[x] = "";
+        acildeger[x] = "";
         hcsrT[x] = -1;
         hcsrE[x] = -1;
       }
 
-      erlog = "";
+
+
+
+
+      pinayarerrorlog = "";
       hcsrloopvar = false;
       yield();
 
       for (int x = 0; x < 12; x++) {
         if (strtmp.length() < 3) break;
-      String pinnametm = strtmp.substring(0, strtmp.indexOf("|"));
+        String pinnametm = strtmp.substring(0, strtmp.indexOf("|"));
 
-        int b=pinnametm.length()+1;
+        int b = pinnametm.length() + 1;
         char cvc[b];
-    pinnametm.toCharArray(cvc, b);  // pinname 0A ise atla
-        if((int)cvc[0]!=10)
-        {
+        pinnametm.toCharArray(cvc, b);  // pinname 0A ise atla
+        if ((int)cvc[0] != 10) {
 
-        int pinismiint;
-        if (pinnametm.length() > 1) {
-          pinismiint = pinnametm.substring(1, 2).toInt();
-          if (pinnametm.substring(0, 1) == "A") pinismiint += 9;
-        } else pinismiint = pinnametm.toInt();
+          int pinismiint;
+          if (pinnametm.length() > 1) {
+            pinismiint = pinnametm.substring(1, 2).toInt();
+            if (pinnametm.substring(0, 1) == "A") pinismiint += 9;
+          } else pinismiint = pinnametm.toInt();
 
-        //Serial.println(pinnametm);
-        //Serial.println(pinismiint);
+          //Serial.println(pinnametm);
+          //Serial.println(pinismiint);
 
-        x = pinismiint;
+          x = pinismiint;
+          //pinsatir[x] = strtmp.substring(0,strtmp.indexOf("\n"));
 
-        //pinsatir[x] = strtmp.substring(0,strtmp.indexOf("\n"));
+          //Serial.println(j);
 
-        //Serial.println(j);
+          pinname[x] = pinnametm.substring(0, pinnametm.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
-        pinname[x] = pinnametm.substring(0, pinnametm.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+          pinmode[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
-        pinmode[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-        pinsignaltype[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+          pinsignaltype[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
 
-        pinminvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+          pinminvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
-        if (pinlerdagitildi == false) {
-          if (PinState[x] == "") {
-            if (pinsignaltype[x] == "PWM") {
-              int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
-              if (asd < 0) PinState[x] = "0";
-              if (asd > 255) PinState[x] = 255;
+          if (pinlerdagitildi == false) {
+            if (PinState[x] == "") {
+              if (pinsignaltype[x] == "PWM") {
+                int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
+                if (asd < 0) PinState[x] = "0";
+                if (asd > 255) PinState[x] = 255;
+              }
+              if (pinsignaltype[x] == "SER") {
+                int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
+                if (asd < 0) PinState[x] = "0";
+                if (asd > 180) PinState[x] = 180;
+              } else PinState[x] = strtmp.substring(0, strtmp.indexOf("|"));
+
+              //ePinState[x]=PinState[x];
+              if (pinsignaltype[x] == "BUZ") {
+                int gpio = getGPIOPin(pinname[x]);
+                PIN_TONE = gpio;
+              }
+
+              if (pinsignaltype[x] == "HCE") {
+                int gpio = getGPIOPin(pinname[x]);
+                hcsrE[x] = gpio;
+                hcsrloopvar = true;
+                int gpio2 = getGPIOPin(pinname[x]);
+                hcsrT[x] = gpio2;
+              }
+
+
+              // Eğer eski bir DHT nesnesi varsa hafızayı boşaltalım (re-init koruması)
+              if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") == 0) {
+                if (DHTA[x] != NULL) {
+                  delete DHTA[x];
+                  DHTA[x] = NULL;
+                }
+                // Eğer bu pin bir DHT sensörüyse nesneyi buracıkta yaratıyoruz:
+                if (pinsignaltype[x].indexOf("DHT") == 0) {
+                  uint8_t DHT_TYPE = DHT11;
+                  if (pinsignaltype[x] == "DHT1") DHT_TYPE = DHT11;
+                  else if (pinsignaltype[x] == "DHT2") DHT_TYPE = DHT12;
+                  else if (pinsignaltype[x] == "DHT3") DHT_TYPE = DHT21;
+                  else if (pinsignaltype[x] == "DHT4") DHT_TYPE = DHT22;
+                  else pinayarerrorlog = "DHT pinsignaltype yanlış " + pinsignaltype[x] + " olamaz. DHT11 için DHT1, DHT12 için DHT2, DHT21 için DHT3, DHT22 için DHT4 yazın.";
+                  // 🎯 İşte sihirli satır: Nesneyi dinamik olarak buradaki pinde oluşturduk!
+                  DHTA[x] = new DHT(getGPIOPin(pinname[x]), DHT_TYPE);
+                  DHTA[x]->begin();  // Pointer olduğu için '.' yerine '->' kullanılır
+                }
+              }
             }
-            if (pinsignaltype[x] == "SER") {
-              int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
-              if (asd < 0) PinState[x] = "0";
-              if (asd > 180) PinState[x] = 180;
-            } else PinState[x] = strtmp.substring(0, strtmp.indexOf("|"));
 
-            //ePinState[x]=PinState[x];
-            if (pinsignaltype[x] == "BUZ") {
-              PIN_TONE = Pin[x];
+            if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") < 0) {
+              pinMode(getGPIOPin(pinname[x]), INPUT);
             }
-
-            if (pinsignaltype[x] == "HCE") {
-              hcsrE[x] = Pin[x];
-              hcsrloopvar = true;
-              if (pinminvalue[x] == "D0") hcsrT[x] = Pin[0];
-              if (pinminvalue[x] == "D1") hcsrT[x] = Pin[1];
-              if (pinminvalue[x] == "D2") hcsrT[x] = Pin[2];
-              if (pinminvalue[x] == "D3") hcsrT[x] = Pin[3];
-              if (pinminvalue[x] == "D4") hcsrT[x] = Pin[4];
-              if (pinminvalue[x] == "D5") hcsrT[x] = Pin[5];
-              if (pinminvalue[x] == "D6") hcsrT[x] = Pin[6];
-              if (pinminvalue[x] == "D7") hcsrT[x] = Pin[7];
-              if (pinminvalue[x] == "D8") hcsrT[x] = Pin[8];
-              if (pinminvalue[x] == "A0") hcsrT[x] = Pin[9];
-            }
-
           }
+
+          pinval[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+          PinState[x] = pinval[x];
+
+          pinmaxvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+
+
+          acilseviyesi[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+
+          acildeger[x] = strtmp.substring(0, strtmp.indexOf("|"));
+          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
         }
-
-        pinval[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-        PinState[x]=pinval[x];
-
-        pinmaxvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-
-        acilseviyesi[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-        acildeger[x] = strtmp.substring(0, strtmp.indexOf("|"));
-        strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-      }
 
 
 
@@ -438,59 +512,63 @@ while ((n = pinayartmp.indexOf('|', n)) != -1)
           strtmp = "";
         }
 
-        if (strtmp.length() < 5){break;}
+        if (strtmp.length() < 5) { break; }
       }
 
       pinlerdagitildi == true;  //dosyaokupindurum();
     }
   }
+  updateinput();
 }
 
 void dosyaYazpinayar() {
+
+  pinayarerrorlog = "";
+  programerrorlog = "";
+
   reConnectsayac = millis();
   pinayartmp = Karakterduzeltfunc(pinayartmp);
-  pinayartmp.replace("\n\n","");
+  pinayartmp.replace("\n\n", "");
 
-int contpih = 0;
-int n = 0;
+  int contpih = 0;
+  int n = 0;
 
-while ((n = pinayartmp.indexOf('|', n)) != -1)
-{
-   n++;
-   contpih++;
-}
-
-    if(contpih % 8 != 0 ){
-      erlog="pinayar hatalı";
-      pinayar="";
-      return;
-      }
-
-  if(pinayartmp != pinayar){
-    pinayar=pinayartmp;
-    dosya.close();
-  LittleFS.remove("/pinayar.txt");
-  dosya = LittleFS.open("/pinayar.txt", "w+");
-  //pinayarYuzdeliifadesil();
-
-  dosya.print(pinayar);
-  if(habp==2)pinayarchg=true;
-  dosya.close();
-  Serial.println(pinayar);
-  
-  // int deleteResponseCode = firebaseRealtime.remove("/" + YOL + "/r/" , esphostname);
-    //fbdeletesayac();
-    //fbpinayaryaz = true;
-  setup2();
+  while ((n = pinayartmp.indexOf('|', n)) != -1) {
+    n++;
+    contpih++;
   }
 
+  if (contpih % 8 != 0) {
+    pinayarerrorlog = "pinayar hatalı.";
+    pinayar = "";
+    return;
+  }
+
+  if (pinayartmp != pinayar) {
+    pinayar = pinayartmp;
+    dosya.close();
+    LittleFS.remove("/pinayar.txt");
+    dosya = LittleFS.open("/pinayar.txt", "w+");
+    //pinayarYuzdeliifadesil();
+
+    dosya.print(pinayar);
+    if (habp == 2) pinayarchg = true;
+    dosya.close();
+    Serial.println(pinayar);
+
+    // int deleteResponseCode = firebaseRealtime.remove("/" + YOL + "/r/" , esphostname);
+    //fbdeletesayac();
+    //fbpinayaryaz = true;
+    setup2();
+    programrun();
+  }
 }
 
 
 
 
 
-
+/*
 void esp01() {
   // MQTT OLACAK FİREBASE YOK RESET ÇEKİP DURMASIN.
   // MQTT İLE MESAJ YOLLAMAYA HAZIR.
@@ -537,18 +615,19 @@ void espLolin() {
   Pin[8] = D8;
   Pin[9] = A0;
 }
+*/
+
 
 void setup2() {
 
   dosyaOkupinayar();
 
-if(pinayar.length()>3)
-{
-  dosyaOkuprogram();
-  String strtmp = programdata;
-  strtmp.toUpperCase();
+  if (pinayar.length() > 3) {
+    dosyaOkuprogram();
+    String strtmp = programdata;
+    strtmp.toUpperCase();
 
-/*
+    /*
     if(pinlerterslendi==false)
     {
       for (int x = 0; x < pinsayisi + 1; x++) {
@@ -559,70 +638,51 @@ if(pinayar.length()>3)
                        }
 
           if (PinState[x] == "0.00" || PinState[x] == "0" || PinState[x] == "LOW" || PinState[x] == "OFF" || PinState[x] == "") {
-            if (yildizli == false) digitalWrite(Pin[x], LOW);
-            else digitalWrite(Pin[x], HIGH);
+            if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), LOW);
+            else digitalWrite(getGPIOPin(pinname[x]), HIGH);
           } else if (PinState[x] == "1.00" || PinState[x] == "1" || PinState[x] == "HIGH" || PinState[x] == "ON") {
-            if (yildizli == false) digitalWrite(Pin[x], HIGH);
-            else digitalWrite(Pin[x], LOW);
+            if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), HIGH);
+            else digitalWrite(getGPIOPin(pinname[x]), LOW);
           }
         }
       }
     }else pinlerterslendi=false;
 */
 
-  //Serial.println("sorunyok");
-  //Serial.println("sorunyok2");
-  //DHT DHTA(D7, DHT11);
+    //Serial.println("sorunyok");
+    //Serial.println("sorunyok2");
+    //DHT DHTA(D7, DHT11);
 
 
 
-  for (int c = 0; c < pinsayisi+1; c++) {
-    if (pinmode[c] == "OUT" & pinsignaltype[c] == "DIG") {
-      if (c == 0) pinMode(Pin[0], OUTPUT);
-      if (c == 1) pinMode(Pin[1], OUTPUT);
-      if (c == 2) pinMode(Pin[2], OUTPUT);
-      if (c == 3) pinMode(Pin[3], OUTPUT);
-      if (c == 4) pinMode(Pin[4], OUTPUT);
-      if (c == 5) pinMode(Pin[5], OUTPUT);
-      if (c == 6) pinMode(Pin[6], OUTPUT);
-      if (c == 7) pinMode(Pin[7], OUTPUT);
-      if (c == 8) pinMode(Pin[8], OUTPUT);
-      if (c == 9) pinMode(Pin[9], OUTPUT);
+    for (int x = 0; x < pinsayisi + 1; x++) {
+      if (pinmode[x] == "OUT" & pinsignaltype[x] == "DIG") {
+        pinMode(getGPIOPin(pinname[x]), OUTPUT);
+      }
+
+
+      if (pinmode[x] == "INP" & pinsignaltype[x] == "DIG") {
+        pinMode(getGPIOPin(pinname[x]), INPUT);
+      }
+
+
+
+      if (pinmode[x] == "OUT" & pinsignaltype[x] == "PWM") {
+
+        pinMode(getGPIOPin(pinname[x]), OUTPUT);
+
+        //          pinMode(Pin[b], OUTPUT);
+      }
+
+
+      if (pinmode[x] == "OUT" & pinsignaltype[x] == "SER") {
+
+        pinMode(getGPIOPin(pinname[x]), OUTPUT);
+        myservo[x].detach();
+        myservo[x].attach(getGPIOPin(pinname[x]));
+        //
+      }
     }
-
-
-    if (pinmode[c] == "INP" & pinsignaltype[c] == "DIG") {
-      if (c == 0) pinMode(Pin[0], INPUT);
-      if (c == 1) pinMode(Pin[1], INPUT);
-      if (c == 2) pinMode(Pin[2], INPUT);
-      if (c == 3) pinMode(Pin[3], INPUT);
-      if (c == 4) pinMode(Pin[4], INPUT);
-      if (c == 5) pinMode(Pin[5], INPUT);
-      if (c == 6) pinMode(Pin[6], INPUT);
-      if (c == 7) pinMode(Pin[7], INPUT);
-      if (c == 8) pinMode(Pin[8], INPUT);
-      if (c == 9) pinMode(Pin[9], INPUT);
-    }
-
-
-
-    if (pinmode[c] == "OUT" & pinsignaltype[c] == "PWM") {
-
-      pinMode(Pin[c], OUTPUT);
-
-      //          pinMode(Pin[b], OUTPUT);
-    }
-
-
-    if (pinmode[c] == "OUT" & pinsignaltype[c] == "SER") {
-
-      pinMode(Pin[c], OUTPUT);
-      myservo[c].detach();
-      myservo[c].attach(Pin[c]);
-      //
-    }
-
-  }
   }
 }
 
@@ -632,7 +692,7 @@ if(pinayar.length()>3)
 
 int Menu = 0;
 
- String mylocalip;
+String mylocalip;
 
 
 
@@ -656,9 +716,9 @@ bool testWifi(void) {
     }
     delay(1000);
     Serial.print("*");
-    if(LED_BUILTIN_devredisi==false){
-    if (LED_BUILTIN == HIGH) digitalWrite(LED_BUILTIN, LOW);
-    else digitalWrite(LED_BUILTIN, HIGH);
+    if (LED_BUILTIN_devredisi == false) {
+      if (LED_BUILTIN == HIGH) digitalWrite(LED_BUILTIN, LOW);
+      else digitalWrite(LED_BUILTIN, HIGH);
     }
     c1++;
   }
@@ -764,8 +824,8 @@ void connectWifi(void) {
     //                                wifiscan();
     //                                lookAP();// S etup HotSpot
 
-    String macdre=WiFi.macAddress();
-    WiFi.softAP("Esp-bos-"+macdre, "12345678");
+    String macdre = WiFi.macAddress();
+    WiFi.softAP("Esp-bos-" + macdre, "12345678");
     //delay(100);
     Serial.println(WiFi.localIP());
     Serial.println(WiFi.gatewayIP());
@@ -841,7 +901,7 @@ float hic, hum, f, t;
   // Check if any reads failed and exit early (to try again).
   if (isnan(hum) || isnan(t)  // || isnan(f)
   ) {
-    Serial.println(F("Failed to read from DHT sensor!"));
+    Serial.println("Failed to read from DHT sensor!");
     dhtsensorerror = true;
     return;
   } else {
@@ -914,12 +974,64 @@ String islem;
 //
 
 
+
+//defi /////////////////////////////////////////////////////////////////////////////////////////
+#define MAX_USER 5
+String users;
+String usernames[MAX_USER];
+String passwords[MAX_USER];
+int userLevels[MAX_USER];
+String usertokn[MAX_USER];
+unsigned long userlogouttime[MAX_USER];
+String usernamelbl;
+String usertoken;
+
+
+/*
+// Textarea'dan veya dosyadan gelen ham metni dizilere dolduran fonksiyon
+void kullanicilariYukle(String hamMetin) {
+    int userCount = 0;
+    
+    // Satır satır bölmek için döngü (Her satır bir kullanıcı)
+    while (hamMetin.length() > 0 && userCount < MAX_USER) {
+        int satirSonu = hamMetin.indexOf("\n");
+        String satir = (satirSonu == -1) ? hamMetin : hamMetin.substring(0, satirSonu);
+        satir.trim(); // Varsa boşlukları temizle
+        
+        if (satir.length() > 0) {
+            // Satır içindeki virgüllerin yerini bul (Örn: ali,1234,2)
+            int ilkVirgul = satir.indexOf(",");
+            int ikinciVirgul = satir.lastIndexOf(",");
+            
+            if (ilkVirgul != -1 && ikinciVirgul != -1 && ilkVirgul != ikinciVirgul) {
+                usernames[userCount] = satir.substring(0, ilkVirgul);
+                passwords[userCount] = satir.substring(ilkVirgul + 1, ikinciVirgul);
+                userLevels[userCount] = satir.substring(ikinciVirgul + 1).toInt(); // 1 veya 2 yapar
+                
+                userCount++;
+            }
+        }
+        
+        // İşlenen satırı metinden at, kalana bak
+        if (satirSonu == -1) break;
+        hamMetin = hamMetin.substring(satirSonu + 1);
+    }
+}
+defi ///////////////////////////////////////////////////////////////////////////
+*/
+
+
+
+
+
+
+
 void dosyaOkuprogram() {
   dosya.close();
   dosya = LittleFS.open("/program.txt", "r");
   if (dosya) {
     programdata = dosya.readString();
-    programdata = programdata.substring(0, programdata.length() - 1);
+    //programdata = programdata.substring(0, programdata.length() - 1);
     Serial.println("PROGRAM DATA v ");
     Serial.println(programdata);
     //Serial.println(gecicipinayar);
@@ -936,8 +1048,8 @@ void dosyaYazprogram(String programdatat) {
   reConnectsayac = millis();
 
   //Serial.print("Yazilacakprogramdata:");
-  erlog = "";
-
+  pinayarerrorlog = "";
+  programerrorlog = "";
   dosya.close();
   LittleFS.remove("/program.txt");
   Serial.println(programdata);
@@ -946,7 +1058,7 @@ void dosyaYazprogram(String programdatat) {
   dosya.print(programdata);
   dosya.close();
   setup2();
-  if(pinayar.length()>0 && programdata.length()>0)programrun();
+  if (pinayar.length() > 0 && programdata.length() > 0) programrun();
   //ESP.reset();
 }
 
@@ -985,15 +1097,14 @@ int sil = 0;
 
 void setup() {
   // initialize LED_BUILTIN as an output pin.
-  pinMode(LED_BUILTIN,OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   // starttime=millis();
   Serial.begin(115200);
   // dosya setup kısmı ////////////////
 
-            for (int y=1;y<13;y++)
-            {
-              mqyol[y]="";
-            }
+  for (int y = 1; y < 13; y++) {
+    mqyol[y] = "";
+  }
 
 
   if (LittleFS.begin()) {
@@ -1035,7 +1146,6 @@ void setup() {
 
 
 
-
   } else {
     Serial.println("Dosya sistemi başarısız");
   }
@@ -1045,7 +1155,7 @@ void setup() {
 
   dosyaokuacl();
   dosyaokuhabp();
-  
+
   dosyaokufbyol();
   dosyaokufben();
   dosyaokufburl();
@@ -1053,42 +1163,41 @@ void setup() {
   //dosyaokufbusername();
   //dosyaokufbuserpass();
 
-  espLolin();
+  //espLolin();
 
   dosyaOkupinayar();
   //dosyaokupindurum();
 
 
-if(pinayar.length()>3){
+  if (pinayar.length() > 3) {
     dosyaOkuprogram();
-      for (int x = 0; x < pinsayisi + 1; x++) {
-        if (pinmode[x] == "OUT" & pinsignaltype[x] == "DIG") {
-          bool yildizli; if(pinlabel[x].indexOf("*")+1==pinlabel[x].length())yildizli=true;else yildizli=false;
-          if (PinState[x] == "0" || PinState[x] == "") {
-            if (yildizli == false) digitalWrite(Pin[x], LOW);
-            else digitalWrite(Pin[x], HIGH);
-          } else if (PinState[x] == "1") {
-            if (yildizli == false) digitalWrite(Pin[x], HIGH);
-            else digitalWrite(Pin[x], LOW);
-          }
+    for (int x = 0; x < pinsayisi + 1; x++) {
+      if (pinmode[x] == "OUT" & pinsignaltype[x] == "DIG") {
+        bool yildizli;
+        if (pinlabel[x].indexOf("*") + 1 == pinlabel[x].length()) yildizli = true;
+        else yildizli = false;
+        if (PinState[x] == "0" || PinState[x] == "") {
+          if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), LOW);
+          else digitalWrite(getGPIOPin(pinname[x]), HIGH);
+        } else if (PinState[x] == "1") {
+          if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), HIGH);
+          else digitalWrite(getGPIOPin(pinname[x]), LOW);
         }
       }
-  //pinlerterslendi=true;
-
-}
-
-
+    }
+    //pinlerterslendi=true;
+  }
 
   dosyaokumyssidname();
 
-  htserveroku();
+  //htserveroku();
   mqttipoku();
   //delay(2);
   dosyaokussidpass();
   //delay(2);
   // dosya setup kısmı bitti /////
 
-  httpserver.setNoDelay(true);
+  //httpserver.setNoDelay(true);
 
   macadr = macadr1 + macadr2;
   macadr.toUpperCase();
@@ -1102,16 +1211,16 @@ if(pinayar.length()>3){
 
 
 
-    httpserver.begin();
-    butonactcoloku();
-    butonpascoloku();
-    butonayrcoloku();
-    menutextcoloku();
-    butonpbgcoloku();
-    Serial.println("Web server Lunched.");
+  httpserver.begin();
+  butonactcoloku();
+  butonpascoloku();
+  butonayrcoloku();
+  menutextcoloku();
+  butonpbgcoloku();
+  Serial.println("Web server Lunched.");
 
 
-/*
+  /*
   if (MDNS.begin("esp8266")) { Serial.println("MDNS responder started"); }
   server.on("/", handleRoot);
   server.on("/gerT", handleger);
@@ -1124,22 +1233,21 @@ if(pinayar.length()>3){
 
   otasetup();
   setup2();
-  acltekrar = millis(); // ilk start için
+  acltekrar = millis();  // ilk start için
   if (WiFi.status() == WL_CONNECTED) {
-    if(habp==-2)dosyaokuhabp();
-    if(habp >= 1){
+    if (habp == -2) dosyaokuhabp();
+    if (habp >= 1) {
       mqttipoku();
       MQTTConnect();
-      if(MQTTip.length()>2) MQTTConnect();
+      if (MQTTip.length() > 2) MQTTConnect();
     }
   }
 
-  if (WiFi.status() == WL_CONNECTED) htserveroku();
+  //if (WiFi.status() == WL_CONNECTED) htserveroku();
 
 
-  if (WiFi.status() == WL_CONNECTED && fben != 0)
-  {
-     if(habp==-2)dosyaokuhabp();
+  if (WiFi.status() == WL_CONNECTED && fben != 0) {
+    if (habp == -2) dosyaokuhabp();
   }
 
   // mDNS sunucusunu esphostname ismiyle baslatiyoruz
@@ -1147,7 +1255,7 @@ if(pinayar.length()>3){
     Serial.println("mDNS sunucusu baslatildi. Adres: http://" + esphostname + ".local");
   }
 
-/*
+  /*
   dosyaOkuusers();
 Serial.println("usrname okudurm:" + usrname);
 Serial.println("usrpaz okudurm:" + usrpaz);
@@ -1157,24 +1265,21 @@ if(usrname.length()<2 || usrpaz.length()<2)
   usrpaz="1111";
 }
 */
-dosyaOkuusers();
+  dosyaOkuusers();
 
 
 
-            if (habp == 3) {
-                  //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
-                  if (fben!=0 && pinayar.length()>0 && ACL.toInt() !=9 && fbisleniyor==false)
-                    if (mqttclient.connected() == true)mqttclient.unsubscribe("/"+YOL+"/#");
-                  fbisleniyor=true;
-                  fbdataguncelle();
-                    if (mqttclient.connected() == true)mqttclient.subscribe("/"+YOL+"/#");
-            }
-
-
-
-
-
-
+  if (habp == 3) {
+    //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
+    if (fben != 0 && pinayar.length() > 0 && fbisleniyor == false)
+      if (mqttclient.connected() == true) mqttclient.unsubscribe("/" + YOL + "/#");
+    updateinput();
+    if (Program.length() > 0) programrun();
+    updateoutput();
+    fbisleniyor = true;
+    fbdataguncelle();
+    if (mqttclient.connected() == true) mqttclient.subscribe("/" + YOL + "/#");
+  }
 }
 
 
@@ -1201,8 +1306,8 @@ void connectfb() {
 void Programtakip(String progdata);
 
 WiFiClient xilent;
-bool htpcldepindegisti=false;
-int test=1;
+bool htpcldepindegisti = false;
+int test = 1;
 
 
 WiFiUDP udp;
@@ -1218,7 +1323,7 @@ void loop() {
 
 
 
-/* ///////////////////
+  /* ///////////////////
   if(WiFi.status()==WL_CONNECTED)
   {
     if(udpbegin==false){
@@ -1246,62 +1351,61 @@ void loop() {
   }
 
   }
-  */////////////////
+  */
+  ////////////////
 
 
-  if (mqttclient.connected() == true)
-  {
-    if (habp==2 && pinayarchg==true && millis()-10000>rutingonder10s)
-    {
+  if (mqttclient.connected() == true) {
+    if (habp == 2 && pinayarchg == true && millis() - 10000 > rutingonder10s) {
       IPAddress lip = WiFi.localIP();
       mylocalip = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
 
-      String mqyol="/" + YOL + "/FBSERVER";
-      String mqdat="PAYCHG>" + WiFi.macAddress() +"<" + esphostname + ">"+mylocalip;
-      rutingonder10s=millis();
-      mqttsend(mqyol,mqdat);
+      String mqyol = "/" + YOL + "/FBSERVER";
+      String mqdat = "PAYCHG>" + WiFi.macAddress() + "<" + esphostname + ">" + mylocalip;
+      rutingonder10s = millis();
+      mqttsend(mqyol, mqdat);
     }
   }
 
-  if (mqttclient.connected() == true)
-  {
-    if (habp==2 && habpchg==true && rutingonder10s<millis()-10000)
-    {
+  if (mqttclient.connected() == true) {
+    if (habp == 2 && habpchg == true && rutingonder10s < millis() - 10000) {
       IPAddress lip = WiFi.localIP();
       mylocalip = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
 
-      String mqyol="/" + YOL + "/FBSERVER";
-      String mqdat="PAYNEW>" + WiFi.macAddress() +"<" + esphostname + ">" + mylocalip;
-      rutingonder10s=millis();
-      mqttsend(mqyol,mqdat);
+      String mqyol = "/" + YOL + "/FBSERVER";
+      String mqdat = "PAYNEW>" + WiFi.macAddress() + "<" + esphostname + ">" + mylocalip;
+      rutingonder10s = millis();
+      mqttsend(mqyol, mqdat);
     }
   }
-  
 
 
 
-  harcananzaman=millis();
 
-MDNS.update(); // mDNS sorgularini guncellemek icindir
+  harcananzaman = millis();
+
+  MDNS.update();  // mDNS sorgularini guncellemek icindir
 
 
   xilent = httpserver.available();
-  if (xilent && fbisleniyor==false){
-    if(habp==3)timereski=millis()+4000;
-    if(habp==2)timereski=millis()+10;
-    if(habp==1)timereski=millis()+10;
-    if(habp==0)timereski=millis()+10;
+  if (xilent && fbisleniyor == false) {
+    if (habp == 3) timereski = millis() + 4000;
+    if (habp == 2) timereski = millis() + 10;
+    if (habp == 1) timereski = millis() + 10;
+    if (habp == 0) timereski = millis() + 10;
     htpcl(xilent);
-    if(htpcldepindegisti==true){
+    if (htpcldepindegisti == true) {
       pinuygula();
-      }
+    }
   }
-  
-  
-if(millis() - harcananzaman> (test*200)){
-  Serial.println("htpclde vakit uzadı: ms>" + (String)(millis()-harcananzaman)); test+=1;
-  if(test>10)test=1;
-}
+
+    serin();
+
+  if (millis() - harcananzaman > (test * 200)) {
+    Serial.println("htpclde vakit uzadı: ms>" + (String)(millis() - harcananzaman));
+    test += 1;
+    if (test > 10) test = 1;
+  }
 
 
 
@@ -1314,39 +1418,36 @@ if(millis() - harcananzaman> (test*200)){
     rescanwifi = 0;
   }
 
-harcananzaman=millis();
+  harcananzaman = millis();
 
-/////////////////// 5 saniyede bir acl ilanı yap
-  if (mqttclient.connected())
-  {
+  /////////////////// 5 saniyede bir acl ilanı yap
+  if (mqttclient.connected()) {
     mqttclient.loop();
 
-    if(ACL!="9" && ACLilanciyim==true && acltekrar < millis())
-      {
-          acltekrar=millis()+10000;
-          String myol = "/"+YOL + "/" + esphostname;
-          mqttsend(myol, "/" + YOL+"/ALLDEV=ACL:"+ACL);
-      }
+    if (ACL != "9" && ACLilanciyim == true && acltekrar < millis()) {
+      acltekrar = millis() + 10000;
+      String myol = "/" + YOL + "/" + esphostname;
+      mqttsend(myol, "/" + YOL + "/ALLDEV=ACL:" + ACL);
+    }
 
     ///////////////// ACL sormak için
-    if(ACL=="9")
-    { updateinput(); 
+    if (ACL == "9") {
+      updateinput();
       programrun();
-      if(ACLilanciyim==false){
-      if(aclsor<millis())
-      {
-        aclsor=millis()+10000;
-        String myol = "/"+YOL + "/" + esphostname;
-        String fulldata = "/ALLDEV=ACIL:"+ WiFi.macAddress() +"<" + esphostname + ">"+mylocalip;
-        mqttsend(myol, "/" + YOL + fulldata);
-      }
+      if (ACLilanciyim == false) {
+        if (aclsor < millis()) {
+          aclsor = millis() + 10000;
+          String myol = "/" + YOL + "/" + esphostname;
+          String fulldata = "/ALLDEV=ACIL:" + WiFi.macAddress() + "<" + esphostname + ">" + mylocalip;
+          mqttsend(myol, "/" + YOL + fulldata);
+        }
       }
     }
     ////////////////
+  } else {
+    mqtterror = true;
   }
-  else
-  { mqtterror = true; }
-////////////////
+  ////////////////
 
 
   if (habp == -2) dosyaokuhabp();
@@ -1365,7 +1466,7 @@ harcananzaman=millis();
     }
   }
 
-if(millis() - harcananzaman> 100)Serial.println("mqttclient.loop vaik uzadı: ms>" + (String)(millis()-harcananzaman));
+  //if (millis() - harcananzaman > 100) Serial.println("mqttclient.loop vaik uzadı: ms>" + (String)(millis() - harcananzaman));
 
 
 
@@ -1373,57 +1474,61 @@ if(millis() - harcananzaman> 100)Serial.println("mqttclient.loop vaik uzadı: ms
 
 
 
-    int upd;
-    
-    if (habp == 0) upd = 1;
-    if (habp == 1) upd = 1;
-    if (habp == 2) upd = 1;
-    if (habp == 3) upd = 50;
+  int upd;
 
-    
-      if (millis()-timereski % upd == 0 && fbisleniyor==false) {
-        headerold="";
-        harcananzaman=millis();
-        if (pinayar.length() > 0) updateinput();
-        if (pinayar.length() > 0 && programdata.length()>0) programrun();
-        if (pinayar.length() > 0) updateoutput();
-        if (pinayar.length() > 0) vrkontrol();
-        if(millis() - harcananzaman> 100)Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis()-harcananzaman));
+  if (habp == 0) upd = 100;
+  if (habp == 1) upd = 100;
+  if (habp == 2) upd = 100;
+  if (habp == 3) upd = 500;
+
+
+  if ((millis() - timereski) % upd == 0 && fbisleniyor == false) {
+    headerold = "";
+    harcananzaman = millis();
+    if (millis() - timereski > 5000) timereski = millis();
+    if (pinayar.length() > 0) updateinput();
+    if (pinayar.length() > 0 && programdata.length() > 0) programrun();
+    if (pinayar.length() > 0) updateoutput();
+    if (pinayar.length() > 0) vrkontrol();
+    if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));
+  }
+
+
+  if (habp > 0 && habp < 3) {
+    if (habp == 2) {
+      if (psco == true || psci == true || htpcldepindegisti == true) {
+        String mqyo = "/" + YOL + "/FBSERVER";
+        String mqda = "FBSERVER>" + esphostname + "pin";
+
+        if (ACLilanciyim == true) { mqda += "ACL:" + String(ACL) + ","; }
+
+        for (int hh = 0; hh < 11; hh++) {
+          if (pinname[hh] != "") {
+            mqda += pinname[hh] + ":" + PinState[hh] + ",";
+          }
+        }
+        mqttsend(mqyo, mqda);
+        psci = false;
+        psco = false;
       }
+    }
+  }
 
-
-            if (habp>0 && habp <3) {
-                if(habp==2){
-                    if(psco==true || psci==true || htpcldepindegisti==true)
-                    {
-                      String mqyo="/"+ YOL + "/FBSERVER";
-                      String mqda="FBSERVER>"+esphostname +"pin";
-
-                      if(ACLilanciyim==true){mqda+="ACL:"+String(ACL)+",";}
-
-                      for (int hh=0;hh<11;hh++)
-                      {
-                        if(pinname[hh]!="")
-                        {
-                          mqda += pinname[hh]+":"+PinState[hh]+",";
-                        }
-                      }
-                      mqttsend(mqyo,mqda);
-                      psci=false;psco=false;
-                    }
-              }
-            }
-            if (habp == 3) {
-              if (millis() - timereski  >= 5000) {
-                  timereski  = millis();
-                  //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
-                  if (fben!=0 && pinayar.length()>0 && ACL.toInt() !=9 && fbisleniyor==false)
-                  mqttclient.unsubscribe("/"+YOL+"/#");
-                  fbisleniyor=true;
-                  fbsayacoku();
-                  mqttclient.subscribe("/"+YOL+"/#");
-              }
-            }
+  if (habp == 3) {
+    if (millis() - timereski >= 5000) {
+      timereski = millis();
+      //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
+      if (fben != 0 && pinayar.length() > 0 && ACL.toInt() != 9 && fbisleniyor == false) {
+        //updateinput();
+        //programrun();
+        //updateoutput();
+        mqttclient.unsubscribe("/" + YOL + "/#");
+        fbisleniyor = true;
+        fbsayacoku();
+        mqttclient.subscribe("/" + YOL + "/#");
+      }
+    }
+  }
 
 
 
@@ -1433,11 +1538,11 @@ if(millis() - harcananzaman> 100)Serial.println("mqttclient.loop vaik uzadı: ms
     if (millis() - reConnectsayac > 30000) {
       reConnectsayac = millis();
       connectWifi();
-      if (WiFi.status() == WL_CONNECTED)
-      { 
+      if (WiFi.status() == WL_CONNECTED) {
         //udpbegin=false;
-        if(habp > 0) {if(MQTTip.length()>2) MQTTConnect();}
-        
+        if (habp > 0) {
+          if (MQTTip.length() > 2) MQTTConnect();
+        }
       }
     }
   }
@@ -1461,64 +1566,61 @@ if(millis() - harcananzaman> 100)Serial.println("mqttclient.loop vaik uzadı: ms
     }
   }
 
-  if(aut==1)
-  {
-    if(millis()-logintimeout>logintimeoutmax)
-    {
-      aut=0;
+  for (int t = 0; t < MAX_USER + 1; t++) {
+    if (usertokn[t]!="" && userLevels[t]==2){
+        if (millis() - userlogouttime[t] > logintimeoutmax) {
+        }
     }
   }
-  
 }
 
 
-void pinuygula()
-{
-        if(programdata.length()>4)programrun();
+void pinuygula() {
+  if (programdata.length() > 4) programrun();
 
-              for (int x = 0; x < sizeof(Pin) + 1; x++) {
-
-
-                if (pinmode[x] == "OUT") {
-                  String pinstatesakla;
-                  if (acildeyim[x] == true) {
-                    pinstatesakla = PinState[x];
-                    PinState[x] = acildeger[x];
-                  }
-
-                  if (pinmode[x] == "OUT" && pinsignaltype[x] == "DIG") {
-                    bool yildizli;
-                    if (pinlabel[x].indexOf("*") + 1 == pinlabel[x].length()) yildizli = true;
-                    else yildizli = false;
-                    if (PinState[x] == "0.00" || PinState[x] == "0" || PinState[x] == "LOW" || PinState[x] == "OFF") {
-                      if (yildizli == false) digitalWrite(Pin[x], LOW);
-                      else digitalWrite(Pin[x], HIGH);
-                    Serial.println("yazdım::: " + pinname[x] + ":" +PinState[x]);
-                    }
-
-                    if (PinState[x] == "1.00" || PinState[x] == "1" || PinState[x] == "HIGH" || PinState[x] == "ON") {
-                      if (yildizli == false) digitalWrite(Pin[x], HIGH);
-                      else digitalWrite(Pin[x], LOW);
-                      Serial.println("yazdım::: " + pinname[x] + ":" +PinState[x]);
-                    }
-                  }
+  for (int x = 0; x < 11; x++) {
 
 
-                  if (pinmode[x] == "OUT" && pinsignaltype[x] == "PWM") {
-                    int PWMdegerint = PinState[x].toInt();
-                    Outpwm(pinname[x], PWMdegerint);
-                  }
+    if (pinmode[x] == "OUT") {
+      String pinstatesakla;
+      if (acildeyim[x] == true) {
+        pinstatesakla = PinState[x];
+        PinState[x] = acildeger[x];
+      }
 
-                  if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
-                    int PWMdegerint = PinState[x].toInt();
-                    myservo[x].write(PWMdegerint);
-                  }
-                  if (acildeyim[x] == true) {
-                    PinState[x] = pinstatesakla;
-                  }
-                }
-              }
-              if(htpcldepindegisti==true)htpcldepindegisti=false;
+      if (pinmode[x] == "OUT" && pinsignaltype[x] == "DIG") {
+        bool yildizli;
+        if (pinlabel[x].indexOf("*") + 1 == pinlabel[x].length()) yildizli = true;
+        else yildizli = false;
+        if (PinState[x] == "0.00" || PinState[x] == "0" || PinState[x] == "LOW" || PinState[x] == "OFF") {
+          if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), LOW);
+          else digitalWrite(getGPIOPin(pinname[x]), HIGH);
+          //Serial.println("yazdım::: " + pinname[x] + ":" + PinState[x]);
+        }
+
+        if (PinState[x] == "1.00" || PinState[x] == "1" || PinState[x] == "HIGH" || PinState[x] == "ON") {
+          if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), HIGH);
+          else digitalWrite(getGPIOPin(pinname[x]), LOW);
+          //Serial.println("yazdım::: " + pinname[x] + ":" + PinState[x]);
+        }
+      }
+
+
+      if (pinmode[x] == "OUT" && pinsignaltype[x] == "PWM") {
+        int PWMdegerint = PinState[x].toInt();
+        Outpwm(pinname[x], PWMdegerint);
+      }
+
+      if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
+        int PWMdegerint = PinState[x].toInt();
+        myservo[x].write(PWMdegerint);
+      }
+      if (acildeyim[x] == true) {
+        PinState[x] = pinstatesakla;
+      }
+    }
+  }
+  if (htpcldepindegisti == true) htpcldepindegisti = false;
 }
 
 void vrkontrol() {
@@ -1558,10 +1660,8 @@ void Outpwm(String pinismi, int PWMdegerint) {
     pinismiint = pinismi.substring(1, 2).toInt();
   else pinismiint = pinismi.toInt();
   if (pinismi.indexOf("A") > -1) pinismiint += 9;
-  //Serial.println(pinismiint);
-  //Serial.println(PWMdegerint);
 
-  analogWrite(Pin[pinismiint], PWMdegerint);
+  analogWrite(getGPIOPin(pinismi), PWMdegerint);
   PinState[pinismiint] = PWMdegerint;
 }
 

@@ -6,6 +6,7 @@ void httpgonder()
             http.setTimeout(1000);
             //Serial.print("[HTTP] begin...\n");
             // configure traged server and url
+            htyolla="/esp"+htyolla;
             http.begin(client, htyolla);  // HTTP
             //Serial.print("[HTTP] GET...\n");
             // start connection and send HTTP header and body

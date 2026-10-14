@@ -141,6 +141,11 @@ if(Gelenmsg.indexOf("FBWPA:")>-1 && habp==2)
 */
 
 
+  for(int v=1;v<6;v++){
+  if(Gelentopic == mqyol[v]  && Gelenmsg == degisenmq[v])return;
+  }
+
+
   if(ACLilanciyim==true)
   {
     if(Gelenmsg.indexOf("ACIL:")>-1)
@@ -156,10 +161,6 @@ if(Gelenmsg.indexOf("FBWPA:")>-1 && habp==2)
       }
   }
 
-  for(int v=1;v<6;v++){
-  if(Gelentopic == mqyol[v]  && Gelenmsg == degisenmq[v])return;
-  }
-
 
   if (Gelenmsg == ePayload && Gelentopic == eTopic) return;
   else {
@@ -171,7 +172,7 @@ if(Gelenmsg.indexOf("FBWPA:")>-1 && habp==2)
   Serial.println(Gelenmsg);
   String tampon = Gelenmsg;
   
-  if(Gelentopic.indexOf(esphostname)>-1 || Gelentopic.indexOf("ALLDEV")>-1)
+  if(Gelentopic.indexOf(esphostname)>-1 || Gelentopic.indexOf("ALLDEV")>-1){
     Serial.println("\ntampon  indexofFBP> " + tampon.indexOf("FBP>"));
     if(tampon.indexOf("FBP>")==0)
     {
@@ -195,9 +196,12 @@ if(Gelenmsg.indexOf("FBWPA:")>-1 && habp==2)
           }
           if(tampon.length()<2)break;
       }
-      programrun();pinuygula();fbpinstateleriyaz();
+      programrun();pinuygula();
+      if(habp==3)fbpinstateleriyaz();
+      if(habp==2)psco=true;
     }
     else mqttisyap(payload);
+  }
   }
   // Note: Do not use the client in the callback to publish, subscribe or
   // unsubscribe as it may cause deadlocks when other things arrive while

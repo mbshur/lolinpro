@@ -6,12 +6,8 @@ String tamUrl;
 
 void fbsayacoku()
 {
-      //timereski=millis();
 
-                                  if(psci==true || htpcldepindegisti==true){
-                                    fbpinstateleriyaz();
-                                    htpcldepindegisti=false;
-                                  }
+
 
 
                               String anaUrl = DATABASE_URL;
@@ -31,7 +27,7 @@ void fbsayacoku()
                                     fbpinstateleriyaz();
                                   }
                                 }
-                          
+timereski=millis();                          
 fbisleniyor=false;
 }
 
@@ -47,6 +43,7 @@ void fbsayacguncelle()
 
                             // save
                             firebasePutData(tamUrl.c_str(),(String)fbsayac);
+timereski=millis(); 
 fbisleniyor=false;
 }
 
@@ -91,7 +88,7 @@ void fbpinstatelerioku()
                             String reslt=resul;
                                 if(reslt.indexOf("ACL:")>-1 && reslt.indexOf("ACL:")<2)
                                 reslt.substring(reslt.indexOf(",")+1,reslt.length());
-                                degisenler="";
+                                //degisenler="";
                                 for(int h=0;h<pinsayisi;h++)
                                 {
                                   if(reslt==".")break;
@@ -116,7 +113,7 @@ void fbpinstatelerioku()
                                               PinState[hh] =pns;
                                               fbPinState[hh] = pns;
                                               //pindurumrecyap=true;
-                                              degisenler += pinname[hh] + ":" + PinState[hh]+">" + pinlabel[hh] + ",";
+                                              //degisenler += pinname[hh] + ":" + PinState[hh]+">" + pinlabel[hh] + ",";
                                             }
 
                                         }
@@ -137,6 +134,7 @@ void fbpinstatelerioku()
 
 
                           }
+timereski=millis(); 
 fbisleniyor=false;
 }
 
@@ -158,6 +156,9 @@ void fbpinstateleriyaz()
                                   if(pinname[h].length()>0)
                                   {
                                   Serial.print(String(h) + " ----->"); Serial.print(pinname[h] + " = "); Serial.println(PinState[h]);
+                                    if(pinsignaltype[h].indexOf("DHT")>-1 && PinState[h].length()<2)return;
+                                    if(pinsignaltype[h].indexOf("HCE")>-1 && PinState[h].length()<2)return;
+                                    
                                     if(PinState[h]=="")PinState[h]="0";
                                     int b=pinname[h].length()+1;
                                     char cvc[b];
@@ -182,6 +183,7 @@ void fbpinstateleriyaz()
                             psco=false;
                             psci=false;
 
+timereski=millis(); 
 fbisleniyor=false;
 }
 
@@ -219,7 +221,7 @@ void fbpinayarlarioku()
                           }
 
 
-
+timereski=millis(); 
 fbisleniyor=false;
                             /////////////////////////////
 }
@@ -238,14 +240,15 @@ void fbpinayarlariyaz()
                                 {
                                   if( pinsatir[h].length()>0) dats+="[" + pinsatir[h] + "]";
                                 }
-                                dats="[" + pinayar;
+                                dats="[" + pinayar + "]";
                                 dats.replace("\n","][");
+                                
                                 dats.replace("[]","");
-                                dats =dats+"]";
                                 firebasePutData(tamUrl.c_str(),dats);
 
                             // save
                                 fbpinstateleriyaz();
+timereski=millis(); 
 fbisleniyor=false;
                             /////////////////////////////
 }

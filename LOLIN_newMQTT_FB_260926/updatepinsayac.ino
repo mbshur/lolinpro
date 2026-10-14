@@ -12,15 +12,14 @@ void updatehcsr()
 
 
 void updateinput()
-{ degisenler="";
+{ //degisenler="";
         for(int x=0;x<pinsayisi;x++){
 
                        if(pinmode[x]=="INP")
                        {
                         if(pinsignaltype[x]=="ANG"){
-                        pinMode(Pin[x], INPUT);
                         //delay(5);
-                        int analogokunandeger = analogRead(Pin[x]);
+                        int analogokunandeger = analogRead(getGPIOPin(pinname[x]));
                           if(pinlabel[x].indexOf("DC")>-1)
                           {
                             float dcv;
@@ -55,9 +54,8 @@ void updateinput()
                         }
 
                         if(pinsignaltype[x]=="DIG"){
-                        pinMode(Pin[x], INPUT);
                         //delay(5);
-                        PinState[x] = digitalRead(Pin[x]);
+                        PinState[x] = digitalRead(getGPIOPin(pinname[x]));
 
                         }
 
@@ -65,35 +63,32 @@ void updateinput()
                           hcsr04loop(x);
                         }
                         
-                      if(pinsignaltype[x].indexOf("DHT")==0)
-                      { dhtsayac+=1; 
-                         if(dhtsayac>5){
+                      if(pinsignaltype[x].indexOf("DHT") >-1 && DHTA[x] != NULL)
+                      {  dhtsayac-=1;
+                         if(dhtsayac<1 || dhtsayac==0){
 
-                          Serial.println("DHTDONGUSU"); 
-                              dhtsayac=0;
-                              uint8_t DHT_TYPE;
-                              if(pinsignaltype[x]=="DHT1") {DHT_TYPE= DHT11;}
-                              if(pinsignaltype[x]=="DHT2") {DHT_TYPE= DHT12;}
-                              if(pinsignaltype[x]=="DHT3") {DHT_TYPE= DHT21;}
-                              if(pinsignaltype[x]=="DHT4") {DHT_TYPE= DHT22;}
-                              DHT DHTA(Pin[x], DHT_TYPE);
+                          //Serial.println("DHTDONGUSU"); 
+                              dhtsayac=5;
                               //DHT
-
-                              t = DHTA.readTemperature();  // boş iken  celcius // f = DHTA.readTemperature(true); fahrenayt 
-                              delay(20);
-
-                              h = DHTA.readHumidity();
-                              delay(20);
-
+                              delay(30);
+                              t = DHTA[x]->readTemperature();  // boş iken  celcius // f = DHTA.readTemperature(true); fahrenayt 
+                              delay(30);
+                              h = DHTA[x]->readHumidity();
+                              delay(30);
+                              //Serial.print("t: ") ;Serial.println(t);
+                              //Serial.print("h: ") ;Serial.println(h);
                               // Check if any reads failed and exit early (to try again).
                               if (isnan(h) || isnan(t))  // || isnan(f)
                               {
-                                  erlog = "DHT sensor okunamadı";
+                                  pinayarerrorlog = "DHT sensor okunamadı";
+                                  dhtsayac==1;
+                              // FAKE bilgi gönder
+
+                                        PinState[x] ="t200h200";
+                                        //Serial.println("DHT okunamadı.");
+
                               } else 
                               {
-
-                                    if(h<100)
-                                    {
 
                                       // sıcaklık hatası düzelt
                                       float tvehata=t+pinval[x].toFloat();
@@ -111,16 +106,18 @@ void updateinput()
                                       if(pinminvalue[x]=="1") hs = hs.substring(0,hs.length()-1);
 
                                         PinState[x] ="t" + ts + "h" + hs;
+                                        /*
                                         Serial.print(("Nem: "));
                                         Serial.print(hs);
                                         Serial.print(("0%  Sıcaklık: "));
                                         Serial.print(ts);
                                         Serial.print((" C"));
                                         Serial.println(".");
-                                    }
+                                        */
                               }
-                                                        Serial.println("DHTDONGUSU-çıkış"); 
+                                        //Serial.println("DHTDONGUSU-çıkış"); 
                         }
+
 
                       }
 
@@ -131,7 +128,7 @@ void updateinput()
                           psci=true;
                           
                           ePinState[x] = PinState[x];
-                              degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
+                              //degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
                       }
 
 
@@ -140,28 +137,40 @@ void updateinput()
                          {
                           psci=true;
                           ePinState[x] = PinState[x];
-                              degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
-                              Serial.println(degisenler);
+                              //degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
+                              //Serial.println(degisenler);
                          } else
                               if(pinsignaltype[x]=="ANG")
                               {
 
-                                int epinstate = ePinState[x].toInt();
-                                int pinstate  =  PinState[x].toInt();
+                                if(pinlabel[x].indexOf("DC")>-1)
+                                {
+                                float epinstatef =  ePinState[x].toFloat();
+                                float pinstatef  =  PinState[x].toFloat();
 
-
-                                if(abs(epinstate-pinstate)>10){
-                                  //Serial.println("Farklı olan e: " + pinname[x] + " " +ePinState[x] + " >> " + PinState[x]);
-                                  psci=true;
-                                  ePinState[x] = PinState[x];
-                                  degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
+                                  if(epinstatef!=pinstatef)
+                                  {
+                                   psci=true;
+                                   ePinState[x] = PinState[x];
+                                   //degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
+                                  }
                                 }
-
+                                else
+                                {
+                                  int epinstate = ePinState[x].toInt();
+                                  int pinstate  =  PinState[x].toInt();
+                                  if(abs(epinstate-pinstate)>2){
+                                    //Serial.println("Farklı olan e: " + pinname[x] + " " +ePinState[x] + " >> " + PinState[x]);
+                                    psci=true;
+                                    ePinState[x] = PinState[x];
+                                    //degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
+                                  }
+                                }
                               } else
                               {
                               psci=true;
                               ePinState[x] = PinState[x];
-                              degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
+                              //degisenler += pinname[x] + ":" + PinState[x] + "|" + pinlabel[x] + ",";
                               }
 
 
@@ -200,9 +209,9 @@ void updateoutput()
   int mod = bitRead(GPE, 5); 
   
   if (mod == 1) {
-    Serial.println("Pin D1 şu an: OUTPUT");
+    //Serial.println("Pin D1 şu an modu: OUTPUT");
   } else {
-    Serial.println("Pin D1 şu an: INPUT");
+    //Serial.println("Pin D1 şu an modu: INPUT");
   }
 
 
@@ -222,14 +231,14 @@ void updateoutput()
                         if(pinsignaltype[x]=="DIG"){
                           bool yildizli; if(pinlabel[x].indexOf("*")+1==pinlabel[x].length())yildizli=true;else yildizli=false;
                                     if(PinState[x]=="0" ||PinState[x]=="")  {
-                                      if(yildizli==false)digitalWrite(Pin[x], LOW ); else  digitalWrite(Pin[x], HIGH);
+                                      if(yildizli==false)digitalWrite(getGPIOPin(pinname[x]), LOW ); else  digitalWrite(getGPIOPin(pinname[x]), HIGH);
                                     }
                                       else
                                     if(PinState[x]=="1" || PinState[x] =="ON")  
                                     {
-                                      if(yildizli==false)digitalWrite(Pin[x], HIGH); else  digitalWrite(Pin[x], LOW);
+                                      if(yildizli==false)digitalWrite(getGPIOPin(pinname[x]), HIGH); else  digitalWrite(getGPIOPin(pinname[x]), LOW);
                                     }
-                                    Serial.println("\npinmod: >>");
+                                    //Serial.println("\npinmod: >>");
 
                         }
 
@@ -243,7 +252,7 @@ void updateoutput()
                          psco=true;
                          //pindurumrecyap=true;
                          ePinState[x] = PinState[x];
-                         degisenler += pinname[x] + ":" + PinState[x]+ "|" + pinlabel[x] + ",";
+                         //degisenler += pinname[x] + ":" + PinState[x]+ "|" + pinlabel[x] + ",";
                        }
           }
 

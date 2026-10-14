@@ -1,108 +1,96 @@
 String sonheader;
 bool kucukmenu;
-void httpheader(WiFiClient xilent) {
-  xilent.println("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>");
-  xilent.println("<head><meta name=\"viewport\" xo=\"width=device-width, initial-scale=1\">");
-  //xilent.println("<META charset=iso-8859-9\">";
-  xilent.println("<meta charset=\"UTF-8\">");
-  xilent.println("<link rel=\"icon\" href=\"data:,\">");
+// Parametrenin başına '&' ekledik, böylece bağlantı RAM'de kopyalanmaz.
+void httpheader(WiFiClient& xilent) {
+  xilent.print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\n"));
+  xilent.print(F("<head><meta name='viewport' content='width=device-width, initial-scale=1'>\r\n"));
+  xilent.print(F("<meta charset='UTF-8'>\r\n"));
+  xilent.print(F("<link rel='icon' href='data:,'>\r\n"));
 
-  xilent.println("<style>html {font-family:Helvetica;display:inline-block;margin:0px auto;text-align:left;}");
-  xilent.println(".butmen{background-color:#0000;border:none;color:white; padding:4px 4px;font-size:22px; margin:2px;cursor:pointer;}");
-  xilent.println(".butmenbs{background-color:#0000;border:none;color:white; padding:4px 4px;font-size:22px; margin:2px;cursor:pointer;}");
-  //xilent.println(".button2{background-color:#77878A;border:none;color:white; padding:16px 40px;font-size:10px; margin:2px;cursor:pointer;}");
-  //xilent.println(".button3{background-color:#77878A;border:none;color:black; padding:16px 40px;font-size:10px; margin:2px;cursor:pointer;}");
-  //xilent.println("body {background-color: #" + butonpbgcol + ";}");
-  xilent.println("</style>");
-  xilent.println("</head>");
-  xilent.println("<body bgcolor='#" + butonpbgcol + "'>");
+  // CSS Kısmı Düzenlendi: Butonların ve yazıların alt satıra kırılmasını engellemek için 'white-space: nowrap;' eklendi
+  xilent.print(F("<style>html {font-family:Helvetica;display:inline-block;margin:0px auto;text-align:left;}\r\n"));
+  xilent.print(F(".butmen{background-color:#0000;border:none;color:white; padding:6px 8px;font-size:20px; margin:2px;cursor:pointer; white-space: nowrap;}\r\n"));
+  xilent.print(F(".butmenbs{background-color:#0000;border:none;color:white; padding:4px 4px;font-size:22px; margin:2px;cursor:pointer;}\r\n"));
+  xilent.print(F("table {border-collapse: collapse;}\r\n"));  // Tablo boşluklarını sıfırlar
+  xilent.print(F("</style>\r\n</head>\r\n"));
+
+  xilent.printf_P(PSTR("<body bgcolor='#%s'>\r\n"), butonpbgcol.c_str());
 
   if (kucukmenu == false) {
-    //xilent.println("<td height='25%'>navbar</td>");
-    //xilent.println("<td height='75%'>content</td>");
-    xilent.println("<br><table><tr><td  style=\"border:2px solid black;color:black\">");
-    xilent.println("<table><tr><td bgcolor='" + butonpbgcol + "' style='vertical-align: top;'><table  bgcolor='" + butonpbgcol + "' style='border:1px solid #" + menutextcol + ";'><td style=\"border:0px solid black;height:100p; align:center; width:%10; \">");
+    xilent.print(F("<br><table style='width:100%;'><tr><td style='border:2px solid black;color:black; vertical-align: top;'>\r\n"));
 
-    xilent.println("<a href=\"/kucukmenu\"><button class=\"button butmen\">&ensp;<font color='" + menutextcol + "'>☰ </font><font size='3' color='" + menutextcol + "'>MENU</font></button></a>");
+    // DÜZELTME: width:%%10; değil, menü yazılarının rahat sığması için %18 (18%%) yapıldı ve genişlik HTML sonuna alındı.
+    xilent.printf_P(PSTR("<table style='width:100%%;'><tr><td bgcolor='%s' style='vertical-align: top; width:18%%;'><table bgcolor='%s' style='border:1px solid #%s; width:100%%;'><td style='border:0px solid black; align:center;'>\r\n"),
+                  butonpbgcol.c_str(), butonpbgcol.c_str(), menutextcol.c_str());
 
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
+    xilent.printf_P(PSTR("<a href='%s/kucukmenu'><button class='button butmen'>&ensp;<font color='%s'>☰ </font><font size='3' color='%s'>MENU</font></button></a>\r\n"),
+                  usertoken.c_str(), menutextcol.c_str(), menutextcol.c_str());
 
-    //<a href=\"/" + pinname[x] + ":1\"><button class=\"button butmen\">🟥</button></a>
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/Menu0'><button class='button butmen'>🏠 <font size='3' color='%s'>Anasayfa</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
 
-    xilent.println("<a href=\"/Menu0\"><button class=\"button butmen\">🏠 <font size='3' color='" + menutextcol + "'>Anasayfa</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/\"><button class=\"button butmen\">🧐 <font size='3' color='" + menutextcol + "'>Durum</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/pnayar\"><button class=\"button butmen\">🧮<font size='3' color='" + menutextcol + "'>Pin ayar</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/ssidset\"><button class=\"button butmen\">🛜 <font size='3' color='" + menutextcol + "'>Wifi ayar</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/myssidnameayar\"><button class=\"button butmen\">📓 <font size='3' color='" + menutextcol + "'>Cihaz adı</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/serveripayar\"><button class=\"button butmen\">💻 <font size='3' color='" + menutextcol + "'>Server ayar</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/mqttipayar\"><button class=\"button butmen\">🦟 <font size='3' color='" + menutextcol + "'>MQTT ayar</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/firebaseset\"><button class=\"button butmen\">🔥 <font size='3' color='" + menutextcol + "'>Firebase ayar</font></button></a></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<a href=\"/kulupayr\"><button class=\"button butmen\">👨🏻‍💻 <font size='3' color='" + menutextcol + "'>Şifre ayar</font></button></a></td></tr>");
-    xilent.println("</td></tr></table><br><br><br><br><br><br><br><br><br><br><br><br></td>");
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/'><button class='button butmen'>🧐 <font size='3' color='%s'>Durum</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
 
-    //xilent.println("<td bgcolor='" + butonpbgcol+ "' style=\"border:2px solid orange;height:200p; vertical-align:top; width:%8; \"> </td> <td style=\"border:2px solid " + butonpbgcol+ ";height:180p; vertical-align:top; width:%90; \">");
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/pnayar'><button class='button butmen'>🧮 <font size='3' color='%s'>Pin ayar</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
 
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/ssidset'><button class='button butmen'>🛜 <font size='3' color='%s'>Wifi ayar</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
 
-    //xilent.println("<font size=\"2\" color=\"#FFDDDD\">");
-    //xilent.println(logintimeout);
-    //xilent.println("<br></font>");
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/myssidnameayar'><button class='button butmen'>📓 <font size='3' color='%s'>Cihaz adı</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
+
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/mqttipayar'><button class='button butmen'>🦟 <font size='3' color='%s'>MQTT ayar</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
+
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/firebaseset'><button class='button butmen'>🔥 <font size='3' color='%s'>Firebase ayar</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
+
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str());
+    xilent.printf_P(PSTR("<a href='%s/kulupayr'><button class='button butmen'>👨🏻‍💻 <font size='3' color='%s'>Şifre ayar</font></button></a></td></tr>\r\n"), usertoken.c_str(), menutextcol.c_str());
+
+    xilent.print(F("</td></tr></table><br><br><br><br><br><br><br><br><br><br><br><br></td>\r\n"));
+
   } else {
 
-    xilent.println("<br><table><tr><td  style=\"border:2px solid black;color:black\">");
-    xilent.println("<table><tr><td bgcolor='" + butonpbgcol + "' style='vertical-align: top;'><table bgcolor='" + butonpbgcol + "' style='border:1px solid #" + menutextcol + ";'><td style=\"border:1px solid " + butonpbgcol + ";height:200p; align:center; width:%8; \">");
+    xilent.print(F("<br><table style='width:100%;'><tr><td style='border:2px solid black;color:black; vertical-align: top;'>\r\n"));
 
-    // büyük menü için düğme
-    xilent.println("<span title='Menüyü genişletir butonların etiketleri görünür.'><a href=\"/buyukmenu\"><button class=\"button butmen\">&ensp;<font color='" + menutextcol + "'>☰ </font></button></a></span>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
+    // DÜZELTME: width:%8; hatası width:6%%; (yüzde 6) olarak düzeltildi (Sadece ikonların sığacağı kadar dar)
+    xilent.printf_P(PSTR("<table style='width:100%%;'><tr><td bgcolor='%s' style='vertical-align: top; width:6%%;'><table bgcolor='%s' style='border:1px solid #%s; width:100%%;'><td style='border:1px solid %s; align:center;'>\r\n"),
+                  butonpbgcol.c_str(), butonpbgcol.c_str(), menutextcol.c_str(), butonpbgcol.c_str());
 
-    xilent.println("<span title='Ana sayfaya dön'><a href=\"/Menu0\"><button class=\"button butmen\">🏠</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='Durum sayfası'><a href=\"/\"><button class=\"button butmen\">🧐</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='Pin ve program ayarları'><a href=\"/pnayar\"><button class=\"button butmen\">🧮</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='Wifi`ye bağlanma ayarları'><a href=\"/ssidset\"><button class=\"button butmen\">🛜</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='Benim SSID adım'><a href=\"/myssidnameayar\"><button class=\"button butmen\">📓</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='Wanserver ip girişi'><a href=\"/serveripayar\"><button class=\"button butmen\">💻</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='MQTT ile bağlanılacak server ip girişi'><a href=\"/mqttipayar\"><button class=\"button butmen\">🦟</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='Firebase bağlantı ayarları'><a href=\"/firebaseset\"><button class=\"button butmen\">🔥</button></a></span></td></tr>");
-    xilent.println("<tr><td bgcolor='" + butonpbgcol + "' style=\"border:1px solid " + butonpbgcol + ";\">");
-    xilent.println("<span title='admin, kullanıcı şifre değiştirme sayfası'><a href=\"/kulupayr\"><button class=\"button butmen\">👨🏻‍💻</button></a></span></td></tr>");
-    xilent.println("</td></tr></table><br><br><br><br><br><br><br><br><br><br><br><br></td>");
+    xilent.printf_P(PSTR("<span title='Menüyü genişletir butonların etiketleri görünür.'><a href='%s/buyukmenu'><button class='button butmen'>&ensp;<font color='%s'>☰ </font></button></a></span>\r\n"), usertoken.c_str(), menutextcol.c_str());
 
-    //xilent.println("<td bgcolor='" + butonpbgcol+ "' style=\"border:2px solid orange;height:200p; vertical-align:top; width:%8; \"> </td> <td style=\"border:2px solid " + butonpbgcol+ ";height:180p; vertical-align:top; width:%90; \">");
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='Ana sayfaya dön'><a href='%s/Menu0'><button class='button butmen'>🏠</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='Durum sayfası'><a href='%s/'><button class='button butmen'>🧐</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='Pin ve program ayarları'><a href='%s/pnayar'><button class='button butmen'>🧮</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='Wifi`ye bağlanma ayarları'><a href='%s/ssidset'><button class='button butmen'>🛜</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='Benim SSID adım'><a href='%s/myssidnameayar'><button class='button butmen'>📓</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='MQTT ile bağlanılacak server ip girişi'><a href='%s/mqttipayar'><button class='button butmen'>🦟</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='Firebase bağlantı ayarları'><a href='%s/firebaseset'><button class='button butmen'>🔥</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
+    xilent.printf_P(PSTR("<tr><td bgcolor='%s' style='border:1px solid %s;'><span title='admin, kullanıcı şifre değiştirme sayfası'><a href='%s/kulupayr'><button class='button butmen'>👨🏻‍💻</button></a></span></td></tr>\r\n"), butonpbgcol.c_str(), butonpbgcol.c_str(), usertoken.c_str());
 
-    //xilent.println("<font size=\"2\" color=\"#FFDDDD\">");
-    //xilent.println(logintimeout);
-    //xilent.println("<br></font>");
+    xilent.print(F("</td></tr></table><br><br><br><br><br><br><br><br><br><br><br><br></td>\r\n"));
   }
-  xilent.println("<td bgcolor='#" + butonpbgcol + "' style=\"border:4px solid #" + butonpbgcol + ";height:200p; vertical-align:top; width:%8; \"> </td> <td style=\"border:2px solid " + butonpbgcol + ";height:180p; vertical-align:top; width:%90; \">");
 
-  //xilent.println("<hr style=\"height:8px;border-width:1;color: #" + menutextcol+ ";background-color: #" + menutextcol+ "\">");
-  xilent.println("&emsp; <font size=\"6\" align='center' color=\"#" + menutextcol + "\">" + esphostname + "</font>&emsp; - &emsp;");
+  // DÜZELTME: Genişlik hataları düzeltildi, sağ taraftaki içerik ekranı kalan tüm boşluğu kaplasın diye width:82%% (büyük menüde) ve 94%% (küçük menüde) olacak şekilde tarayıcı otomatik ayarlar.
+  xilent.printf_P(PSTR("<td bgcolor='#%s' style='border:4px solid #%s; vertical-align:top; width:2%%;'> </td> <td style='border:2px solid %s; vertical-align:top; pading:10px;'>\r\n"),
+                butonpbgcol.c_str(), butonpbgcol.c_str(), butonpbgcol.c_str());
 
-  if (header.indexOf("/Menu1") > -1 || (Menu == 1 && header.indexOf("/ HTTP/1.1") > -1)) xilent.println("Durum sayfası");
-  if (header.indexOf("/pnayar") > -1) xilent.println("Pin ayar sayfası");
-  if (header.indexOf("/ssidset") > -1) xilent.println("Bağlantı ayar sayfası");
-  if (header.indexOf("/myssidnameayar") > -1) xilent.println("Cihaz adı ayar sayfası");
-  if (header.indexOf("/serveripayar") > -1) xilent.println("Server ip ayar sayfas");
-  if (header.indexOf("/mqttipayar") > -1) xilent.println("MQTT ayar sayfası");
-  if (header.indexOf("/firebaseset") > -1) xilent.println("Firebase ayar sayfası");
-  if (header.indexOf("/kulupayr") > -1) xilent.println("Kullanıcı sayfası");
+  xilent.printf_P(PSTR("&emsp; <font size='6' align='center' color='#%s'>%s</font>&emsp; - &emsp;\r\n"),
+                menutextcol.c_str(), esphostname.c_str());
 
-  xilent.println("<hr style=\"height:8px;border-width:1;color: #" + menutextcol + ";background-color: #" + menutextcol + "\">");
+  if (header.indexOf("/Menu1") > -1 || (Menu == 1 && header.indexOf("/ HTTP/1.1") > -1)) xilent.print(F("Durum sayfası"));
+  if (header.indexOf("/pnayar") > -1) xilent.print(F("Pin ayar sayfası"));
+  if (header.indexOf("/ssidset") > -1) xilent.print(F("Bağlantı ayar sayfası"));
+  if (header.indexOf("/myssidnameayar") > -1) xilent.print(F("Cihaz adı ayar sayfası"));
+  if (header.indexOf("/mqttipayar") > -1) xilent.print(F("MQTT ayar sayfası"));
+  if (header.indexOf("/firebaseset") > -1) xilent.print(F("Firebase ayar sayfası"));
+  if (header.indexOf("/kulupayr") > -1) xilent.print(F("Kullanıcı sayfası"));
+
+  xilent.printf_P(PSTR("<hr style='height:8px;border-width:1;color: #%s;background-color: #%s'>\r\n"),
+                  menutextcol.c_str(), menutextcol.c_str());
 }
 
 
@@ -180,27 +168,26 @@ void htpcl(WiFiClient xilent) {
           if (header.indexOf("/payM") > -1) {
             xilent.println("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n");
             xilent.println("payĞ" + pinayar + "<br><br>");
-            String pis="";
-            if(ACLilanciyim==true){pis+="ACL:"+String(ACL)+",";}
-            
-            for(int k=0;k<11;k++)
-            {
-              if(pinname[k]!=""){
-                pis+=pinname[k] + ":" + PinState[k] +",";
+            String pis = "";
+            if (ACLilanciyim == true) { pis += "ACL:" + String(ACL) + ","; }
+
+            for (int k = 0; k < 11; k++) {
+              if (pinname[k] != "") {
+                pis += pinname[k] + ":" + PinState[k] + ",";
               }
             }
-            
+
 
 
             xilent.println("pinĞ" + pis + "<br><br>");
             xilent.println("rĞ" + String(fbsayac) + "<br><br>");
             xilent.println("\r\n\r\n");
-            if(pinayarchg==true)pinayarchg=false;
-            if(habpchg==true)habpchg=false;
+            if (pinayarchg == true) pinayarchg = false;
+            if (habpchg == true) habpchg = false;
             return;
           }
 
-
+          /*
           if (header.indexOf("/ser:") > -1) {
 
             IPAddress lip = WiFi.localIP();
@@ -220,7 +207,7 @@ void htpcl(WiFiClient xilent) {
             xilent.println("\r\n\r\n");
             return;
           }
-
+*/
 
 
 
@@ -229,13 +216,12 @@ void htpcl(WiFiClient xilent) {
           //           http://192.168.2.138/auth:?capt=2046&unme=admin&pwrd=1111
           Serial.println(header);
 
-          if (header.indexOf("/Menu0") > -1) { Menu = 0; }
-          //if (header.indexOf("/Menu0") > -1){ Menu = 0;aut=0}
-          if (header.indexOf("/Menu1") > -1) Menu = 1;
+          bool menu1girilemez = false;
+
 
           //aut = 1;
 
-          if (header.indexOf("/logcancel") > -1) aut = 0;
+          if (header.indexOf("/logcancel") > -1){ aut = 0; usertoken="";}
 
           String lipstrhost = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]);
 
@@ -255,17 +241,112 @@ void htpcl(WiFiClient xilent) {
           }
 
 
+          /*
+          if (aut == 0 && remoteip.indexOf(lipstrhost) == 0) // && header.indexOf("/SEND>data:")>-1)
+          { 
+            aut = 1;
+            //header=header.substring(header.indexOf("/SEND>data:")+4,header.length());
+          }
+          */
 
-          if (aut == 0 && remoteip.indexOf(lipstrhost) == 0) aut = 2;
+
+
+          if (header.indexOf("/pinayarsil") > -1) {
+            pinayar = "";
+            dosyaYazpinayar();
+            header = "/ HTTP/1.1";
+          }
+
+          if (header.indexOf("/programsil") > -1) {
+            programdata = "";
+            dosyaYazprogram(programdata);
+            header = "/ HTTP/1.1";
+          }
+
+          if (header.indexOf("/usersil") > -1) {
+            users = "admin,1111,2\na,1,1\n";
+            Menu=0;
+            aut=0;
+            usernamelbl="";
+            usertoken="";
+            dosyaYazusers();
+            dosyaOkuusers();
+            header = header.substring (0, header.indexOf("/userssil")) + "/logout" +
+             header.substring (header.indexOf("/userssil")+9 , header.length());
+          }
+
+          if (header.indexOf("/nevarsasil") > -1) {
+            LittleFS.remove("/program.txt");
+            delay(10);
+            LittleFS.remove("/pinayar.txt");
+            delay(10);
+            LittleFS.remove("/ssidpass.txt");
+            delay(10);
+            LittleFS.remove("/httpserverip.txt");
+            delay(10);
+            LittleFS.remove("/mqttip.txt");
+            delay(10);
+            LittleFS.remove("/myssidname.txt");
+            delay(10);
+            LittleFS.remove("/fben.txt");
+            delay(10);
+            LittleFS.remove("/fburl.txt");
+            delay(10);
+            LittleFS.remove("/fbapi.txt");
+            delay(10);
+            LittleFS.remove("/fbyol.txt");
+            delay(10);
+            LittleFS.remove("/fbusername.txt");
+            delay(10);
+            LittleFS.remove("/fbuserpass.txt");
+            delay(10);
+            LittleFS.remove("/habp.txt");
+            delay(10);
+            LittleFS.remove("/usrnamepass.txt");
+            delay(10);
+            ESP.reset();
+          }
+
+
+
 
           if (header.indexOf("/login") > -1) aut = -1;
-          if (header.indexOf("/logout") > -1) aut = 2;
 
-          if (header.indexOf("SPAYPIN") > -1)aut = 1;
+          if (header.indexOf("/logout") > -1) {
+            aut = 0;
+            for (int u = 0; u < MAX_USER; u++) {
+              if (header.substring(header.indexOf("/tokn:"), header.indexOf("/tokn:") + 10) == usertokn[u]) {
+                usertoken = "";
+                usertokn[u] = "";
+                usernamelbl = "";
+                header = header.substring(0, header.indexOf("/tokn:")) + header.substring(header.indexOf("/tokn:") + 10, header.length());
+                break;
+              }
+            }
+          }
+
+
+
+          if (header.indexOf("SPAYPIN") > -1) aut = 1;
 
           Serial.println(xilent.remoteIP());
 
           if (header.indexOf("favicon.ico") < 0) sonheader = header;
+
+          if (header.indexOf("/tokn:") > -1) {
+            aut = 0;
+            for (int u = 0; u < MAX_USER; u++) {
+
+              if (header.substring(header.indexOf("/tokn:"), header.indexOf("/tokn:") + 10) == usertokn[u]) {
+                if (userLevels[u] == 2) userlogouttime[u] = millis();
+                usernamelbl = usernames[u];
+                aut = userLevels[u];
+                usertoken = usertokn[u];
+                header = header.substring(0, header.indexOf("/tokn:")) + header.substring(header.indexOf("/tokn:") + 10, header.length());
+                break;
+              }
+            }
+          }
 
 
 
@@ -310,11 +391,25 @@ void htpcl(WiFiClient xilent) {
                 }
 */
 
-              if (capt == capttmp && unme == unmetmp && pwrd == pwrdtmp) {
-                aut = 1;
-                logintimeout = millis();
-              } else {
-                xo2 += "<br> HATALI GiRiS.";
+              if (capt == capttmp) {
+                if (users.length() < 1) {
+                  users = "admin,1111,2\na,1,1\n";
+                  dosyaYazusers();
+                  dosyaOkuusers();
+                }
+
+                for (int u = 0; u < MAX_USER; u++) {
+                  if (usernames[u] == unmetmp && passwords[u] == pwrdtmp) {
+                    usertokn[u] = "/tokn:" + capt;
+                    usertoken = "/tokn:" + capt;
+                    aut = userLevels[u];
+                    if (userLevels[u] == 2) userlogouttime[u] = millis();
+                    usernamelbl = usernames[u];
+                    break;
+                  }
+                }
+                capt = "";
+                if (aut == 0) { xo2 += "<br> HATALI GiRiS."; }
               }
             }
           }
@@ -322,98 +417,60 @@ void htpcl(WiFiClient xilent) {
           if (aut < 1) {
             if (header.indexOf("/") > -1) {
               capt = String(random(1000, 9999));
+
+              // IP adreslerini String nesnelerine dönüştürüp RAM harcamak yerine
+              // doğrudan WiFi kütüphanesinden alıp printf içinde basacağız.
               IPAddress gip = WiFi.gatewayIP();
-              String gipStr = String(gip[0]) + '.' + String(gip[1]) + '.' + String(gip[2]) + '.' + String(gip[3]);
               IPAddress dns = WiFi.dnsIP();
-              String dnsStr = String(gip[0]) + '.' + String(gip[1]) + '.' + String(gip[2]) + '.' + String(gip[3]);
               IPAddress ip = WiFi.softAPIP();
-              String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
-              xilent.println("<!DOCTYPE HTML>\r\n<html>");
-              xilent.println("<head><meta name=\"viewport\" xo=\"width=device-width, initial-scale=1\">");
-              xilent.println("<META charset=\"UTF-8\">");
-              xilent.println("</head>");
-              //xilent.println("<body scroll=\"yes\" style=\"overflow: hidden\"><br>";
-              xilent.println("<body><br>");
-              xilent.println("<font size=\"3\" color=\"#FF0000\">" + esphostname + "</font>");
 
-              xilent.println("<br>informations<br>");
+              // HTML Başlangıcı ve CSS/Meta etiketleri tamamen Flash bellekte
+              xilent.print(F("<!DOCTYPE HTML>\r\n<html>\r\n<head><meta name='viewport' xo='width=device-width, initial-scale=1'>\r\n<META charset='UTF-8'>\r\n</head>\r\n<body><br>\r\n"));
+
+              // Dinamik Hostname basımı
+              xilent.printf_P(PSTR("<font size='3' color='#FF0000'>%s</font><br>informations<br>\r\n"), esphostname.c_str());
+
+              // xo2 içeriği (xo2 global veya lokal bir String ise)
               xilent.println(xo2);
-              xilent.println("<br>");
+              xilent.print(F("<br><br>\r\n"));
 
-              xilent.println("<br>");
-              xilent.println("Local IP : ");
-              xilent.println(lipStr);
-              xilent.println("<br>");
-              xilent.println("Local Gateway : ");
-              xilent.println(gipStr);
-              xilent.println("<br>");
-              xilent.println("Access IP : ");
-              xilent.println(ipStr);
-              xilent.println("</td>");
-              xilent.println("<form autocomplete=\"off\" action=\"/auth:\" method=\"get\"><br><label>" + capt + "<br><label>kodu gir: </label><input name='capt' style=\"width:70px;\" maxlength='4'><br><label>Username: </label><input name='unme' style=\"width:70px;\" maxlength='6'><label><br>password: </label><input name='pwrd' type='password' style=\"width:70px;\" maxlength='4'><input type='submit' style='width:60px;background-color:lightgreen;'></form>");
-              //xilent.println("<br>");
-              xilent.println("<br><br> <div align=\"left\"><form action=\"/logcancel\" method=\"POST\"><input type=\"submit\" value=\"vazgeç\" style='width:60px;background-color:pink;'></form></div>");
-              xilent.println("<br><br>");
-              xilent.println("<br</body>");
+              // IP Bilgilerini basıyoruz. %d.%d.%d.%d formatı sayesinde
+              // RAM'de tek bir String bile oluşturmadan IPAddress nesnesini doğrudan ekrana basıyoruz.
+              xilent.printf_P(PSTR("Local IP : %d.%d.%d.%d<br>\r\n"), lip[0], lip[1], lip[2], lip[3]);  // Not: Kodunda lipStr tanımı vardı ama lip nesnesi yukarıda eksikti. Eğer lip yukarıda tanımlıysa bu satır çalışır.
+              xilent.printf_P(PSTR("Local Gateway : %d.%d.%d.%d<br>\r\n"), gip[0], gip[1], gip[2], gip[3]);
+              xilent.printf_P(PSTR("Access IP : %d.%d.%d.%d</td>\r\n"), ip[0], ip[1], ip[2], ip[3]);
+
+              // O devasa Form yapısını tek satırda Flash belleğe gömüyoruz.
+              // capt değişkenini (%s) dinamik olarak formun içine yerleştiriyoruz.
+              xilent.printf_P(PSTR("<form autocomplete='off' action='%s/auth:' method='get'><br><label>%s<br><label>kodu gir: </label><input name='capt' style='width:70px;' maxlength='4'><br><label>Username: </label><input name='unme' style='width:70px;' maxlength='6'><label><br>password: </label><input name='pwrd' type='password' style='width:70px;' maxlength='4'><input type='submit' style='width:60px;background-color:lightgreen;'></form>\r\n"), usertoken.c_str(), capt.c_str());
+
+              // Vazgeç butonu ve HTML kapanışı
+              xilent.printf_P(PSTR("<br><br> <div align='left'><form action='%s/logcancel' method='POST'><input type='submit' value='vazgeç' style='width:60px;background-color:pink;'></form></div><br><br><br></body>\r\n"), usertoken.c_str());
 
               xilent.println();
               xilent.abort();
-              ;
               return;
             }
           }
 
-
-
+          /////////////////////
+          /////////////////////////////////
+          if (header.indexOf("/Menu0") > -1) { Menu = 0; }
+          //if (header.indexOf("/Menu0") > -1){ Menu = 0;aut=0}
+          if (header.indexOf("/Menu1") > -1 && aut>1)
+          {
+            Menu = 1;
+            menu1girilemez =false;
+          }
+          
+          if (header.indexOf("/Menu1") > -1 && aut<2)
+          {
+            Menu = 0;
+            menu1girilemez =true;
+          }
 
           //////////////////
           //////////////////
-
-
-          if (header.indexOf("/pinayarsil") > -1) {
-            pinayar = "";
-            dosyaYazpinayar();
-            header = "/ HTTP/1.1";
-          }
-
-          if (header.indexOf("/programsil") > -1) {
-            programdata = "";
-            dosyaYazprogram(programdata);
-            header = "/ HTTP/1.1";
-          }
-
-          if (header.indexOf("/nevarsasil") > -1) {
-            LittleFS.remove("/program.txt");
-            delay(10);
-            LittleFS.remove("/pinayar.txt");
-            delay(10);
-            LittleFS.remove("/ssidpass.txt");
-            delay(10);
-            LittleFS.remove("/httpserverip.txt");
-            delay(10);
-            LittleFS.remove("/mqttip.txt");
-            delay(10);
-            LittleFS.remove("/myssidname.txt");
-            delay(10);
-            LittleFS.remove("/fben.txt");
-            delay(10);
-            LittleFS.remove("/fburl.txt");
-            delay(10);
-            LittleFS.remove("/fbapi.txt");
-            delay(10);
-            LittleFS.remove("/fbyol.txt");
-            delay(10);
-            LittleFS.remove("/fbusername.txt");
-            delay(10);
-            LittleFS.remove("/fbuserpass.txt");
-            delay(10);
-            LittleFS.remove("/habp.txt");
-            delay(10);
-            LittleFS.remove("/usrnamepass.txt");
-            delay(10);
-            ESP.reset();
-          }
-
 
 
           creator += "ur";
@@ -429,6 +486,7 @@ void htpcl(WiFiClient xilent) {
 
           ///////////////////////////////////////////////////////////////
           ///////////////////////////////////////////////////////////////
+          
           String strtmp = header;
           if (header.indexOf("/SEND>") > -1) {
             String htpServerip = "";
@@ -512,7 +570,7 @@ void htpcl(WiFiClient xilent) {
             xilent.println("HTTP/1.1 200 OK\r\n");
             xilent.println(lipStr + "=");
             for (int x = 0; x < pinsayisi + 1; x++) {
-              if (pinmode[x]=="OUT" || pinmode[x]=="INP") {
+              if (pinmode[x] == "OUT" || pinmode[x] == "INP") {
                 String gonrd = pinname[x] + "|" + pinmode[x] + "|" + pinsignaltype[x] + "|" + pinminvalue[x] + "|" + pinval[x] + "|" + pinmaxvalue[x] + "|" + acilseviyesi[x] + "|" + acildeger[x] + "|" + pinlabel[x] + "|" + PinState[x] + "<br>";
                 xilent.println(gonrd);
               }
@@ -531,48 +589,62 @@ void htpcl(WiFiClient xilent) {
           //if (header.indexOf("habp=fir") > -1) habp = 2;
 
           if (header.indexOf("habp=2") > -1) habp = 2;
-          
+
           if (header.indexOf("habp=3") > -1) habp = 3;
-//        Serial.println(header);
-//        Serial.print(ehabp);  Serial.print(" ehabp ");Serial.println(habp);
+          //        Serial.println(header);
+          //        Serial.print(ehabp);  Serial.print(" ehabp ");Serial.println(habp);
 
-              if (header.indexOf("/mqttipayar?is=") > -1) {
-                MQTTip = header.substring((header.indexOf("?is=") + 4), (header.indexOf(" HTTP/")));
-                mqttipkaydet(MQTTip);
-                ehabp=10000;
-              }
-              if (header.indexOf("/mqttipayar?yol=") > -1) {
-                YOL = header.substring((header.indexOf("?yol=") + 5), (header.indexOf(" HTTP/")));
-                dosyayazfbyol();
-                ehabp=10000;
-              }
+          if (header.indexOf("/mqttipayar?is=") > -1) {
+            MQTTip = header.substring((header.indexOf("?is=") + 4), (header.indexOf(" HTTP/")));
+            mqttipkaydet(MQTTip);
+            ehabp = 10000;
+          }
+          if (header.indexOf("/mqttipayar?yol=") > -1) {
+            YOL = header.substring((header.indexOf("?yol=") + 5), (header.indexOf(" HTTP/")));
+            dosyayazfbyol();
+            ehabp = 10000;
+          }
 
 
-          if ((ehabp>0 && habp==0) || (ehabp==0 && habp>0)) {
+          if ((ehabp > 0 && habp == 0) || (ehabp == 0 && habp > 0)) {
             xilent.println("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><title>" + esphostname + "  -> " + lipStr + " - ESP8266-Pro.v4</title>");
-            xilent.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-            xilent.println("<meta charset=\"UTF-8\">");
-            if (sayfayenile > 0) xilent.println("<script> setTimeout(function(){window.location.href = \"/\";}, 10000);</script>");
-            //xilent.println("<link rel=\"icon\" href=\"data:,\">");
+            xilent.println("<meta name='viewport' content='width=device-width, initial-scale=1'>");
+            xilent.println("<meta charset='UTF-8'>");
+            if (sayfayenile > 0) xilent.println("<script> setTimeout(function(){window.location.href = '/';}, 10000);</script>");
+            //xilent.println("<link rel='icon' href='data:,'>");
             xilent.println("</head><body> Resetleniyor... Sayfayı yeniden ");
-            xilent.println("<a href=\"/\"><button>yüklemek</button></a> için 10 saniye bekleyin!");
+            xilent.printf_P(PSTR("<a href='%s/'><button>yüklemek</button></a> için 10 saniye bekleyin!\r\n"), usertoken.c_str());
             xilent.println("</body></html>");
             delay(1000);
             xilent.abort();
             delay(10);
-            if(ehabp!=10000)dosyayazhabp();
+            if (ehabp != 10000) dosyayazhabp();
             delay(1000);
             ESP.reset();
           }
 
-          if(ehabp!=habp)dosyayazhabp();
+          if (ehabp != habp) {
+            if (ehabp == 2 && habp == 3) {
+              String mqyol = "/" + YOL + "/FBSERVER";
+              String mqdat = "KILLME>" + esphostname;
+              rutingonder10s = millis();
+              mqttsend(mqyol, mqdat);
+            }
 
-          bool menu1girilemez = false;
+            if (ehabp == 3 && habp == 2) {
+              if (mqttclient.connected()) {
+                IPAddress lip = WiFi.localIP();
+                mylocalip = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
 
-          if (Menu == 1 && aut != 1) {
-            Menu = 0;
-            menu1girilemez = true;
+                String mqyol = "/" + YOL + "/FBSERVER";
+                String mqdat = "PAYNEW>" + WiFi.macAddress() + "<" + esphostname + ">" + mylocalip;
+                rutingonder10s = millis();
+                mqttsend(mqyol, mqdat);
+              }
+            }
+            dosyayazhabp();
           }
+
 
           if (Menu == 1) {
 
@@ -582,70 +654,77 @@ void htpcl(WiFiClient xilent) {
             httpheader(xilent);
 
 
+            if (header.indexOf(F("/pnayar")) > -1 || header.indexOf(F("/programkayit")) > -1) {
 
-            if (header.indexOf("/pnayar") > -1 || header.indexOf("/programkayit") > -1) {
-              if (header.indexOf("/programkayit?is=") > -1) {
-                Serial.println("HEADER");
+              // --- VERİ İŞLEME VE DOSYA YAZMA BÖLÜMÜ ---
+              if (header.indexOf(F("/programkayit?is=")) > -1) {
+                Serial.println(F("HEADER"));
                 Serial.println(header);
-                String programdatatm = header.substring(header.indexOf("kayit?is=") + 9, (header.indexOf(" HTTP/1.1")));
-                Serial.println("PROGRAM YAZMAYA GİDİYORUM");
+
+                // Substring RAM harcar ama mecbur kalındığında geçici değişken ömrünü hızlı bitirmelidir
+                String programdatatm = header.substring(header.indexOf(F("kayit?is=")) + 9, header.indexOf(F(" HTTP/1.1")));
+                Serial.println(F("PROGRAM YAZMAYA GİDİYORUM"));
                 Serial.println(programdatatm);
-                xilent.println("<br>program");
+
+                xilent.print(F("<br>program"));
                 dosyaYazprogram(programdatatm);
-                xilent.println(" yazıldı.<br>");
+                if (programerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
+                else xilent.print(F(" yazıldı.<br>"));
               }
-              if (header.indexOf("/pnayar?is=") > -1) {
-                pinayartmp = header.substring((header.indexOf("?is=") + 4), (header.indexOf(" HTTP/1.1")));
+
+              if (header.indexOf(F("/pnayar?is=")) > -1) {
+                pinayartmp = header.substring(header.indexOf(F("?is=")) + 4, header.indexOf(F(" HTTP/1.1")));
                 Serial.println(pinayartmp);
-                xilent.println("<br>pinayar");
+                xilent.print(F("<br>pinayar"));
                 dosyaYazpinayar();
                 dosyaOkupinayar();
-                xilent.println(" yazıldı<br>");
+                if (pinayarerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
+                else xilent.print(F(" yazıldı.<br>"));
               }
 
+              // --- HTML ARAYÜZ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
 
-              xilent.println("<br><br><table> <caption>PIN AYARLARI</caption> <tr> <td scope=\"col\">pin ayarları:</td><td scope=\"col\">Pin Hata</td></tr>");
-              xilent.println("<td><form method='get' action='pnayar'>");
-              xilent.println("<textarea name='is' id='id' cols='40' rows='10' >");
-              xilent.println(pinayartmp);
-              xilent.println("</textarea><br>");
-              //xilent.println("<br>ESP ye bağlı Cihazları kapatın.<br>");
-              xilent.println("<input type='submit' value='Pinayar Kaydet'>");
-              xilent.println("</form>");
+              // 1. PIN AYARLARI TABLOSU BAŞLANGICI VE TEXTAREA
+              // pinayartmp stringini doğrudan formun içine %s ile gömüyoruz
+              xilent.printf_P(PSTR("<br><br><table> <caption>PIN AYARLARI</caption> <tr> <td scope='col'>pin ayarları:</td><td scope='col'>Pin Hata</td></tr>\r\n"
+                                   "<td><form method='get' action='%s/pnayar'>\r\n"
+                                   "<textarea name='is' id='id' cols='40' rows='10'>%s</textarea><br>\r\n"
+                                   "<input type='submit' value='Pinayar Kaydet'>\r\n"
+                                   "</form>\r\n"
+                                   "</td><td style='font-size:12px;vertical-align:top;'>"),
+                              usertoken.c_str(), pinayartmp.c_str());
 
-              xilent.println("</td><td style='font-size:12px;vertical-align:top;'>");
-              xilent.println(erlog);
-              xilent.println("</td></tr></table>");
-              xilent.println("<label style='font-size:14px;'>");
-              xilent.println("Altta bir ornek verilmistir.<br>");
-              xilent.println("<a href=\"https://github.com/mbshur/lolinpro/raw/main/lolinhelp/turkce/lolin_tr.pdf\" target=\"_blank\">Yardım [TR]</a>");
-              xilent.println("D1|OUT|DIG|0|0|1|0|0|Sarj1_pirizi<br>");
-              xilent.println("</label><br>");
+              // Hata logunu (pinayarerrorlog) basıyoruz
+              xilent.println(pinayarerrorlog);
 
+              // Sabit yardım metinleri ve linkler tek parça halinde Flash'ta
+              xilent.print(F("</td></tr></table>\r\n"
+                             "<label style='font-size:14px;'>\r\n"
+                             "Altta bir ornek verilmistir.<br>\r\n"
+                             "<a href='https://github.com/mbshur/lolinpro/raw/main/lolinhelp/turkce/lolin_tr.pdf' target='_blank'>Yardım [TR]</a><br>\r\n"
+                             "D1|OUT|DIG|0|0|1|0|0|Sarj1_pirizi<br>\r\n"
+                             "</label><br>\r\n"));
 
-              xilent.println("<table><caption>PROGRAM GiRiSi</caption>");
-              xilent.println("<tr><td scope=\"col\">Program:<br>");
-              xilent.println("<form method='get' action='programkayit'>");
-              xilent.println("<textarea name='is' id='id' cols='60' rows='15' >");
-              xilent.println(programdata);
-              xilent.println("</textarea>");
-              xilent.println("<br>");
-              xilent.println("<input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("</td></tr><br>");
-              if (perlog.length() < 1) xilent.println("<td style='font-size:12px;vertical-align:top;'>Hata yok</td>");
-              else {
-                xilent.println("<td scope=\"col\"style='font-size:12px;vertical-align:top;' >Program Hatası: ");
-                xilent.println(perlog);
-                xilent.println("</td>");
+              // 2. PROGRAM GİRİŞİ TABLOSU VE TEXTAREA
+              // programdata stringini %s ile textarea içine güvenle basıyoruz
+              xilent.printf_P(PSTR("<table><caption>PROGRAM GiRiSi</caption>\r\n"
+                                   "<tr><td scope='col'>Program:<br>\r\n"
+                                   "<form method='get' action='%s/programkayit'>\r\n"
+                                   "<textarea name='is' id='id' cols='60' rows='15'>%s</textarea><br>\r\n"
+                                   "<input type='submit'>\r\n"
+                                   "</form>\r\n"
+                                   "</td></tr><br>\r\n"),
+                              usertoken.c_str(), programdata.c_str());
+
+              // Program hata kontrolü ve dinamik basımı
+              if (programerrorlog.length() < 1) {
+                xilent.print(F("<td style='font-size:12px;vertical-align:top;'>Hata yok</td>\r\n"));
+              } else {
+                xilent.printf_P(PSTR("<td scope='col' style='font-size:12px;vertical-align:top;'>Program Hatası: %s</td>\r\n"), programerrorlog.c_str());
               }
-              xilent.println("</tr><br></table><br><br><br><br>");
 
-
-
-              // Clear the header variable
-
-              //xilent.abort();
+              // Tablo kapatma etiketleri
+              xilent.print(F("</tr><br></table><br><br><br><br>\r\n"));
             }
             creator += " B";
             //Serial.println(header);
@@ -653,156 +732,182 @@ void htpcl(WiFiClient xilent) {
 
             creator += "EK";
 
-            if (header.indexOf("/ssidset") > -1) {
+            if (header.indexOf(F("/ssidset")) > -1) {
 
-
-              if (header.indexOf("/ssidset?") > -1) {  //   "/ssidset?ssid=Zyxel&pass=bebedede14"
-
-                // yazma kısmı
-
-                if (header.indexOf("ssid=") > -1) {
-                  ssid = header.substring((header.indexOf("ssid=") + 5), (header.indexOf("&")));
+              // --- 1. AYARLARI YAZMA VE RESET ATMA BÖLÜMÜ ---
+              if (header.indexOf(F("/ssidset?")) > -1) {
+                if (header.indexOf(F("ssid=")) > -1) {
+                  ssid = header.substring(header.indexOf(F("ssid=")) + 5, header.indexOf(F("&")));
                   Serial.println(ssid);
                 }
-                if (header.indexOf("&pass=") > -1) {
-                  pass = header.substring((header.indexOf("&pass=") + 6), (header.indexOf(" HTTP")));
+                if (header.indexOf(F("&pass=")) > -1) {
+                  pass = header.substring(header.indexOf(F("&pass=")) + 6, header.indexOf(F(" HTTP")));
                   Serial.println(pass);
                   dosyayazssidpass();
+
+                  // Kullanıcıya bilgi verip bağlantıyı kibarca sonlandırıyoruz ve reset atıyoruz
+                  xilent.print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML><html><body>Ayarlar kaydedildi. Cihaz yeniden baslatiliyor...</body></html>\r\n"));
                   xilent.println();
-                  ////xilent.abort();;
+                  delay(500);  // Verinin tarayıcıya ulaşması için çok kısa bir süre tanıyoruz
                   ESP.reset();
                 }
               }
 
+              // --- 2. IP ADRESLERİNİ DOĞRUDAN OKUMA (SIFIR RAM) ---
               IPAddress gip = WiFi.gatewayIP();
-              String gipStr = String(gip[0]) + '.' + String(gip[1]) + '.' + String(gip[2]) + '.' + String(gip[3]);
               IPAddress dns = WiFi.dnsIP();
-              String dnsStr = String(gip[0]) + '.' + String(gip[1]) + '.' + String(gip[2]) + '.' + String(gip[3]);
               IPAddress ip = WiFi.softAPIP();
-              String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
 
-              xilent.println("<br><br><table style=\"border:2px solid green;width:500px\"><tr><td style=\"border:1px solid black;width:250px\">");
-              xilent.println("Bilgiler");
-              xilent.println("<br>");
-              xilent.println("<br>");
-              xilent.println("Local IP : ");
-              xilent.println(lipStr);
-              xilent.println("<br>");
-              xilent.println("Local Gateway : ");
-              xilent.println(gipStr);
-              xilent.println("<br>");
-              xilent.println("Access IP : ");
-              xilent.println(ipStr);
-              xilent.println("</td><td style=\"border:1px solid black;width:250px\">");
-              xilent.println("<form action=\"/ssidsetscanwifi\" method=\"POST\"><input type=\"submit\" value=\"Wifi tara\"></form>");
-              if (header.indexOf("scanwifi HTTP") > -1) {
+              // --- 3. HTML ARAYÜZÜ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
+
+              // İlk tablo başlığı ve IP bilgileri şablonu
+              // Not: lipStr basmaya çalıştığın değişken localIP ise doğrudan lip nesnesiyle değiştirebiliriz.
+              // Burada tanımlı olduğunu varsaydığımız lip (WiFi.localIP()) kullanılmıştır.
+              // IPAddress nesnelerinin içindeki her bir baytı, [1]... diyerek tek tek çıkartıyoruz
+              xilent.printf_P(PSTR("<br><br><table style='border:2px solid green;width:500px'><tr><td style='border:1px solid black;width:250px'>\r\n"
+                                   "Bilgiler<br><br>\r\n"
+                                   "Local IP : %d.%d.%d.%d<br>\r\n"
+                                   "Local Gateway : %d.%d.%d.%d<br>\r\n"
+                                   "Access IP : %d.%d.%d.%d</td>\r\n"
+                                   "<td style='border:1px solid black;width:250px'>\r\n"
+                                   "<form action='%s/ssidsetscanwifi' method='POST'><input type='submit' value='Wifi tara'></form>\r\n"),
+                              lip[0], lip[1], lip[2], lip[3],
+                              gip[0], gip[1], gip[2], gip[3],
+                              ip[0], ip[1], ip[2], ip[3], usertoken.c_str());
+
+              if (header.indexOf(F("scanwifi HTTP")) > -1) {
                 rescanwifi = true;
               }
-              xilent.println("<br>Wifi tara tıkladıktan sonra 10 sn bekle<br>");
-              xilent.println("<br>Sonra tarama sonucu butonuna tıkla<br>");
-              xilent.println("<form action=\"/ssidset\" method=\"POST\"><input type=\"submit\" value=\"Tarama sonucu\"></form>");
-              xilent.println("</td></tr></table>");
 
+              // Tarama yönlendirmeleri ve bulunan Wi-Fi listesi tablosu
+              xilent.printf_P(PSTR("<br>Wifi tara tıkladıktan sonra 10 sn bekle<br>\r\n"
+                            "<br>Sonra tarama sonucu butonuna tıkla<br>\r\n"
+                            "<form action='%s/ssidset' method='POST'><input type='submit' value='Tarama sonucu'></form>\r\n"
+                            "</td></tr></table>\r\n"
+                            "<p>\r\n"
+                            "<table style='border:2px solid black;width:500px'><tr><td style='border:1px solid black;width:500px'>\r\n"
+                            "Tarama sonucunda bulunabilen Wifi cihazları listesi</td><tr><td><br>\r\n"),
+                            usertoken.c_str());
 
-              xilent.println("<p>");
-              xilent.println("<table style=\"border:2px solid black;width:500px\"><tr><td style=\"border:1px solid black;width:500px\">");
-              xilent.println("Tarama sonucunda bulunabilen Wifi cihazları listesi</td><tr><td>");
-              xilent.println("<br>");
+              // Bulunan Wi-Fi ağlarının string listesini (st) güvenle basıyoruz
               xilent.println(st);
-              xilent.println("</td><tr></table>");
-              xilent.println("Kaydettikten sonra cihaza resetlenir.");
-              xilent.println("<br><form action=\"/ssidset\" method=\"get\"><label>SSID: </label><input name='ssid' maxlength='32'><label>PASS: </label><input name='pass' maxlength='32'><input type='submit'value='Kaydet'></form>");
-              xilent.println("<br>");
-              //xilent.println("Local IP : ");
-              //xilent.println(lipStr);
-              //xilent.println("<br>");
-              //xilent.println("Local Gateway : ");
-              //xilent.println(gipStr);
-              //xilent.println("<br>");
-              //xilent.println("Access IP : ");
-              //xilent.println(ipStr);
 
-              xilent.println("<br><br>");
-              xilent.println("<br><br><br>");
+              // Formun geri kalanı ve input alanları
+              xilent.printf_P(PSTR("</td><tr></table>\r\n"
+                            "Kaydettikten sonra cihaza resetlenir.<br>\r\n"
+                            "<form action='%s/ssidset' method='get'><label>SSID: </label><input name='ssid' maxlength='32'><label>PASS: </label><input name='pass' maxlength='32'><input type='submit' value='Kaydet'></form>\r\n"
+                            "<br><br><br><br>\r\n"),
+                            usertoken.c_str());
             }
 
 
 
 
-            if (header.indexOf("/myssidnameayar") > -1) {
 
-              if (header.indexOf("/myssidnameayar?is=") > -1) {
-                myssidyazilimi = header.substring((header.indexOf("?is=") + 4), (header.indexOf(" HTTP/")));
-                Serial.println("baradan geçtim)");
+
+
+
+
+
+
+
+            if (header.indexOf(F("/myssidnameayar")) > -1) {
+
+              // --- 1. AYARLARI YAZMA BÖLÜMÜ ---
+              if (header.indexOf(F("/myssidnameayar?is=")) > -1) {
+                myssidyazilimi = header.substring(header.indexOf(F("?is=")) + 4, header.indexOf(F(" HTTP/")));
+                Serial.println(F("baradan geçtim)"));
                 dosyayazmyssidname();
               }
 
-
-              xilent.println("<br><br><form method='get' action='myssidnameayar'><label>Benim wifi ismim (SSID) : </label><input name='is' style='width:100px;' maxlength='32' value=");
-              xilent.println(myssidyazilimi);
-              //xilent.println("><br>");
-              //xilent.println("<label>Baglanilacak SERVER adressi: </label><input name='mq' length=32 value=");
-              //              xo += SERVERip;
-              xilent.println("><input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("<br><br><br><br>");
-
-              // Clear the header variable
-
-              //xilent.abort();;
+              // --- 2. HTML ARAYÜZ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
+              // Form yapısını ve input etiketini tek bir şablon olarak Flash'a gömüyoruz.
+              // Wi-Fi ismini (%s) çift tırnak içerisine (value='%s') alarak HTML standartlarına uygun hale getirdik.
+              xilent.printf_P(PSTR("<br><br><form method='get' action='%smyssidnameayar'>\r\n"
+                                   "<label>Benim wifi ismim (SSID) : </label>\r\n"
+                                   "<input name='is' style='width:100px;' maxlength='32' value='%s'>\r\n"
+                                   "<input type='submit'>\r\n"
+                                   "</form>\r\n"
+                                   "<br><br><br><br>\r\n"),
+                              usertoken.c_str(), myssidyazilimi.c_str());
             }
 
 
+            /*
+if (header.indexOf(F("/serveripayar")) > -1) {
 
-            if (header.indexOf("/serveripayar") > -1) {
+  // --- 1. AYARLARI YAZMA BÖLÜMÜ ---
+  if (header.indexOf(F("/serveripayar?is=")) > -1) {
+    htServerip = header.substring(header.indexOf(F("?is=")) + 4, header.indexOf(F(" HTTP/")));
+    htserverkaydet(htServerip);
+  }
 
-              if (header.indexOf("/serveripayar?is=") > -1) {
-                htServerip = header.substring((header.indexOf("?is=") + 4), (header.indexOf(" HTTP/")));
-                htserverkaydet(htServerip);
+  // --- 2. HTML ARAYÜZ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
+  // Form yapısını, input alanını ve "Boş ise işlem yapılmaz." uyarısını tek bir blok halinde Flash'a alıyoruz.
+  xilent.printf_P(PSTR("<br><br><form method='get' action='%sserveripayar'>\r\n"
+                       "<label>Haberleşilecek cihaz ip no : </label>\r\n"
+                       "<input name='is' style='width:100px;' maxlength='32' value='%s'>\r\n"
+                       "<input type='submit'>\r\n"
+                       "</form>\r\n"
+                       "(Boş ise işlem yapılmaz.)<br><br><br><br>\r\n"), 
+                  htServerip.c_str());
+}
+*/
+
+
+
+
+
+
+
+
+
+            if (header.indexOf(F("/mqttipayar")) > -1) {
+
+              // --- 1. VERİ KAYDETME VE YENİDEN BAŞLATMA LOGIC BÖLÜMÜ ---
+              bool tetiklendi = false;
+
+              // MQTT Yolu (YOL) parametresi geldi mi?
+              if (header.indexOf(F("/mqttipayar?yol=")) > -1) {
+                YOL = header.substring(header.indexOf(F("?yol=")) + 5, header.indexOf(F(" HTTP/")));
+                // dosyayazyol(YOL); // Eğer bir kaydetme fonksiyonun varsa buraya ekleyebilirsin
+                tetiklendi = true;
               }
 
+              // MQTT Sunucu IP (is) parametresi geldi mi?
+              if (header.indexOf(F("/mqttipayar?is=")) > -1) {
+                MQTTip = header.substring(header.indexOf(F("?is=")) + 4, header.indexOf(F(" HTTP/")));
+                // dosyayazmqttip(MQTTip); // Eğer bir kaydetme fonksiyonun varsa buraya ekleyebilirsin
+                tetiklendi = true;
+              }
 
-              xilent.println("<br><br><form method='get' action='serveripayar'><label>Haberleşilecek cihaz ip no : </label><input name='is' style='width:100px;' maxlength='32' value=");
-              xilent.println(htServerip);
-              //xilent.println("><br>");
-              //xilent.println("<label>Baglanilacak SERVER adressi: </label><input name='mq' length=32 value=");
-              //              xo += SERVERip;
-              xilent.println("><input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("(Boş ise işlem yapılmaz.)<br><br><br><br>");
+              // Eğer iki ayardan biri değiştiyse kullanıcıya bilgi verip cihazı resetliyoruz
+              if (tetiklendi) {
+                xilent.print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML><html><body>Ayarlar kaydedildi. Cihaz yeniden baslatiliyor...</body></html>\r\n"));
+                xilent.println();
+                delay(500);  // Verinin tarayıcıya ulaşması için zaman tanıyoruz
+                ESP.reset();
+                return;
+              }
 
-              // Clear the header variable
-
-              //xilent.abort();;
-            }
-
-
-
-            if (header.indexOf("/mqttipayar") > -1) {
-
-              xilent.println("<br>Dikkat!!! MQTT server ip ya da Yol kaydedilir veya değiştirilirse Cihaz yeniden başlatılacak.<br><br>MQTT yolu ile firebase yolu aynıdır.<br><form method='get' action='mqttipayar'><label>Abone olunacak MQTT yolu: </label><input name='yol'  style='width:100px;' maxlength='32' value=");
-              xilent.println(YOL);
-              //xilent.println("><br>");
-              //xilent.println("<label>Baglanilacak SERVER adressi: </label><input name='mq' length=32 value=");
-              //              xo += SERVERip;
-              xilent.println("><input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("<br><br>");
-
-
-
-              xilent.println("<form method='get' action='mqttipayar'><label>Bağlanılacak MQTT server ip: </label><input name='is'  style='width:100px;' maxlength='32' value=");
-              xilent.println(MQTTip);
-              //xilent.println("><br>");
-              //xilent.println("<label>Baglanilacak SERVER adressi: </label><input name='mq' length=32 value=");
-              //              xo += SERVERip;
-              xilent.println("><input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("<br><br><br><br>");
-
-              // Clear the header variable
-
-              //xilent.abort();;
+              // --- 2. HTML ARAYÜZ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
+              // İki ayrı formu ve uyarı metinlerini tek bir büyük şablon halinde Flash belleğe alıyoruz.
+              // Dinamik olan YOL ve MQTTip değişkenlerini %s ve .c_str() ile güvenli tırnaklar ('%s') içine gömüyoruz.
+              xilent.printf_P(PSTR("<br>Dikkat!!! MQTT server ip ya da Yol kaydedilir veya değiştirilirse Cihaz yeniden başlatılacak.<br><br>\r\n"
+                                   "MQTT yolu ile firebase yolu aynıdır.<br>\r\n"
+                                   "<form method='get' action='%smqttipayar'>\r\n"
+                                   "<label>Abone olunacak MQTT yolu: </label>\r\n"
+                                   "<input name='yol' style='width:100px;' maxlength='32' value='%s'>\r\n"
+                                   "<input type='submit'>\r\n"
+                                   "</form><br><br>\r\n"
+                                   "<form method='get' action='%smqttipayar'>\r\n"
+                                   "<label>Bağlanılacak MQTT server ip: </label>\r\n"
+                                   "<input name='is' style='width:100px;' maxlength='32' value='%s'>\r\n"
+                                   "<input type='submit'>\r\n"
+                                   "</form><br><br><br><br>\r\n"),
+                              usertoken.c_str(),
+                              YOL.c_str(),
+                              MQTTip.c_str());
             }
 
 
@@ -812,6 +917,7 @@ void htpcl(WiFiClient xilent) {
 
 
             creator += "AŞ";
+
             /*
             if (header.indexOf("/Boardtype?is=") > -1) {
               String Boardtypetmp = header.substring((header.indexOf("?is=") + 4), (header.indexOf("&mq=")));
@@ -820,12 +926,12 @@ void htpcl(WiFiClient xilent) {
               Serial.println("Write flash file ssidname;Boardtype;");
               Serial.println(Boardtype);
               httpheader(xilent);
-              xilent.println("<form method='get' action='/Boardtype'><label>ESP Board tipi ( Esp-01 icin 0  Esp-lolin icin 1) : </label><input name='is' length=32 value=");
+              xilent.println("<form method='get' action='%s/Boardtype'><label>ESP Board tipi ( Esp-01 icin 0  Esp-lolin icin 1) : </label><input name='is' length=32 value=");
               xilent.println(Boardtype);
               xilent.println("><input type='submit'>");
               xilent.println("</form>");
-              if (Boardtype == 0) xilent.println("<form method='get' action='SERVERayar'><label>My SSID Name: </label><input name='is' length=32 value=");
-              if (Boardtype == 1) xilent.println("<form method='get' action='SERVERayar'><label>My SSID Name: </label><input name='is' length=32 value=");
+              if (Boardtype == 0) xilent.println("<form method='get' action='%sSERVERayar'><label>My SSID Name: </label><input name='is' length=32 value=");
+              if (Boardtype == 1) xilent.println("<form method='get' action='%sSERVERayar'><label>My SSID Name: </label><input name='is' length=32 value=");
               xilent.println(myssidyazilimi);
               xilent.println("><br>");
               xilent.println("<label>Baglanilacak SERVER adressi: </label><input name='mq' length=32 value=");
@@ -837,32 +943,28 @@ void htpcl(WiFiClient xilent) {
 */
 
 
-            /**/
-            if (header.indexOf("/kulupayr") > -1) {
-              Serial.println("kulpayr a girdim");
+            if (header.indexOf(F("/kulupayr")) > -1) {
+              Serial.println(F("kulpayr a girdim"));
               dosyaOkuusers();
 
-
-              if (header.indexOf("/kulupayr?unme=") > -1) {
-                unme = header.substring((header.indexOf("?unme=") + 6), (header.indexOf("&pwrd=")));
-                pwrd = header.substring((header.indexOf("&pwrd=") + 6), (header.indexOf(" HTTP/")));
+              // --- 1. VERİ KAYDETME BÖLÜMÜ ---
+              if (header.indexOf(F("/kulupayr?unme=")) > -1) {
+                users = header.substring(header.indexOf(F("?unme=")) + 6, header.indexOf(F(" HTTP/")));
                 dosyaYazusers();
                 dosyaOkuusers();
-                Serial.println("Write flash file ussdoc");
+                Serial.println(F("Write flash file ussdoc"));
               }
 
-              xilent.println("<br><br>");
-              xilent.println("<form method='get' action='/kulupayr'>");
-              xilent.println("<label>Kullanıcı:</label><input name='unme' style='width:80px;' maxlength='6' value='");
-              xilent.println(unme);
-              xilent.println("'>");
-              xilent.println("<label>Şifresi:</label><input name='pwrd' style='width:80px;' maxlength='4' value='");
-              xilent.println(pwrd);
-              xilent.println("'>");
-              xilent.println("<br>");
-              xilent.println("<input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("<br><br><br>");
+              // --- 2. HTML ARAYÜZ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
+              // Form yapısını tek bir şablon olarak Flash belleğe gömüyoruz.
+              // unme ve pwrd değişkenlerini %s kullanarak düzgün HTML tırnakları içerisine enjekte ediyoruz.
+              xilent.printf_P(PSTR("<br><br>\r\n"
+                                   "<form method='get' action='%s/kulupayr'>\r\n"
+                                   "<textarea name='unme' id='unme' cols='40' rows='10'>%s</textarea>\r\n"
+                                   "<input type='submit'>\r\n"
+                                   "</form>\r\n"
+                                   "<label>En fazla 5 kullanıcı kaydedilebilir. <br>Formatı aşağıdaki gibidir.<br>Kullanıcı_Adı, Kullanıcı_şifresi, Kullanıcı_yetkisi<br><br> Yetki  2-Yönetici, 1-Kullanıcı <br><br>Örnek:<br>admin,1111,2<br>murat,1234,1<br></label><br><br><br>\r\n"),
+                              usertoken.c_str(), users.c_str());
             }
 
 
@@ -874,289 +976,205 @@ void htpcl(WiFiClient xilent) {
 
 
 
-// firebase url kısmı
-
+            // firebase web kısmı başı
             Serial.println(header);
-            if (header.indexOf("/firebaseset") > -1) {
+
+            if (header.indexOf(F("/firebaseset")) > -1) {
+              // --- 1. ÖNCE PROTOKOL DEĞİŞİKLİĞİ VE RESET KONTROLÜ (BAĞLANTIYI KOPARMAMAK İÇİN EN ÜSTE ALINDI) ---
+              if (header.indexOf(F("fireb=Off")) > -1) {
+                fben = false;
+                dosyayazfben();
+                xilent.print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML><html><body>Firebase Kapatildi. Yeniden baslatiliyor...</body></html>\r\n"));
+                xilent.println();
+                delay(500);
+                ESP.reset();
+                return;
+              }
+              if (header.indexOf(F("fireb=On")) > -1) {
+                fben = true;
+                dosyayazfben();
+                xilent.print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML><html><body>Firebase Acildi. Yeniden baslatiliyor...</body></html>\r\n"));
+                xilent.println();
+                delay(500);
+                ESP.reset();
+                return;
+              }
+
               dosyaokufburl();
-              //dosyaokufbapi();
               dosyaokufbyol();
-              //dosyaokufbusername();
-              //dosyaokufbuserpass();
 
-
-
-
-
-
-
-
-
-
-              xilent.println("<br><br>Realtime Database Ayarlari<br>");
-
+              xilent.print(F("<br><br>Realtime Database Ayarlari<br>\r\n"));
 
               String errstring = "";
-              if (header.indexOf("?fburl=") > -1)
-
-              {
+              if (header.indexOf(F("?fburl=")) > -1) {
                 String hdrt = header;
                 header = Karakterduzeltfunc(hdrt);
-                //Serial.println(header);
-                DATABASE_URL = header.substring(header.indexOf("?fburl=") + 7, header.indexOf("&fbapi="));
-                if (DATABASE_URL.indexOf(".") > -2 && DATABASE_URL.indexOf(".") < 2) {
-                  errstring += "URL Yanlis girilmis.<br>";
+
+                DATABASE_URL = header.substring(header.indexOf(F("?fburl=")) + 7, header.indexOf(F("&fbapi=")));
+                if (DATABASE_URL.indexOf(F(".")) > -2 && DATABASE_URL.indexOf(F(".")) < 2) {
+                  errstring += F("URL Yanlis girilmis.<br>");
                 }
                 if (DATABASE_URL.length() == 0 || DATABASE_URL == "") {
-                  errstring += "URL boş birakilmis.<br>";
+                  errstring += F("URL boş birakilmis.<br>");
                 }
 
-
-                //API_KEY = header.substring(header.indexOf("&fbapi=") + 7, header.indexOf("&fbyol"));
-                //if (API_KEY.length() < 32) {
-                //  errstring += "API_KEY Yanlış.<br>";
-                //}
-
-                //if (API_KEY.length() < 1 || API_KEY == "") {
-                //  errstring += " API_KEY boş.<br>";
-                //}
-
-                YOL = header.substring(header.indexOf("&fbyol=") + 7, header.indexOf(" HTTP/1.1"));
+                YOL = header.substring(header.indexOf(F("&fbyol=")) + 7, header.indexOf(F(" HTTP/1.1")));
                 if (YOL.length() > 10) {
-                  errstring += "YOL Yanlış.<br>";
+                  errstring += F("YOL Yanlış.<br>");
                 }
-
                 if (YOL.length() < 1 || YOL == "") {
-                  errstring += " YOL boş.<br>";
+                  errstring += F(" YOL boş.<br>");
                 }
-
-
 
                 if (errstring == "") {
                   dosyayazfburl();
-                  //dosyayazfbapi();
                   dosyayazfbyol();
                 }
               }
 
-
-
-
-
-/*
-              if (header.indexOf("?fbeml1=") > -1)
-
-              {
-                String hdrt = header;
-                header = Karakterduzeltfunc(hdrt);
-                //Serial.println(header);
-                USER_EMAIL1 = header.substring(header.indexOf("?fbeml1=") + 8, header.indexOf("&fbeml2="));
-                if (USER_EMAIL1.length() == 0 || USER_EMAIL1 == "") {
-                  errstring += "E-MAIL ön boş.<br>";
-                }
-                USER_EMAIL2 = header.substring(header.indexOf("&fbeml2=") + 8, header.indexOf("&fbupw="));
-                if (USER_EMAIL2.indexOf(".") < 0) {
-                  errstring += "E-MAIL Yanlis.<br>";
-                }
-                if (USER_EMAIL2.length() == 0 || USER_EMAIL2 == "") {
-                  errstring += "E-MAIL boş.<br>";
-                }
-
-                USER_PASSWORD = header.substring(header.indexOf("&fbupw=") + 7, header.indexOf(" HTTP/1.1"));
-                if (USER_PASSWORD.length() < 2) {
-                  errstring += " PASSWORD Yanlış.<br>";
-                }
-
-                if (USER_PASSWORD.length() < 1 || USER_PASSWORD == "") {
-                  errstring += " PASSWORD boş.<br>";
-                }
-                if (errstring == "") {
-                  dosyayazfbusername();
-                  dosyayazfbuserpass();
-                }
-              }
-*/
-
               if (fben == true && DATABASE_URL != "") {
-                errstring = "Firebase Ayarları yapılmış.";
+                errstring = F("Firebase Ayarları yapılmış.");
               }
 
-              // autocomplete=\"off\"
+              // --- 2. HTML ARAYÜZ ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
 
-              xilent.println("<hr style=\"height:4px;border-width:0;color:black;background-color:gray\">");
+              // Ana form alanını ve çizgileri tek kalıp halinde Flash belleğe gömüyoruz
+              xilent.printf_P(PSTR("<hr style='height:4px;border-width:0;color:black;background-color:gray'><br>\r\n"
+                                   "<form method='get' action='%s/firebaseset'>\r\n"
+                                   "<label>FBRTD nin URL 'i yazın <br> URL : </label>\r\n"
+                                   "<input name='fburl' id='fburl' style='width:350px;' value='%s'><br><br>\r\n"
+                                   "<label>Database deki Yol (Örnek: Balıkesir ev1: bev1, yazlık 10Yz1, gibi kısa kodlar kullanın)<br><br>MQTT yolu ile firebase yolu aynıdır.<br> YOL : </label>\r\n"
+                                   "<input name='fbyol' id='fbyol' style='width:70px;' value='%s'><input type='submit'>\r\n"
+                                   "</form>\r\n"
+                                   "<hr style='height:4px;border-width:0;color:black;background-color:gray'>\r\n"),
+                              usertoken.c_str(), DATABASE_URL.c_str(), YOL.c_str());
 
-              xilent.println("<br>");
-
-              //USER_EMAIL1 = USER_EMAIL.substring(0, USER_EMAIL.indexOf("@"));
-              //USER_EMAIL2 = USER_EMAIL.substring(USER_EMAIL.indexOf("@") + 1, USER_EMAIL.length());
-
-
-              xilent.println("<form method='get' action='/firebaseset'>");
-              xilent.println("<label>FBRTD nin URL 'i yazın <br> URL  : </label>");
-              xilent.println("<input name='fburl' id='fburl' style=\"width:350px;\" value='");
-              xilent.println(DATABASE_URL);
-              xilent.println("'><br><br>");
-              xilent.println("<label>Database deki Yol (Örnek: Balıkesir ev1: bev1, yazlık 10Yz1, gibi kısa kodlar kullanın)<br><br>MQTT yolu ile firebase yolu aynıdır.<br> YOL : </label><input name='fbyol' id='fbyol' style=\"width:70px;\" value='");
-              xilent.println(YOL);
-              xilent.println("'><input type='submit'>");
-              xilent.println("</form>");
-              xilent.println("<hr style=\"height:4px;border-width:0;color:black;background-color:gray\">");
-
-
-              ////////
+              // Firebase Açık/Kapalı Seçim Kombosu (Select Menu)
               if (DATABASE_URL != "") {
-                xilent.println("<form action=\"/firebaseset\"><label for=\"option\">Firebase protokolu:</label><select id=\"fireb\" name=\"fireb\" ");
-
-                xilent.println(">");
-
-                if (header.indexOf("fireb=Off") > -1) {
-                  fben = false;
-                  dosyayazfben();
-                  delay(10);
-                  ESP.reset();
-                }
-                if (fben == false) {
-                  xilent.println("<option value=\"Off\" selected");
-                } else {
-                  xilent.println("<option value=\"Off\"");
-                }
-
-                xilent.println(">Kapali</option>");
-
-                if (header.indexOf("fireb=On") > -1) {
-                  fben = true;
-                  dosyayazfben();
-                  delay(10);
-                  ESP.reset();
-                }
-                if (fben == true) {
-                  xilent.println("<option value=\"On\" selected");
-                } else {
-                  xilent.println("<option value=\"On\"");
-                }
-
-
-
-                xilent.println(">Acik</ option>");
-                xilent.println("</select><input type=\"submit\" value=\"Submit\"></form>");
+                xilent.printf_P(PSTR("<form action='%s/firebaseset'><label for='option'>Firebase protokolu:</label>\r\n"
+                                     "<select id='fireb' name='fireb'>\r\n"
+                                     "<option value='Off' %s>Kapali</option>\r\n"
+                                     "<option value='On' %s>Acik</option>\r\n"
+                                     "</select><input type='submit' value='Submit'></form>\r\n"),
+                                (!fben ? "selected" : ""), (fben ? "selected" : ""), usertoken.c_str());
               }
-              ////////
 
-
-
-
-              xilent.println("<br><br>" + errstring + "<br><br>");
-
-              // Clear the header variable
-
-              //xilent.abort();;
+              // Hata veya durum mesajını en alta dinamik olarak basıyoruz
+              xilent.printf_P(PSTR("<br><br>%s<br><br>\r\n"), errstring.c_str());
             }
-//firebase web kısmı
+            //firebase web kısmı sonu
 
 
-            if (header.indexOf("/habp?habp") > -1 || header.indexOf("/ HTTP/1.1") > -1 || header.indexOf("/Menu1") > -1) {
 
-              //Serial.println(Menu);
-              //Serial.println(header);
-              //Serial.println(xo);
+
+
+
+
+
+
+
+
+            // haberleşme protokolu 1 kapalı, 2 MQTT, 3 esp diğer espine mqttile bilgi git gel yapacak diğeri firebase ile onun adına haberleşecek...
+            if (header.indexOf(F("/habp?habp")) > -1 || header.indexOf(F("/ HTTP/1.1")) > -1 || header.indexOf(F("/Menu1")) > -1) {
+
+              // --- 1. PROTOKOL DEĞİŞTİRME VE RESET TETİKLEYİCİSİ (EN ÜSTE ALINDI) ---
+              if (header.indexOf(F("/habp?habp=")) > -1) {
+                String habpStr = header.substring(header.indexOf(F("?habp=")) + 6, header.indexOf(F(" HTTP/")));
+                habp = habpStr.toInt();
+
+                // dosyayazhabp(); // Eğer kaydetme fonksiyonun varsa burayı aktif edebilirsin
+
+                xilent.print(F("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML><html><body>Protokol degistirildi. Cihaz yeniden baslatiliyor...</body></html>\r\n"));
+                xilent.println();
+                delay(500);  // Tarayıcıya paketin ulaşması için bekle
+                ESP.reset();
+                return;
+              }
+
+              // IP adreslerini doğrudan donanımdan çekiyoruz (Daha önce öğrendiğimiz gibi %d için)
               IPAddress gip = WiFi.gatewayIP();
-              String gipStr = String(gip[0]) + '.' + String(gip[1]) + '.' + String(gip[2]) + '.' + String(gip[3]);
               IPAddress dns = WiFi.dnsIP();
-              String dnsStr = String(gip[0]) + '.' + String(gip[1]) + '.' + String(gip[2]) + '.' + String(gip[3]);
               IPAddress ip = WiFi.softAPIP();
-              String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
 
+              // --- 2. DURUM BİLGİLERİNİ BAŞTAN UYARLAMA ---
+              // Wi-Fi durum metnini ve pin durum metnini RAM harcamadan hazırlıyoruz
+              const char* wifiDurum = (WiFi.status() == WL_CONNECTED) ? "Baglanilan Wifi" : "Kayitli Wifi";
+              const char* pinDurum = (pinayar.length() < 2) ? "Pin ayarlari yapilmamis!" : "Pin ayarlari tamam";
 
-              //xilent.println("<p>");
-              xilent.println("<br>");
-              if(habp==2) xilent.println("<font size=\"3\" color=\"#000000\">MQTT ile FBSERVER haberleşmesi yüzünden firebase çalışıyor.</font> <br><br>");
-              if(fben==true && habp==3) xilent.println("<font size=\"3\" color=\"#000000\">Firebase çalışıyor.</font> <br><br>");
-              xilent.println("<br>");
-              xilent.println("Local IP : ");
-              xilent.println(lipStr);
-              xilent.println("<br>");
+              // --- 3. HTML ÇIKTI BÖLÜMÜ (SIFIR RAM) ---
+              xilent.print(F("<br>\r\n"));
 
-              xilent.println("Local Gateway : ");
-              xilent.println(gipStr);
-              xilent.println("<br>");
-
-              xilent.println("Access IP : ");
-              xilent.println(ipStr);
-
-              xilent.println("<br>");
-              xilent.println("<br>Wifi ismim       :" + esphostname);
-              if (WiFi.status() == WL_CONNECTED) xilent.println("<br>Bağlanılan Wifi  :" + ssid + "  Sinyal gücü : " + WiFi.RSSI());
-              else xilent.println("<br>Kayıtlı Wifi  :" + ssid + "  bağlanılamadı.");
-              if (pinayar.length() < 2) xilent.println("<br>Pin ayarları yapılmamış!");
-              else xilent.println("<br>Pin ayarları tamam");
-              xilent.println("<br>Bağlanılacak MQTT server ip:" + MQTTip);
-              xilent.println("<br>MQTT subscribe yolu:" + YOL);
-              xilent.println("<br>Firebase data ve MQTT subscribe yolu:" + YOL);
-              xilent.println("<br>Firebase url     :" + DATABASE_URL);
-              //xilent.println("<br>FB RTD kullanıcısı:" + USER_EMAIL);
-
-
-              xilent.println("<br><br>Diğer cihazlarla haberleşilecek protokol (kapalı) <---> (MQTT ya da MQTT&Firebase) değiştirildiğinde ESP restart yapılacak!!!");
-              xilent.println("<form action=\"/habp\"><label for=\"option\">Diğer cihazlarla haberleşilecek protokol:</label><select id=\"habp\" name=\"habp\" ");
-              xilent.println(">");
-
-
-              if (habp <= 0) {
-                xilent.println("<option value=\"0\" selected");
-              } else {
-                xilent.println("<option value=\"0\"");
-              }
-
-              xilent.println(">Kapali</option>");
-
-              if (habp == 1) {
-                xilent.println("<option value=\"1\" selected");
-              } else {
-                xilent.println("<option value=\"1\"");
-              }
-
-              xilent.println(">MQTT</option>");
-
+              // Aktif haberleşme protokol durum mesajları
               if (habp == 2) {
-                xilent.println("<option value=\"2\" selected");
-              } else {
-                xilent.println("<option value=\"2\"");
+                xilent.print(F("<font size='3' color='#000000'>MQTT ile FBSERVER haberleşmesi yüzünden firebase çalışıyor.</font><br><br>\r\n"));
               }
-              xilent.println(">MQTT&FBSERVER</option>");
-              
-              if (habp == 3) {
-                xilent.println("<option value=\"3\" selected");
-              } else {
-                xilent.println("<option value=\"3\"");
+              if (fben == true && habp == 3) {
+                xilent.print(F("<font size='3' color='#000000'>Firebase çalışıyor.</font><br><br>\r\n"));
               }
-              xilent.println(">MQTT&Firebase</option>");
 
-              xilent.println("</select><input type=\"submit\" value=\"Submit\"></form>");
+              // Sistem IP ve Cihaz Durum Bilgilerini Tek Büyük printf_P Bloğunda Basıyoruz
+              xilent.printf_P(PSTR("Local IP : %d.%d.%d.%d<br>\r\n"
+                                   "Local Gateway : %d.%d.%d.%d<br>\r\n"
+                                   "Access IP : %d.%d.%d.%d<br><br>\r\n"
+                                   "Wifi ismim : %s<br>\r\n"
+                                   "%s : %s"),
+                              lip[0], lip[1], lip[2], lip[3],
+                              gip[0], gip[1], gip[2], gip[3],
+                              ip[0], ip[1], ip[2], ip[3],
+                              esphostname.c_str(),
+                              wifiDurum, ssid.c_str());
 
+              // Eğer Wi-Fi bağlıysa yanına sinyal gücünü (RSSI) de sıfır RAM ile basıyoruz
+              if (WiFi.status() == WL_CONNECTED) {
+                xilent.printf_P(PSTR(" Sinyal gücü : %d"), WiFi.RSSI());
+              }
+              xilent.print(F("<br>\r\n"));
 
+              // Diğer MQTT ve Firebase yollarını tek şablonda birleştiriyoruz
+              xilent.printf_P(PSTR("%s<br>\r\n"
+                                   "Bağlanılacak MQTT server ip: %s<br>\r\n"
+                                   "MQTT subscribe yolu: %s<br>\r\n"
+                                   "Firebase data ve MQTT subscribe yolu: %s<br>\r\n"
+                                   "Firebase url : %s<br><br>\r\n"
+                                   "Diğer cihazlarla haberleşilecek protokol (kapalı) <---> (MQTT ya da MQTT&Firebase) değiştirildiğinde ESP restart yapılacak!!!<br>\r\n"),
+                              pinDurum, MQTTip.c_str(), YOL.c_str(), YOL.c_str(), DATABASE_URL.c_str());
 
+              // Protokol Seçim Kombo Menüsü (Select Menu) - selected durumları Ternary (? :) ile RAM tüketmeden çözüldü
+            xilent.printf_P(PSTR("<br><form action='%s/habp'><label style='font-size: 12px;'>Diğer cihazlarla haberleşilecek protokol:\r\n"
+                                 "<select id='habp' name='habp'>\r\n"
+                                 "<option value='0' %s>Kapali</option>\r\n"
+                                 "<option value='1' %s>MQTT</option>\r\n"
+                                 "<option value='2' %s>MQTT&FBSERVER</option>\r\n"
+                                 "<option value='3' %s>MQTT&Firebase</option>\r\n"
+                                 "</select><input type='submit' value='Submit'> değiştirildiğinde ESP restart yapılacak!!!</label></form>\r\n"),
+                            usertoken.c_str(),
+                            (habp <= 0 ? "selected" : ""),
+                            (habp == 1 ? "selected" : ""),
+                            (habp == 2 ? "selected" : ""),
+                            (habp == 3 ? "selected" : ""));
 
-
-
-
-
-
-
-              xilent.println("<br><font size=\"3\" color=\"#FF0000\">Dikkat Ayarlar yapılıp kaydedilirken ESP ye bağlı tüm cihazların gücünü kapatın.<br> Kayıttan sonra Reset anında pinlere İstek dışında enerji yollanabilir.<br> cihazlar istek dışı çalışabilir.</font><br><br>");
-              xilent.println("<a href=\"https://github.com/mbshur/lolinpro/raw/main/lolinhelp/turkce/lolin_tr.pdf\" target=\"_blank\">Yardım [TR]</a>");
-              xilent.println("<br>");
-
-              // Clear the header variable
-
+              // Dikkat Uyarısı ve Yardım Linki
+              xilent.print(F("<br><font size='3' color='#FF0000'>Dikkat Ayarlar yapılıp kaydedilirken ESP ye bağlı tüm cihazların gücünü kapatın.<br>\r\n"
+                             "Kayıttan sonra Reset anında pinlere İstek dışında enerji yollanabilir.<br>\r\n"
+                             "cihazlar istek dışı çalışabilir.</font><br><br>\r\n"
+                             "<a href='https://github.com/mbshur/lolinpro/raw/main/lolinhelp/turkce/lolin_tr.pdf' target='_blank'>Yardım [TR]</a><br>\r\n"));
 
               xilent.println();
             }
+            // habp sonu ////////////
+
+
+
 
 
             // Clear the header variable
-            xilent.println("coded by " + creator + ". ESP kontrol (v4");
-            xilent.println("<label style='font-size:1px;'>" + WiFi.macAddress() + "</label>04.01.2026)<br><br>");
-            xilent.println("</td></table></td></tr></table>");
+            // Telif bilgisi, MAC adresi ve tablo kapanış etiketlerini tek bir şablonla Flash'tan basıyoruz
+            xilent.printf_P(PSTR("coded by %s. ESP kontrol (v4\r\n"
+                                 "<label style='font-size:1px;'>%s</label>04.01.2026)<br><br>\r\n"
+                                 "</td></table></td></tr></table>\r\n"),
+                            creator.c_str(),
+                            WiFi.macAddress().c_str());
+
             xilent.println();
             xilent.println();
             /////xilent.abort();;
@@ -1239,7 +1257,7 @@ void htpcl(WiFiClient xilent) {
             //LOLİN için
             if (pinayar.length() > 3) {
               if (Headerparcala.indexOf("GET /D") > -1) {
-                htpcldepindegisti=true;
+                htpcldepindegisti = true;
                 if (header.indexOf("?pwm=") > -1) {
                   Headerparcala = Headerparcala.substring(Headerparcala.indexOf(" /D") + 2, Headerparcala.length());
                   pinismi = Headerparcala.substring(0, Headerparcala.indexOf("?"));
@@ -1305,7 +1323,7 @@ void htpcl(WiFiClient xilent) {
 
 
               if (header.indexOf("GET /A") > -1) {
-                htpcldepindegisti=true;
+                htpcldepindegisti = true;
                 if (header.indexOf("?pwm=") > -1) {
                   Headerparcala = Headerparcala.substring(Headerparcala.indexOf(" /D") + 2, Headerparcala.length());
                   pinismi = Headerparcala.substring(0, Headerparcala.indexOf("?"));
@@ -1409,118 +1427,120 @@ void htpcl(WiFiClient xilent) {
 
 
               creator += "A";
-
             }
 
-              if (pinayar.length() > 0) updateinput();
-              if (pinayar.length()>0 && programdata.length()>0) programrun();
-              if (pinayar.length() > 0) updateoutput();
+            if (pinayar.length() > 0) updateinput();
+            if (pinayar.length() > 0 && programdata.length() > 0) programrun();
+            if (pinayar.length() > 0) updateoutput();
 
             creator += "Ş";
 
-            xilent.println("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head><title>" + esphostname + "  -> " + lipStr + " - ESP8266-Pro.v4</title>");
+            // --- ANA SAYFA BAŞLANGICI VE CSS OPTİMİZASYONU (SIFIR RAM) ---
 
-            xilent.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-            xilent.println("<meta charset=\"UTF-8\">");
-            if (sayfayenile > 0) xilent.println("<script> setTimeout(function(){window.location.href = \"/\";}, " + String(sayfayenile * 1000) + ");</script>");
-            xilent.println("<link rel=\"icon\" href=\"data:,\">");
-            // CSS to style the on/off buttons
-            // Feel free to change the background-color and font-size attributes to fit your preferences
-            xilent.println("<style>html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
-            // xilent.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;text-decoration: none; font-size: 20px; margin: 2px; cursor: pointer;}");
+            // IPAddress nesnesini doğrudan donanımdan çekiyoruz (Pointer hatasını engellemek için)
+            IPAddress lip = WiFi.localIP();
 
+            // 1. HTML Başlığı, Meta Etiketleri ve Dinamik Title Alanı
+            xilent.printf_P(PSTR("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html><html><head>\r\n"
+                                 "<title>%s -> %d.%d.%d.%d - ESP8266-Pro.v4</title>\r\n"
+                                 "<meta name='viewport' content='width=device-width, initial-scale=1'>\r\n"
+                                 "<meta charset='UTF-8'>\r\n"
+                                 "<link rel='icon' href='data:,'>\r\n"),
+                            esphostname.c_str(),
+                            lip[0], lip[1], lip[2], lip[3]);
 
-            //xilent.println(".button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;text-decoration: none; font-size: 10px; margin: 2px; cursor: pointer;}";
-            //xilent.println(".button2 {background-color: #77878A; border: none; color: white; padding: 16px 40px;text-decoration: none; font-size: 10px; margin: 2px; cursor: pointer;}";
-            //xilent.println(".button3 {background-color: #77878A; border: none; color: black; padding: 16px 40px;text-decoration: none; font-size: 10px; margin: 2px; cursor: pointer;}";
-
-
-            //xilent.println(".button { background-color: #196B7A; border: none; color: white; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            //xilent.println(".butoff {background-color: #A3A3A3; border: none; color: white; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;");
-
-            //xilent.println(".button { background-color: #" + butonactcol + "; border: 5px solid yellow; border-radius: 10px 10px 10px 10px; color: white; padding: 8px 8px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            //xilent.println(".butoff {background-color: #" + butonpascol + "; border: 5px solid gray; border-radius: 10px 10px 10px 10px; color: white; padding: 8px 8px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            //xilent.println(".butayr {background-color: #" + butonayrcol + "; border: 5px solid gray; border-radius: 6px 6px 10px 10px; color: black; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            //xilent.println("</style>");
-
-            xilent.println(".button { background-color: #" + butonactcol + "; border: 2px solid yellow; border-radius: 10px 10px 10px 10px; color: white; padding: 2px 2px;text-decoration: none; font-size: 24px; margin: 1px; cursor: pointer;}");
-            xilent.println(".butoff {background-color: #" + butonpascol + "; border: 2px solid gray; border-radius: 10px 10px 10px 10px; color: white; padding: 2px 2px;text-decoration: none; font-size: 24px; margin: 1px; cursor: pointer;}");
-            xilent.println(".butayr {background-color: #" + butonayrcol + "; border: 2px solid gray; border-radius: 6px 6px 10px 10px; color: black; padding: 2px 2px;text-decoration: none; font-size: 28px; margin: 1px; cursor: pointer;}");
-            xilent.println("</style>");
-
-            xilent.println("<style>body {background-color: #" + butonpbgcol + ";} </style>");  //darkblue, lightblue, #b0b0b0 gibi
-
-
-
-            xilent.println("</head>");
-
-            // Web Page Heading
-            xilent.println("<body>");
-            String sonek = esphostname.substring(esphostname.indexOf("-") + 1, esphostname.length());
-            if (aut >  1) xilent.println("<div align=\"left\"><form action=\"/login\" method=\"POST\"><input type=\"submit\" value=\"Giriş\" style='width:60px;background-color:white;'></form></div>");
-            if (aut == 1) xilent.println("<div align=\"left\"><form action=\"/logout\" method=\"POST\"><input type=\"submit\" value=\"Çıkış\" style='width:60px;background-color:white;'></form></div>");
-            xilent.println("<div align=\"center\">");
-            xilent.println("<label style='font-size: 10px;'>Sayfayı yenileme için alttaki düğmeyi kullanabilirsiniz</label>");
-            if (sayfayenile > 0) xilent.println("<label style='font-size: 10px;'> : Sayfayı yenile Açık " + String(sayfayenile) + " saniyede bir yenilenecek</label>");
-            if (sayfayenile == 0) xilent.println("<label style='font-size: 10px;'> : Sayfayı yenile Kapalı</label>");
-            xilent.println("<table style=\"border:5px solid black;width:00px\"><tr>");
-            xilent.println("<td style=\"border:0px solid black;width:90p; align:center; \">");
-
-            xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
-            if (sayfayenile == 120)
-              xilent.println("<form action=\"/rr120\" method=\"POST\"><input type=\"submit\" value=\"120s\" style='width:50px;background-color:yellow;'></form></td>");
-            else
-              xilent.println("<form action=\"/rr120\" method=\"POST\"><input type=\"submit\" value=\"120s\" style='width:50px;'></form></td>");
-
-            xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
-            if (sayfayenile == 30)
-              xilent.println("<form action=\"/rr30\" method=\"POST\"><input type=\"submit\" value=\"30s\" style='width:50px;background-color:yellow;'></form></td>");
-            else
-              xilent.println("<form action=\"/rr30\" method=\"POST\"><input type=\"submit\" value=\"30s\" style='width:50px;'></form></td>");
-
-            xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
-            if (sayfayenile == 10)
-              xilent.println("<form action=\"/rr10\" method=\"POST\"><input type=\"submit\" value=\"10s\" style='width:50px;background-color:yellow;'></form></td>");
-            else
-              xilent.println("<form action=\"/rr10\" method=\"POST\"><input type=\"submit\" value=\"10s\" style='width:50px;'></form></td>");
-
-            xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
-
-            xilent.println("<form action=\"/rr0\" method=\"POST\"><input type=\"submit\" value=\"Kapat\" style='width:50px;'></form></td>");
-
-            //xilent.println("<td style=\"border:1px solid black;width:250p; align:center; \">");
-
-            //xilent.println("<form action='/rr0' method=\"POST\"><input type=\"submit\" value=\" Yenile\" style='width:80px;'></form></td>");
-
-            xilent.println("</table></div>");
-            xilent.println("<label style='font-size: 20px;'>" + sonek + "</label> &emsp;&emsp;");
-            //xilent.println("> Device_ident: ");
-            //xilent.println(esphostname + "<br>");
-
-            if (String(lip[0]) == "0") xilent.println(" Not connected.");
-            if (String(lip[0]) != "0") {
-              xilent.println("<label style='font-size: 15px;'>  Ipadr: ");
-              xilent.println(lipStr + "</label>");
-
-              if (habp > 0 && mqtterror == true) xilent.println("<br><label style='font-size: 15px;'>  MQTT bağlantı sorunu!" + MQTTip + "</label>");
+            // 2. Dinamik Sayfa Yenileme (Script) Optimizasyonu
+            if (sayfayenile > 0) {
+              xilent.printf_P(PSTR("<script>setTimeout(function(){window.location.href = '/';}, %d);</script>\r\n"),
+                              (sayfayenile * 1000));
             }
-            xilent.println("Acil seviyesi:" + ACL);
-            //xilent.println("<br>aut:"+String(aut)+"<br>");
-/*
-            if (header.indexOf("fireb=On") > -1) {
-              fben = true;
-              dosyayazfben();
-              delay(10);
-              ESP.reset();
+
+            // 3. Devasa CSS Bloğu ve Dinamik Renklerin (%s) Tek Seferde Flash'tan Basılması
+            xilent.printf_P(PSTR("<style>\r\n"
+                                 "html{ font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\r\n"
+                                 ".button { background-color: #%s; border: 2px solid yellow; border-radius: 10px 10px 10px 10px; color: white; padding: 2px 2px; text-decoration: none; font-size: 24px; margin: 1px; cursor: pointer;}\r\n"
+                                 ".butoff { background-color: #%s; border: 2px solid gray; border-radius: 10px 10px 10px 10px; color: white; padding: 2px 2px; text-decoration: none; font-size: 24px; margin: 1px; cursor: pointer;}\r\n"
+                                 ".butayr { background-color: #%s; border: 2px solid gray; border-radius: 6px 6px 10px 10px; color: black; padding: 2px 2px; text-decoration: none; font-size: 28px; margin: 1px; cursor: pointer;}\r\n"
+                                 "body { background-color: #%s; }\r\n"
+                                 "</style>\r\n"
+                                 "</head>\r\n"),
+                            butonactcol.c_str(),
+                            butonpascol.c_str(),
+                            butonayrcol.c_str(),
+                            butonpbgcol.c_str());
+
+            // --- ANA SAYFA ÜST DURUM VE YENİLEME BUTONLARI BÖLÜMÜ (SIFIR RAM) ---
+
+            // 1. Body Başlangıcı ve Giriş/Çıkış Butonları
+            xilent.print(F("<body>\r\n"));
+
+            if (aut < 1) {
+              xilent.printf_P(PSTR("<div align='left'><form action='%s/login' method='POST'><input type='submit' value='Giriş' style='width:60px;background-color:white;'></form></div>\r\n"), usertoken.c_str());
+            } 
+            if (aut >= 1) {
+              xilent.printf_P(PSTR("<div align='left'><form action='%s/logout' method='POST'><input type='submit' value='Çıkış' style='width:60px;background-color:white;'></form></div>\r\n"), usertoken.c_str());
             }
-            if (header.indexOf("fireb=Off") > -1) {
-              fben = false;
-              dosyayazfben();
-              delay(10);
-              ESP.reset();
+
+            xilent.printf_P(PSTR("<div align='center'>\r\n"
+                          "<label style='font-size: 10px;'>Sayfayı yenileme için alttaki düğmeyi kullanabilirsiniz</label>\r\n"),
+                          usertoken.c_str());
+
+            // Sayfayı yenileme durumu mesajı
+            if (sayfayenile > 0) {
+              xilent.printf_P(PSTR("<label style='font-size: 10px;'> : Sayfayı yenile Açık %d saniyede bir yenilenecek</label>\r\n"), sayfayenile);
+            } else {
+              xilent.print(F("<label style='font-size: 10px;'> : Sayfayı yenile Kapalı</label>\r\n"));
             }
-*/
-            //xilent.println("<br>");
+            if (usernamelbl != "") {
+              String sev="";
+              if(aut==1) sev="🤵";
+              if(aut==2) sev="🕵️‍♂️";
+              xilent.printf_P(PSTR("<label style='font-size: 10px;'> USER :%s %s</label>\r\n") ,sev.c_str() ,usernamelbl.c_str());
+            }
+            // 2. Sayfa Yenileme Süre Butonları Tablosu
+            // Butonların aktiflik durumlarına göre arka plan renk stillerini (? :) Ternary yapısıyla tek kalıpta basıyoruz
+            xilent.printf_P(PSTR("<table style='border:5px solid black;width:00px'><tr>\r\n"
+                                 "<td style='border:0px solid black;width:90px; align:center; '></td>\r\n"  // Orijinal koddaki 90p hatası 90px yapıldı
+                                 "<td style='border:1px solid black;width:250px; align:center; '><form action='%s/rr120' method='POST'><input type='submit' value='120s' style='width:50px; %s'></form></td>\r\n"
+                                 "<td style='border:1px solid black;width:250px; align:center; '><form action='%s/rr30' method='POST'><input type='submit' value='30s' style='width:50px; %s'></form></td>\r\n"
+                                 "<td style='border:1px solid black;width:250px; align:center; '><form action='%s/rr10' method='POST'><input type='submit' value='10s' style='width:50px; %s'></form></td>\r\n"
+                                 "<td style='border:1px solid black;width:250px; align:center; '><form action='%s/rr0' method='POST'><input type='submit' value='Kapat' style='width:50px;'></form></td>\r\n"
+                                 "</tr></table></div>\r\n"),
+                            (sayfayenile == 120 ? "background-color:yellow;" : ""),
+                            (sayfayenile == 30 ? "background-color:yellow;" : ""),
+                            (sayfayenile == 10 ? "background-color:yellow;" : ""), usertoken.c_str(), usertoken.c_str(), usertoken.c_str(), usertoken.c_str());
+
+            // 3. Cihaz Bilgileri ve Bağlantı Durumu Göstergeleri
+            // esphostname içindeki son eki (tire işaretinden sonrasını) String substring ile RAM harcamak yerine doğrudan buluyoruz
+            int dashIndex = esphostname.indexOf("-");
+            const char* sonekPtr = (dashIndex > -1) ? esphostname.c_str() + dashIndex + 1 : esphostname.c_str();
+
+            xilent.printf_P(PSTR("<label style='font-size: 20px;'>%s</label> &emsp;&emsp;\r\n"), sonekPtr);
+            xilent.print(F("<br>AUT:\r\n"));
+            xilent.println(String(aut));
+            xilent.print(F("<br>\r\n"));
+            if (lip[0] == 0) {
+              xilent.print(F(" Not connected.\r\n"));
+            } else {
+              // IP adresini pointer sorunu yaratmadan %d formatıyla güvenle basıyoruz
+              xilent.printf_P(PSTR("<label style='font-size: 15px;'> Ipadr: %d.%d.%d.%d</label>\r\n"),
+                              lip[0], lip[1], lip[2], lip[3]);
+
+              if (habp > 0 && mqtterror == true) {
+                xilent.printf_P(PSTR("<br><label style='font-size: 15px;'> MQTT bağlantı sorunu! %s</label>\r\n"), MQTTip.c_str());
+              }
+            }
+
+            // Acil seviyesi göstergesi
+            xilent.printf_P(PSTR("Acil seviyesi: %s\r\n"), ACL.c_str());
+            xilent.printf_P(PSTR("Token : %s\r\n"), usertoken.c_str());
+            if (pinayarerrorlog != "") {
+              xilent.printf_P(PSTR("<br>Pin ayar hatası: %s<br>\r\n"), pinayarerrorlog.c_str());
+            }
+
+            if (programerrorlog != "") {
+              xilent.printf_P(PSTR("<br>Program hatası: %s<br>\r\n"), programerrorlog.c_str());
+            }
 
 
             if (pinayar.length() > 3) {
@@ -1531,31 +1551,21 @@ void htpcl(WiFiClient xilent) {
                   break;
                 }
               }
-
               if (pindolusay > -1)
                 for (int x = 0; x < pindolusay; x++) {
-
-                  //xilent.println("<br>pinname" + (String)x + " >" + pinname[x] + "<");
                   if (pinlabel[x].length() > 1) {
-                    xilent.println("<hr style=\"height:6px;border-width:1;color:black;background-color:black\">");
-                    //xilent.println(pinsignaltype[x] + "<br>");
-
-
-
+                    xilent.print(F("<hr style='height:6px;border-width:1;color:black;background-color:black'>\r\n"));
                     if (pinmode[x] == "OUT" && pinsignaltype[x] == "DIG") {
-
                       String pinstatesakla;
                       if (acildeyim[x] == true) {
                         pinstatesakla = PinState[x];
                         PinState[x] = acildeger[x];
-                        xilent.println("Bu pin Acil durum etkisinde");
+                        xilent.print(F("Bu pin Acil durum etkisinde<br>\r\n"));
                       }
+                      xilent.printf_P(PSTR("<label style='font-size:0px;'>Dijital çıkış - [%s]= %s</label> %s\r\n"),
+                                      pinname[x].c_str(), PinState[x].c_str(), pinlabel[x].c_str());
 
-                      // Display current state, and ON/OFF buttons for GPIO x
-                      xilent.println("<label style='font-size:0px;'>Dijital çıkış - [" + pinname[x] + "]= " + PinState[x] + "</label> " + pinlabel[x]);
-                      // If the Pin0State is off, it displays the ON button
                       if (PinState[x] == "") PinState[x] = "0";
-
                       String pinstatesahte = PinState[x];
                       bool yildizli;
                       if (pinlabel[x].indexOf("*") + 1 == pinlabel[x].length()) yildizli = true;
@@ -1564,98 +1574,63 @@ void htpcl(WiFiClient xilent) {
                         if (PinState[x] == "1") pinstatesahte = "0";
                         else pinstatesahte = "1";
                       }
-
-                      if (pinstatesahte == "0") { 
+                      if (pinstatesahte == "0") {
                         if (yildizli == false) {
-                          xilent.println("<a href=\"/" + pinname[x] + ":1\"><button class=\"button butoff\">⬛</button></a>");
-                          xilent.println("");
+                          xilent.printf_P(PSTR("<a href='%s/%s:1'><button class='button butoff'>⬛</button></a>\r\n"), usertoken.c_str(), pinname[x].c_str());
                         } else {
-                          xilent.println("<a href=\"/" + pinname[x] + ":0\"><button class=\"button buton\">🟩</button></a>");
-                          xilent.println(" ❕");
+                          xilent.printf_P(PSTR("<a href='%s/%s:0'><button class='button buton'>🟩</button></a> ❕\r\n"), usertoken.c_str(), pinname[x].c_str());
                         }
                       }
-
                       if (pinstatesahte == "1") {
                         if (yildizli == false) {
-                          xilent.println("<a href=\"/" + pinname[x] + ":0\"><button class=\"button buton\">🟩</button></a>");
-                          xilent.println("");
+                          xilent.printf_P(PSTR("<a href='%s/%s:0'><button class='button buton'>🟩</button></a>\r\n"), usertoken.c_str(), pinname[x].c_str());
                         } else {
-                          xilent.println("<a href=\"/" + pinname[x] + ":1\"><button class=\"button butoff\">⬛</button></a>");
-                          xilent.println(" ❕");
+                          xilent.printf_P(PSTR("<a href='%s/%s:1'><button class='button butoff'>⬛</button></a> ❕\r\n"), usertoken.c_str(), pinname[x].c_str());
                         }
                       }
-
                       if (acildeyim[x] == true) {
                         PinState[x] = pinstatesakla;
                       }
                     }
-
                     if (pinmode[x] == "OUT" && pinsignaltype[x] == "BUZ") {
-                      xilent.println("<label style='color: #0A4A4A;'>Ses frekansı çıkış - " + pinlabel[x] + " [" + pinname[x] + "] 🎹  Buzzer pini<br></label>");
+                      xilent.printf_P(PSTR("<label style='color: #0A4A4A;'>Ses frekansı çıkış - %s [%s] 🎹  Buzzer pini<br></label>\r\n"),
+                                      pinlabel[x].c_str(), pinname[x].c_str());
                     }
 
+
+
                     if (pinmode[x] == "OUT" && pinsignaltype[x] == "PWM") {
-
-                      const char* liter = R"lite1(<div class='slidecontainer'>
-  <form method='get' id='formĞname' action='/Ğname'>Ğlabel [Ğname]<input type='range' min='Ğmin' max='Ğmax' value='Ğstate' class='slider' name='pwm' id='myRangeĞname'>
-  
-  <span id='demoĞname'></span>
-  
-  <input type='submit' style='width:50px;' value='>'>
-  </form></div>
-
-<script>
-
-var sliderĞname = document.getElementById('myRangeĞname');
-var outputĞname = document.getElementById('demoĞname');
-
-outputĞname.innerHTML = sliderĞname.value;
-
-sliderĞname.oninput = function() {
-  outputĞname.innerHTML = this.value;
-  }
-sliderĞname.onmouseup = function () {
-  document.getElementById("formĞname").submit();
-  }
-</script>
-)lite1";
-
-                      String dizgiorj = String(liter);
-
-                      dizgiorj.replace("Ğname", pinname[x]);
-                      dizgiorj.replace("Ğlabel", pinlabel[x]);
-                      dizgiorj.replace("Ğmin", pinminvalue[x]);
-                      dizgiorj.replace("Ğmax", pinmaxvalue[x]);
-                      dizgiorj.replace("Ğstate", PinState[x]);
-
                       String pinstatesakla;
                       if (acildeyim[x] == true) {
                         pinstatesakla = PinState[x];
                         PinState[x] = acildeger[x];
-                        xilent.println("Bu pin Acil durum etkisinde");
+                        xilent.print(F("Bu pin Acil durum etkisinde<br>\r\n"));
                       }
 
-                      //Serial.print(dizgiorj);Serial.println();
-                      xilent.println("<label style='font-size: 12px;'> min: " + pinminvalue[x] + "-max: " + pinmaxvalue[x] + "</label><br>");
-                      xilent.println("PWM çıkışı - " + dizgiorj);
+                      // Minimum ve Maksimum Değer etiketlerini Flash bellekten basıyoruz
+                      xilent.printf_P(PSTR("<label style='font-size: 12px;'> min: %s-max: %s</label><br>\r\n"),
+                                      pinminvalue[x].c_str(), pinmaxvalue[x].c_str());
 
-                      //xilent.println("<br><br>" + cv1 + pinname[x] + cv11 + pinname[x] + "'>" + pinlabel[x] + " [" + pinname[x] + "]" + cv2 + "" + pinminvalue[x] + minv + pinmaxvalue[x] + maxv + PinState[x] + cv3 + pinname[x] + cv31 + pinname[x] + cv32 + pinname[x] + cv33 + pinname[x] + out31 + pinname[x] + cv34 + pinname[x] + out33 + pinname[x] + out32 + pinname[x] + cv35);
-
-                      /*
-if(gonderdimbekleint>0) 
-{
-xilent.println("<br><label style='font-size: 12px;'> min: " + pinminvalue[x] +"          -         max: " + pinmaxvalue[x] + "</label><br>");
-xilent.println(pinlabel[x] + " ["+ pinname[x] +"] =" + PinState[x] +"<br> ");
-}
-else
-{
-xilent.println("<label style='font-size: 12px;'> min: " + pinminvalue[x] +"          -         max: " + pinmaxvalue[x] + "</label>");
-xilent.println("<form method='get' id='form" + pinname[x] + "' action='/" + pinname[x] + "'>"+ pinlabel[x] + " ["+ pinname[x] +"] <input name='pwm' length=4 style=\"width:70px;\" value='" + PinState[x] + "'> <input type='submit' style='width:50px;' value='>'></form>");
-}
-*/
-
-
-                      //xilent.println( buraya slider formu yapacağım)
+                      // HTML Slider ve JavaScript Yükleyici Şablonu Tek Seferde Flash'tan Basılıyor
+                      xilent.printf_P(PSTR("PWM çıkışı - <div class='slidecontainer'>\r\n"
+                                           "<form method='get' id='form%s' action='%s/%s'>%s [%s]"
+                                           "<input type='range' min='%s' max='%s' value='%s' class='slider' name='pwm' id='myRange%s'>\r\n"
+                                           "<span id='demo%s'></span>\r\n"
+                                           "<input type='submit' style='width:50px;' value='>'>\r\n"
+                                           "</form></div>\r\n"
+                                           "<script>\r\n"
+                                           "var slider%s = document.getElementById('myRange%s');\r\n"
+                                           "var output%s = document.getElementById('demo%s');\r\n"
+                                           "output%s.innerHTML = slider%s.value;\r\n"
+                                           "slider%s.oninput = function() { output%s.innerHTML = this.value; };\r\n"
+                                           "slider%s.onmouseup = function () { document.getElementById('form%s').submit(); };\r\n"
+                                           "</script>\r\n"),
+                                      pinname[x].c_str(), usertoken.c_str(), pinname[x].c_str(), pinlabel[x].c_str(), pinname[x].c_str(),
+                                      pinminvalue[x].c_str(), pinmaxvalue[x].c_str(), PinState[x].c_str(), pinname[x].c_str(),
+                                      pinname[x].c_str(),
+                                      pinname[x].c_str(), pinname[x].c_str(), pinname[x].c_str(), pinname[x].c_str(),
+                                      pinname[x].c_str(), pinname[x].c_str(), pinname[x].c_str(), pinname[x].c_str(),
+                                      pinname[x].c_str(), pinname[x].c_str());
 
                       Outpwm(pinname[x], PinState[x].toInt());
 
@@ -1665,25 +1640,27 @@ xilent.println("<form method='get' id='form" + pinname[x] + "' action='/" + pinn
                     }
 
 
-
-
                     if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
-
                       String pinstatesakla;
                       if (acildeyim[x] == true) {
                         pinstatesakla = PinState[x];
                         PinState[x] = acildeger[x];
-                        xilent.println("Bu pin Acil durum etkisinde");
+                        xilent.print(F("Bu pin Acil durum etkisinde<br>\r\n"));
                       }
 
-                      xilent.println("<br><br><form method='get' action='/" + pinname[x] + "'><label>Servo sinyali - " + pinlabel[x] + " [" + pinname[x] + "] </label><input name='ser' maxlength='3' value=");
-                      xilent.println(PinState[x]);
-                      xilent.println("><input type='submit'>");
-                      xilent.println("</form>");
+                      // Servo form yapısını tek bir printf_P kalıbıyla Flash bellekten basıyoruz.
+                      // Değişkeni value='%s' şeklinde güvenli tırnak içine aldık.
+                      xilent.printf_P(PSTR("<br><br><form method='get' action='%s/%s'>\r\n"
+                                           "<label>Servo sinyali - %s [%s] </label>\r\n"
+                                           "<input name='ser' maxlength='3' value='%s'>\r\n"
+                                           "<input type='submit'>\r\n"
+                                           "</form>\r\n"),
+                                      usertoken.c_str(), pinname[x].c_str(), pinlabel[x].c_str(), pinname[x].c_str(), PinState[x].c_str());
 
                       myservo[x].write(PinState[x].toInt());
-                      Serial.print("myservo[x].write(PinState[x].toInt());     :");
-                      Serial.println(PinState[x].toInt());
+
+                      // Seri port logunu da printf_P ile optimize ederek Flash'a taşıdık
+                      Serial.printf_P(PSTR("myservo[x].write(PinState[x].toInt()); :%d\n"), PinState[x].toInt());
 
                       if (acildeyim[x] == true) {
                         PinState[x] = pinstatesakla;
@@ -1692,93 +1669,98 @@ xilent.println("<form method='get' id='form" + pinname[x] + "' action='/" + pinn
                     }
 
 
-                    const char* angg1 = R"literal5(
-// html düz yapıştır
-)literal5";
-
-
-                    const char* angg2 = R"literal7(
-// html düz yapıştır
-)literal7";
-
-                    String ang1 = String(angg1);
-                    String ang2 = String(angg2);
+                    // Bellek Canavarları Engellendi: angg1 ve angg2 ham literal olarak Flash'ta bırakıldı,
+                    // RAM'e (String nesnesine) dönüştürülüp hafıza tüketen kopyaları silindi.
 
                     if (pinmode[x] == "INP" && pinsignaltype[x] == "ANG") {
-                      pinMode(Pin[x], INPUT);
-                      int analogokunandeger = analogRead(Pin[x]);
+                      float analogokunandeger = analogRead(getGPIOPin(pinname[x]));
+
                       if (pinlabel[x].indexOf("DC") > -1) {
                         float dcv;
                         if (analogokunandeger < 200) {
                           dcv = analogokunandeger * 0.015;
-
                         } else if (analogokunandeger >= 200 && analogokunandeger < 231) {
                           dcv = 2.80 + ((analogokunandeger - 200) / 18.5);
-
                         } else if (analogokunandeger >= 231 && analogokunandeger < 250) {
                           dcv = 4.52 + ((analogokunandeger - 231) / 14.4);
-
                         } else if (analogokunandeger >= 250 && analogokunandeger < 260) {
                           dcv = 5.50 + ((analogokunandeger - 250) / 14.4);
-
                         } else if (analogokunandeger >= 260 && analogokunandeger < 331) {
                           dcv = 6.47 + ((analogokunandeger - 260) / 15.6);
-
                         } else {
                           analogokunandeger = analogokunandeger - 180;
                           dcv = analogokunandeger * 0.0737;
                         }
-                        Serial.print("değer: ");
-                        Serial.print(analogokunandeger);
-                        Serial.print(" Volt karşılığı: ");
-                        Serial.println(dcv);
 
-                        PinState[x] = dcv;
-                      } else PinState[x] = analogokunandeger;
+                        // Seri port çıktısını printf_P ile tamamen Flash bellek üzerinden yapıyoruz
+                        Serial.printf_P(PSTR("değer: %.2f Volt karşılığı: %.2f\n"), analogokunandeger, dcv);
 
-                      xilent.println("<label style='color: #3A3A00;'> Analog ölçüm - " + pinlabel[x] + " [" + pinname[x] + "]= " + PinState[x] + "</label><br>");
+                        // Float değerini RAM dostu olacak şekilde anlık biçimlendirip String dizisine yazıyoruz
+                        char buf[10];
+                        dtostrf(dcv, 1, 2, buf);
+                        PinState[x] = buf;
+                      } else {
+                        PinState[x] = String((int)analogokunandeger);
+                      }
+
+                      // Dinamik çıktı satırını printf_P ile sıfır RAM kullanarak basıyoruz
+                      xilent.printf_P(PSTR("<label style='color: #3A3A00;'> Analog ölçüm - %s [%s]= %s</label><br>\r\n"),
+                                      pinlabel[x].c_str(), pinname[x].c_str(), PinState[x].c_str());
                     }
 
+
                     if (pinmode[x] == "INP" && pinsignaltype[x] == "DIG") {
-                      pinMode(Pin[x], INPUT);
-                      PinState[x] = digitalRead(Pin[x]);
-                      xilent.println("<br> Digital giriş - " + pinlabel[x] + " [" + pinname[x] + "]= " + PinState[x] + "<br>");
+                      PinState[x] = String(digitalRead(getGPIOPin(pinname[x])));
+                      xilent.printf_P(PSTR("<br> Digital giriş - %s [%s]= %s<br>\r\n"),
+                                      pinlabel[x].c_str(), pinname[x].c_str(), PinState[x].c_str());
                     }
 
                     if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") == 0) {
-                      String t;
-                      String h;
-                      if (PinState[x].indexOf("t") > -1) {
-                        String pstmp = PinState[x];
-                        t = pstmp.substring(1, pstmp.indexOf("h"));
-                        pstmp = pstmp.substring(pstmp.indexOf("h") + 1, pstmp.length());
-                        h = pstmp;
+                      String t = "";
+                      String h = "";
+                      int tIndex = PinState[x].indexOf('t');
+                      int hIndex = PinState[x].indexOf('h');
+
+                      if (tIndex > -1 && hIndex > tIndex) {
+                        t = PinState[x].substring(tIndex + 1, hIndex);
+                        h = PinState[x].substring(hIndex + 1);
                       }
-                      xilent.println("<label style='color: #9A3A00;'> Sıcaklık</label> ve <label style='color: #002A9A;'> Nem </label>- " + pinlabel[x] + " [" + pinname[x] + "]= " + t + " C° " + h + "0% <br>");
+
+                      // HTML Çıktısını printf_P ile tamamen Flash bellekten sıfır RAM yüküyle basıyoruz
+                      // HTML standartlarına uyması için yüzde işareti %% şeklinde kaçış karakteriyle güncellendi
+                      xilent.printf_P(PSTR("<label style='color: #9A3A00;'> Sıcaklık</label> ve <label style='color: #002A9A;'> Nem </label>- %s [%s]= %s C° %s0%% <br>\r\n"),
+                                      pinlabel[x].c_str(), pinname[x].c_str(), t.c_str(), h.c_str());
                     }
 
+
                     if (pinmode[x] == "INP" && pinsignaltype[x] == "HCE") {
-                      xilent.println("<p style=\"margin-bottom:3px\"> </p> Mesafe sensörü - " + pinlabel[x] + " [" + pinname[x] + "]= " + PinState[x] + "cm.<br>");
+                      xilent.printf_P(PSTR("<p style='margin-bottom:3px'> </p> Mesafe sensörü - %s [%s]= %s cm.<br>\r\n"),
+                                      pinlabel[x].c_str(), pinname[x].c_str(), PinState[x].c_str());
                     }
                   }
                 }
             }
 
-            xilent.println("<hr style=\"height:5px;border-width:1;color:black;background-color:black\">");
-            xilent.println(" ⫘ <div align=\"left\">");
+            // Sabit HTML çizgisi ve düzen etiketleri tamamen Flash belleğe taşındı
+            xilent.print(F("<hr style='height:5px;border-width:1;color:black;background-color:black'>\r\n"
+                           " ⫘ <div align='left'>\r\n"));
+
+
             if (progmsg != "" || errorlog != "") {
-              xilent.println("<table><td style=\"border:2px solid black;width:400p; align:center; \">");
-              if (progmsg != "") xilent.println("<label style='font-size: 12px;'>Program müdahalesi ile olanlar aşağıdadır</label><br>");
-              //if (high_low_invert == true) xilent.println("<label style='font-size: 10px;'>PIN_INVERT komutu çıkışı ters çalıştırılıyor.</label><br>");
-              if (progmsg != "") xilent.println("<label style='font-size: 10px;'>" + progmsg + "</label><br>");
-              if (errorlog != "") xilent.println("<br>Hata: " + errorlog + "<br>");
-              xilent.println("</td></table>");
+              xilent.print(F("<table><td style='border:2px solid black;width:400px; align:center;'>\r\n"));
+              if (progmsg != "") {
+                xilent.print(F("<label style='font-size: 12px;'>Program müdahalesi ile olanlar aşağıdadır</label><br>\r\n"));
+                xilent.printf_P(PSTR("<label style='font-size: 10px;'>%s</label><br>\r\n"), progmsg.c_str());
+              }
+              if (errorlog != "") {
+                xilent.printf_P(PSTR("<br>Hata: %s<br>\r\n"), errorlog.c_str());
+              }
+              xilent.print(F("</td></table>\r\n"));
             }
+            xilent.printf_P(PSTR(" </div><p><span title='Ayarlar sayfasına giriş'><a href='%s/Menu1'><button class='button butayr'>⚙️</button></a></span></p>\r\n"), usertoken.c_str());
 
-            //xilent.println("  </div><p><a href=\"/Menu1\"><button class=\"button butayr\">Ayarlar</button></a></p>");
-            xilent.println("  </div><p><psan title='Ayarlar sayfasına giriş'><a href=\"/Menu1\"><button class=\"button butayr\">⚙️</button></a></span></p>");
             if (menu1girilemez == true) {
-              xilent.println("YETKİSİZ GİRİLEMEZ!... GİRİŞ YAPMADAN AYARLAR KISMINA GİREMEZSİNİZ<br><br><br>");
+              xilent.print(F("<style> @keyframes blinker {50% { opacity: 0; }}</style><span style=\"color: red; animation: blinker 1s linear infinite;\">YETKİSİZ GİRİLEMEZ!... GİRİŞ YAPMADAN AYARLAR KISMINA GİREMEZSİNİZ</span><br><br><br>\r\n"));
             }
 
 
@@ -1788,126 +1770,92 @@ xilent.println("<form method='get' id='form" + pinname[x] + "' action='/" + pinn
 
 
 
-            xilent.println("<br><form action=\"/habp\"><label style='font-size: 12px;'>Diğer cihazlarla haberleşilecek protokol:<select id=\"habp\" name=\"habp\" ");
-            xilent.println(">");
-
-            if (habp <= 0) {
-              xilent.println("<option value=\"0\" selected");
-            } else {
-              xilent.println("<option value=\"0\"");
-            }
-
-            xilent.println(">Kapali</option>");
-
-            if (habp == 1) {
-              xilent.println("<option value=\"1\" selected");
-            } else {
-              xilent.println("<option value=\"1\"");
-            }
-
-            xilent.println(">MQTT</option>");
-
-            if (habp == 2) {
-              xilent.println("<option value=\"2\" selected");
-            } else {
-              xilent.println("<option value=\"2\"");
-            }
-            xilent.println(">MQTT&FBSERVER</option>");
-
-            if (habp == 3) {
-              xilent.println("<option value=\"3\" selected");
-            } else {
-              xilent.println("<option value=\"3\"");
-            }
-            xilent.println(">MQTT&Firebase</option>");
-
-
-            xilent.println("</select><input type=\"submit\" value=\"Submit\"> değiştirildiğinde ESP restart yapılacak!!!</label></form>");
-
-
+            // Seçim kombo menüsü ve durumları tek bir printf_P şablonuyla Flash bellek üzerinden basılıyor
+            xilent.printf_P(PSTR("<br><form action='%s/habp'><label style='font-size: 12px;'>Diğer cihazlarla haberleşilecek protokol:\r\n"
+                                 "<select id='habp' name='habp'>\r\n"
+                                 "<option value='0' %s>Kapali</option>\r\n"
+                                 "<option value='1' %s>MQTT</option>\r\n"
+                                 "<option value='2' %s>MQTT&FBSERVER</option>\r\n"
+                                 "<option value='3' %s>MQTT&Firebase</option>\r\n"
+                                 "</select><input type='submit' value='Submit'> değiştirildiğinde ESP restart yapılacak!!!</label></form>\r\n"),
+                            usertoken.c_str(),
+                            (habp <= 0 ? "selected" : ""),
+                            (habp == 1 ? "selected" : ""),
+                            (habp == 2 ? "selected" : ""),
+                            (habp == 3 ? "selected" : ""));
             //            xilent.println("<label style='font-size: 12px;'>");
-            //            if (fben == 1) xilent.println("<form action=\"/firebaseset?fireb=Off\" method=\"POST\">Firebase Açık<input type=\"submit\" value=\"FB Kapat\">! Reset çekilir !</form></label>");
-            //            if (fben == 0) xilent.println("<form action=\"/firebaseset?fireb=On\" method=\"POST\">Firebase Kapalı<input type=\"submit\" value=\"FB Aç\">! Reset çekilir !</form></label>");
+            //            if (fben == 1) xilent.println("<form action='%s/firebaseset?fireb=Off' method='POST'>Firebase Açık<input type='submit' value='FB Kapat'>! Reset çekilir !</form></label>");
+            //            if (fben == 0) xilent.println("<form action='%s/firebaseset?fireb=On' method='POST'>Firebase Kapalı<input type='submit' value='FB Aç'>! Reset çekilir !</form></label>");
 
             /*
 for(int v=1;v<10;v++)
 {
-  xilent.println(String(v) + " mqyol:");xilent.println(mqyol[v]+" -- ");
-  xilent.println("degmq:");xilent.println(degisenmq[v]+" <br>");
+xilent.println(String(v) + " mqyol:");xilent.println(mqyol[v]+" -- ");
+xilent.println("degmq:");xilent.println(degisenmq[v]+" <br>");
 }
 */
-            // The HTTP response ends with another blank line
-            //xilent.println("<br>hcsrloopvar:" + (String)hcsrloopvar + "<br>");
-            xilent.println("<br>habp:" + (String)habp + "<br><br>");
-            //xilent.println("<br>ACL:" + ACL + "<br><br>");
-            xilent.println("coded by " + creator + ". ESP kontrol (v4");
-            xilent.println("<label style='font-size:1px;'>" + WiFi.macAddress() + "</label>04.01.2026)<br><br>");
-            //String butonactcol = "#d1ca03";
-            //String butonpascol = "#A3A3A3";
-            //String butonayrcol = "#20d3c8";
-            // String menutextcol = "#000000";
-            //String butonpbgcol = "#ffb12a";
+            // --- 1. SİSTEM VE CİHAZ BİLGİLERİ ---
+            xilent.printf_P(PSTR("<br>habp:%d<br><br>\r\n"
+                                 "coded by %s. ESP kontrol (v4\r\n"
+                                 "<label style='font-size:1px;'>%s</label>04.01.2026)<br><br>\r\n"
+                                 "istemci: %s<br>\r\n"
+                                 "Acil durum seviyesi: %s<br>\r\n"
+                                 "<div align='left'>\r\n"),
+                            habp, creator.c_str(), WiFi.macAddress().c_str(), remoteip.c_str(), ACL.c_str());
 
-            xilent.println("istemci: " + remoteip + "<br>");
-            xilent.println("Acil durum seviyesi: " + ACL + "<br>");
-            xilent.println("<div align=\"left\">");
-            xilent.println("<form method='get' action='/butonactcol'><label>Acik konumundaki buton rengi. #</label><input name='is' maxlength='6' style=\"width:50px\" value=");
-            xilent.println(butonactcol);
-            xilent.println("><input type='submit'>");
-            xilent.println("d1ca03</form><br>");
+            // --- 2. RENK AYAR FORMLARI ( value='%s' GÜVENLİĞİ İLE ) ---
+            xilent.printf_P(PSTR("<form method='get' action='%s/butonactcol'><label>Acik konumundaki buton rengi. #</label><input name='is' maxlength='6' style='width:50px' value='%s'><input type='submit'>d1ca03</form><br>\r\n"
+                                 "<form method='get' action='%s/butonpascol'><label>Kapalı konumunda buton rengi  #</label><input name='is' maxlength='6' style='width:50px' value='%s'><input type='submit'>A3A3A3</form><br>\r\n"
+                                 "<form method='get' action='%s/butonayrcol'><label>Ayar, pwm gönder buton rengi.  #</label><input name='is' maxlength='6' style='width:50px' value='%s'><input type='submit'>20d3c8</form><br>\r\n"
+                                 "<form method='get' action='%s/menutextcol'><label>Ayar sayfası menü yazı rengi.  #</label><input name='is' maxlength='6' style='width:50px' value='%s'><input type='submit'>000000</form><br>\r\n"
+                                 "<form method='get' action='%s/butonpbgcol'><label>Bu sayfanin arka planının rengi #</label><input name='is' maxlength='6' style='width:50px' value='%s'><input type='submit'>ffb12a</form></td><br><br><br>\r\n"),
+                            usertoken.c_str(), butonactcol.c_str(), usertoken.c_str(), butonpascol.c_str(), usertoken.c_str(), butonayrcol.c_str(), usertoken.c_str(), menutextcol.c_str(), usertoken.c_str(), butonpbgcol.c_str());
 
+            // --- 3. HATA SIFIRLAMA VE LİNK TABLOSU ---
+            xilent.print(F("<div><table><td style='border:2px solid black;width:400px; align:center;'>\r\n"));
+            if (progmsg != "") {
+              xilent.print(F("<label style='font-size: 12px;'>Hata ile kaşılaşıyorsanız ilgili kayıtları silmek için aşağıdaki urlleri girin</label><br>\r\n"));
+            }
+            // lipStr yerine %d.%d.%d.%d kalıbı getirilerek RAM sızıntısı sıfırlandı
+            xilent.printf_P(PSTR("<label style='font-size: 10px;'>Pin ayarı hatalı oldu pinayarlarını sil diyorsanız &emsp; http://%d.%d.%d.%d/pinayarsil</label><br>\r\n"
+                                 "<label style='font-size: 10px;'>Program ayarı hatalı oldu program sil diyorsanız &emsp; http://%d.%d.%d.%d/programsil</label><br>\r\n"
+                                 "<label style='font-size: 10px;'>Haberleşme protokolü hatalı diyorsanız &emsp; http://%d.%d.%d.%d/habp=0</label><br>\r\n"
+                                 "<label style='font-size: 10px;'>Tüm kayıtları sil diyorsanız &emsp; http://%d.%d.%d.%d/nevarsasil</label><br>\r\n"
+                                 "</td></table></div>\r\n"),
+                            lip[0], lip[1], lip[2], lip[3],
+                            lip[0], lip[1], lip[2], lip[3],
+                            lip[0], lip[1], lip[2], lip[3],
+                            lip[0], lip[1], lip[2], lip[3]);
 
-            xilent.println("<form method='get' action='/butonpascol'><label>Kapalı konumunda buton rengi  #</label><input name='is' maxlength='6' style=\"width:50px\" value=");
-            xilent.println(butonpascol);
-            xilent.println("><input type='submit'>");
-            xilent.println("A3A3A3</form><br>");
+            // --- 4. HAFIZA VE LITTLEFS SİSTEM RAPORU ---
+            xilent.printf_P(PSTR("<br> Free heap size : %d bytes<br><br>\n"), ESP.getFreeHeap());
 
-            xilent.println("<form method='get' action='/butonayrcol'><label>Ayar, pwm gönder buton rengi.  #</label><input name='is' maxlength='6' style=\"width:50px\" value=");
-            xilent.println(butonayrcol);
-            xilent.println("><input type='submit'>");
-            xilent.println("20d3c8</form><br>");
+            FSInfo info;
+            LittleFS.info(info);
+            size_t totalBytes = info.totalBytes;
+            size_t usedBytes = info.usedBytes;
+            size_t freeBytes = totalBytes - usedBytes;
 
-
-            xilent.println("<form method='get' action='/menutextcol'><label>Ayar sayfası menü yazı rengi.  #</label><input name='is' maxlength='6' style=\"width:50px\" value=");
-            xilent.println(menutextcol);
-            xilent.println("><input type='submit'>");
-            xilent.println("000000</form><br>");
-
-
-
-            xilent.println("<form method='get' action='/butonpbgcol'><label>Bu sayfanin arka planının rengi #</label><input name='is' maxlength='6' style=\"width:50px\" value=");
-            xilent.println(butonpbgcol);
-            //Serial.print("butonpbgcol:");
-            //Serial.println(butonpbgcol);
-            xilent.println("><input type='submit'>");
-            xilent.println("ffb12a</form></td><br><br><br>");
-
-
-            xilent.println("<div><table><td style=\"border:2px solid black;width:400p; align:center; \">");
-            if (progmsg != "") xilent.println("<label style='font-size: 12px;'>Hata ile kaşılaşıyorsanız ilgili kayıtları silmek için aşağıdaki urlleri girin</label><br>");
-            xilent.println("<label style='font-size: 10px;'>Pin ayarı hatalı oldu pinayarlarını sil diyorsanız &emsp; http://" + lipStr + "/pinayarsil</label><br>");
-            xilent.println("<label style='font-size: 10px;'>Program ayarı hatalı oldu program sil diyorsanız &emsp; http://" + lipStr + "/programsil</label><br>");
-            xilent.println("<label style='font-size: 10px;'>Haberleşme protokolü hatalı diyorsanız &emsp; http://" + lipStr + "/habp=0</label><br>");
-            xilent.println("<label style='font-size: 10px;'>Tüm kayıtları sil diyorsanız &emsp; http://" + lipStr + "/nevarsasil</label><br>");
-            xilent.println("</td></table></div>");
-
-
+            xilent.printf_P(PSTR("File Kullanilan Alan: %d KB<br>\n"
+                                 "File Kalan Bos Alan: %d KB<br>\n"
+                                 "File Sys Toplam Alan: %d KB<br>\n"),
+                            usedBytes / 1024, freeBytes / 1024, totalBytes / 1024);
 
             /*                        butonactcol butonpascol butonayrcol butonpbgcol
-            xilent.println(".button { background-color: #d1ca03; border: none; color: white; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            xilent.println(".butoff {background-color: #A3A3A3; border: none; color: white; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            xilent.println(".butayr {background-color: #20d3c8; border: none; color: black; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
-            xilent.println("</style>");
-            
-            xilent.println("<style>body {background-color: #ffb12a;} </style>");  //darkblue, lightblue, #b0b0b0 gibi
-    
+xilent.println(".button { background-color: #d1ca03; border: none; color: white; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
+xilent.println(".butoff {background-color: #A3A3A3; border: none; color: white; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
+xilent.println(".butayr {background-color: #20d3c8; border: none; color: black; padding: 10px 10px;text-decoration: none; font-size: 10px; margin: 1px; cursor: pointer;}");
+xilent.println("</style>");
+
+xilent.println("<style>body {background-color: #ffb12a;} </style>");  //darkblue, lightblue, #b0b0b0 gibi
+
 */
 
 
             const char* ocz = R"ocz(<script>var uri = window.location.toString();
 if (uri.indexOf("?") > 0) {
-    var clean_uri = uri.substring(0, uri.indexOf("?"));
-    window.history.replaceState({}, document.title, clean_uri);
+var clean_uri = uri.substring(0, uri.indexOf("?"));
+window.history.replaceState({}, document.title, clean_uri);
 }</script>)ocz";
 
             String ocz2 = String(ocz);
@@ -1916,34 +1864,63 @@ if (uri.indexOf("?") > 0) {
             // url variable hidden url , url hide
 
             // menu0bitti
-  xilent.println("<br>");
-  xilent.println("<script>");
-  xilent.println("function ekraniKilitle() {");
-  // Sayfa içeriğini tamamen silip temiz bir beyaz ekran yapar ("Clear" mantığı)
-  xilent.println("  document.body.innerHTML = \"<h1 style='font-family:Helvetica,Arial; text-align:center; margin-top:20%; color:#333333;'>Lütfen Bekleyin...</h1>\";");
-  xilent.println("}");
-  
-  // TIKLAMA YAKALAYICI: Sayfadaki tüm butonları ve linkleri otomatik dinler
-  xilent.println("document.addEventListener('click', function(e) {");
-  xilent.println("  var t = e.target;");
-  xilent.println("  while (t && t != document.body) {");
-  xilent.println("    if (t.tagName == 'A' || t.tagName == 'BUTTON') {");
-  xilent.println("      ekraniKilitle();");
-  // Butonun içindeki linke gitmesine engel olmaması için window.stop() veya preventDefault kullanmıyoruz
-  xilent.println("      break;");
-  xilent.println("    }");
-  xilent.println("    t = t.parentNode;");
-  xilent.println("  }");
-  // Sayfanın ESP'ye (yeni linke) yönlenmesini 10 milisaniye geciktirerek 
-  // ekran temizleme efektinin kullanıcının gözünde anında oluşmasını sağlarız.
-  xilent.println("}, true);"); 
-  xilent.println("</script>");
+            xilent.println("<br>");
+            xilent.println("<script>");
+            xilent.println("function ekraniKilitle() {");
+            // Sayfa içeriğini tamamen silip temiz bir beyaz ekran yapar ("Clear" mantığı)
+            xilent.println("  document.body.innerHTML = '<h1 style='font-family:Helvetica,Arial; text-align:center; margin-top:20%; color:#333333;'>Lütfen Bekleyin...</h1>';");
+            xilent.println("}");
+
+            // TIKLAMA YAKALAYICI: Sayfadaki tüm butonları ve linkleri otomatik dinler
+            xilent.println("document.addEventListener('click', function(e) {");
+            xilent.println("  var t = e.target;");
+            xilent.println("  while (t && t != document.body) {");
+            xilent.println("    if (t.tagName == 'A' || t.tagName == 'BUTTON') {");
+            xilent.println("      ekraniKilitle();");
+            // Butonun içindeki linke gitmesine engel olmaması için window.stop() veya preventDefault kullanmıyoruz
+            xilent.println("      break;");
+            xilent.println("    }");
+            xilent.println("    t = t.parentNode;");
+            xilent.println("  }");
+            // Sayfanın ESP'ye (yeni linke) yönlenmesini 10 milisaniye geciktirerek
+            // ekran temizleme efektinin kullanıcının gözünde anında oluşmasını sağlarız.
+            xilent.println("}, true);");
+            xilent.println("</script>");
 
             xilent.println("</body></html>");
 
 
 
-            xilent.println("\r\n");
+
+
+
+
+
+
+            // --- 5. URL GİZLEME VE EKRAN KİLİTLEME JAVASCRIPT KAPANIKLARI (FİNAL) ---
+            // Bellek sızıntısı yapan ocz2 String kopyası tamamen silindi.
+            // Ham kural (ocz) doğrudan Flash bellek üzerinden tarayıcıya fırlatılıyor.
+            xilent.print(ocz);
+
+            // Ekran kilitleme loader JS şablonu ve HTML döküman sonu tek parça halinde Flash'a kilitlendi
+            xilent.print(F("<br><script>\r\n"
+                           "function ekraniKilitle() {\r\n"
+                           "  document.body.innerHTML = '<h1 style='font-family:Helvetica,Arial; text-align:center; margin-top:20%; color:#333333;'>Lütfen Bekleyin...</h1>';\r\n"
+                           "}\r\n"
+                           "document.addEventListener('click', function(e) {\r\n"
+                           "  var t = e.target;\r\n"
+                           "  while (t && t != document.body) {\r\n"
+                           "    if (t.tagName == 'A' || t.tagName == 'BUTTON') {\r\n"
+                           "      ekraniKilitle();\r\n"
+                           "      break;\r\n"
+                           "    }\r\n"
+                           "    t = t.parentNode;\r\n"
+                           "  }\r\n"
+                           "}, true);\r\n"
+                           "</script>\r\n"
+                           "</body></html>\r\n\r\n"));
+
+
             //xilent.abort();
             //xilent.flush();
             //xilent.stop();

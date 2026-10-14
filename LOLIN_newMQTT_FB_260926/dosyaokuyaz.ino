@@ -26,7 +26,7 @@ void dosyayazacl()
 }
 
 
-
+/*
 void htserveroku(){
                  dosya.close();
                 dosya = LittleFS.open("/httpserverip.txt", "r");
@@ -50,6 +50,7 @@ void htserverkaydet(String hServerip)
                 dosya.close();
                 htserveroku();
 }
+*/
 
 void mqttipoku(){
                  dosya.close();
@@ -160,8 +161,7 @@ void dosyaYazusers()
                 LittleFS.remove("/usrnamepass.txt");
                 dosya = LittleFS.open("/usrnamepass.txt", "w+");
                 if (dosya) {
-                  dosya.println(unme);
-                  dosya.println(pwrd);
+                  dosya.println(users);
                   dosya.close();
                   Serial.println("Write bitti");
                 }
@@ -175,34 +175,45 @@ void dosyaOkuusers() {
   if (dosya) {
     // dosya başarı ile açıldı;
 
-    String unmetmp = dosya.readStringUntil('\n');
-
-    for(int sil=0;sil<4;sil++){
-    if(unmetmp.indexOf('\r')==0) unmetmp=unmetmp.substring(1,unmetmp.length()); 
-    if(unmetmp.indexOf('\n')==0) unmetmp=unmetmp.substring(1,unmetmp.length()); 
-    if(unmetmp.indexOf('\r')>2) unmetmp=unmetmp.substring(0,unmetmp.length()-1);
-    if(unmetmp.indexOf('\n')>2) unmetmp=unmetmp.substring(0,unmetmp.length()-1);
+    users = dosya.readString();
+    String hamMetin=users;
+    int userCount = 0;
+    
+    // Satır satır bölmek için döngü (Her satır bir kullanıcı)
+    while (hamMetin.length() > 0 && userCount < MAX_USER) {
+        int satirSonu = hamMetin.indexOf("\n");
+        String satir = (satirSonu == -1) ? hamMetin : hamMetin.substring(0, satirSonu);
+        satir.trim(); // Varsa boşlukları temizle
+        
+        if (satir.length() > 0) {
+            // Satır içindeki virgüllerin yerini bul (Örn: ali,1234,2)
+            int ilkVirgul = satir.indexOf(",");
+            int ikinciVirgul = satir.lastIndexOf(",");
+            
+            if (ilkVirgul != -1 && ikinciVirgul != -1 && ilkVirgul != ikinciVirgul) {
+                usernames[userCount] = satir.substring(0, ilkVirgul);
+                passwords[userCount] = satir.substring(ilkVirgul + 1, ikinciVirgul);
+                userLevels[userCount] = satir.substring(ikinciVirgul + 1).toInt(); // 1 veya 2 yapar
+                
+                userCount++;
+            }
+        }
+        
+        // İşlenen satırı metinden at, kalana bak
+        if (satirSonu == -1) break;
+        hamMetin = hamMetin.substring(satirSonu + 1);
     }
-    unme=unmetmp;
-    String pwrdtmp = dosya.readStringUntil('\n');
-    for(int sil=0;sil<4;sil++){
-    if(pwrdtmp.indexOf('\r')==0) pwrdtmp=pwrdtmp.substring(1,pwrdtmp.length()); 
-    if(pwrdtmp.indexOf('\n')==0) pwrdtmp=pwrdtmp.substring(1,pwrdtmp.length());
-    if(pwrdtmp.indexOf('\r')>2) pwrdtmp=pwrdtmp.substring(0,pwrdtmp.length()-1);
-    if(pwrdtmp.indexOf('\n')>2) pwrdtmp=pwrdtmp.substring(0,pwrdtmp.length()-1);
-    }
 
-    pwrd=pwrdtmp;
     dosya.close();
     //Serial.println("read bitti");
   }else
   {
-    unme = "admin";
-    pwrd = "1111";
-  dosyaYazusers();
+    dosya.close();
+    users = "admin,1111,1\n";
+    dosyaYazusers();
 
   }
-  dosya.close();
+  
 }
 
 
