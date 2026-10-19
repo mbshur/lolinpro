@@ -227,7 +227,7 @@ void mqttsend(String mqyol , String mqdata)
   //else{delay(4);}
   Serial.print("mqttsend yol: ");Serial.print(mqpat);
   Serial.print("mqttsend mqdata: ");Serial.print(mqdata);
-  acltekrar=millis()+5000;
+  acltekrar=millis()+10000;
 }
 
 void mqttisyap(String rsltt)

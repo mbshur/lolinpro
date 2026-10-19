@@ -17,11 +17,6 @@
 #include "Melody.h"
 
 
-
-
-#include <WiFiUDP.h>
-
-
 WiFiClient mqttnet;
 MQTTClient mqttclient;
 String MQTTip = "";
@@ -79,7 +74,7 @@ String creator;
 String htyolla;
 String esphostnameOnek = "";
 String esphostname = "esp-bos";
-unsigned long harcananzaman;
+//unsigned long harcananzaman;
 String progmsg;
 
 
@@ -105,6 +100,9 @@ int aut;
 int logintimeoutmax = 240000;
 
 
+String cihazmac = "";       // Dosyadan okunan veya üretilen aktivasyon kodu
+bool cihazorjinal = false;  // Cihazın durum bayrağı ("EVET" veya "HAYIR")
+
 
 int PIN_TONE;
 String Host;
@@ -112,7 +110,7 @@ String Host;
 int sayfayenile = 0;
 
 String VRP[5];
-int pinsayisi = 10;
+int pinsayisi = 9;
 // pin Adı|pinmode|pin baslangic degeri|pin değeri|pin degerleri|Pin label"
 
 bool pinayarchg = false;
@@ -131,6 +129,12 @@ String pinmaxvalue[10];
 String acilseviyesi[10];
 String acildeger[10];
 String pinlabel[10];
+
+bool rxtxvar = false;
+String rxtampon = "";
+String rxdata = "";
+String txdata = "";
+
 String ACL = "9";
 String eACL = "9";
 bool ACLilanciyim = false;
@@ -144,6 +148,10 @@ int dhtsayac = 1;
 // 10 elemanlı boş bir pointer dizisi. Başlangıçta hepsi NULL (boş)
 DHT* DHTA[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
+// 10 adet pin için Servo nesnesi işaretçi dizisi (Pointer Array)
+Servo* myservo[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+bool servovar[10] = { false };  // Hangi servonun aktif olduğunu takip eden bayrak
+
 int hcsrT[10];
 int hcsrE[10];
 int edistance[10];
@@ -153,7 +161,6 @@ unsigned long hcsrlooptimer;
 String tempstr = "";
 String humstr = "";
 
-Servo myservo[10];
 
 
 String pinayar;
@@ -186,10 +193,13 @@ File dosya;
 
 String pinayarerrorlog = "";
 String programerrorlog = "";
+String RXTXerrorlog = "";
 //int pinayarerrorlogsatir=0;
 String programdata;
 
-
+bool uzunMetrajVar = false;    // Uzun metraj modu aktif mi?
+String uprogramdata = "";      // Uzun metraj program verisi
+String uprogramerrorlog = "";  // Hata logları için
 
 
 int habp = -2;
@@ -261,14 +271,10 @@ void handleNotFound() {
 
 bool LED_BUILTIN_devredisi = false;
 
-//String macadr1="8"; // SALON
-String macadr1 = "5";  // BAHCE
 bool pinlerdagitildi = false;
-//bool pinlerterslendi=false;
+
 String Pinler;
-String macadr;
-//String macadr2="c:ce:4e:ca:0e:56"; // SALON
-String macadr2 = "0:02:91:E0:43:9E";  //BAHCE
+String macadrparse[10];
 
 
 
@@ -327,7 +333,7 @@ void dosyaOkupinayar() {
     for (int p = 0; p < 11; p++) {
       String gp = dosya.readStringUntil('\n');
       if (gp.length() < 5) {
-        pinsayisi = p + 1;
+        //pinsayisi = p + 1;
         break;
       }
     }
@@ -350,22 +356,22 @@ void dosyaOkupinayar() {
     }
 
     if (contpih % 8 != 0) {
-      pinayarerrorlog = "pinayar hatalı";
+      pinayarerrorlog += "pinayar hatalı";
       pinayar = "";
       return;
     } else {
       pinayar = pinayartmp;
     }
-
-
-
     dosya.close();
+
+    if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) rxtxvar=true;
+
     strtmp = pinayar;
     Serial.println("dosyaokupinayar.");
     Serial.println(pinayar);
 
     if (strtmp.length() > 0) {
-      for (int x = 0; x < 12; x++) {
+      for (int x = 0; x < pinsayisi + 1; x++) {
         pinname[x] = "";
         pinmode[x] = "";
         pinsignaltype[x] = "";
@@ -386,121 +392,138 @@ void dosyaOkupinayar() {
 
 
 
-      pinayarerrorlog = "";
       hcsrloopvar = false;
       yield();
 
-      for (int x = 0; x < 12; x++) {
+      for (int x = 0; x < pinsayisi + 1; x++) {
+
+
+
         if (strtmp.length() < 3) break;
-        String pinnametm = strtmp.substring(0, strtmp.indexOf("|"));
 
-        int b = pinnametm.length() + 1;
-        char cvc[b];
-        pinnametm.toCharArray(cvc, b);  // pinname 0A ise atla
-        if ((int)cvc[0] != 10) {
+        if (strtmp.indexOf("//") != 0) {
 
-          int pinismiint;
-          if (pinnametm.length() > 1) {
-            pinismiint = pinnametm.substring(1, 2).toInt();
-            if (pinnametm.substring(0, 1) == "A") pinismiint += 9;
-          } else pinismiint = pinnametm.toInt();
+          String pinnametm = strtmp.substring(0, strtmp.indexOf("|"));
 
-          //Serial.println(pinnametm);
-          //Serial.println(pinismiint);
+          int b = pinnametm.length() + 1;
+          char cvc[b];
+          pinnametm.toCharArray(cvc, b);  // pinname 0A ise atla
+          if ((int)cvc[0] != 10) {
 
-          x = pinismiint;
-          //pinsatir[x] = strtmp.substring(0,strtmp.indexOf("\n"));
+            int pinismiint;
+            if (pinnametm.length() > 1) {
+              pinismiint = pinnametm.substring(1, 2).toInt();
+              if (pinnametm.substring(0, 1) == "A") pinismiint += 9;
+            } else pinismiint = pinnametm.toInt();
 
-          //Serial.println(j);
+            //Serial.println(pinnametm);
+            //Serial.println(pinismiint);
 
-          pinname[x] = pinnametm.substring(0, pinnametm.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+            x = pinismiint;
+            //pinsatir[x] = strtmp.substring(0,strtmp.indexOf("\n"));
+            if(strtmp.indexOf("D4")>-1)LED_BUILTIN_devredisi=true;
+            //Serial.println(j);
 
-          pinmode[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+            pinname[x] = pinnametm.substring(0, pinnametm.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
-          pinsignaltype[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+            pinmode[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
-
-          pinminvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-          if (pinlerdagitildi == false) {
-            if (PinState[x] == "") {
-              if (pinsignaltype[x] == "PWM") {
-                int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
-                if (asd < 0) PinState[x] = "0";
-                if (asd > 255) PinState[x] = 255;
-              }
-              if (pinsignaltype[x] == "SER") {
-                int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
-                if (asd < 0) PinState[x] = "0";
-                if (asd > 180) PinState[x] = 180;
-              } else PinState[x] = strtmp.substring(0, strtmp.indexOf("|"));
-
-              //ePinState[x]=PinState[x];
-              if (pinsignaltype[x] == "BUZ") {
-                int gpio = getGPIOPin(pinname[x]);
-                PIN_TONE = gpio;
-              }
-
-              if (pinsignaltype[x] == "HCE") {
-                int gpio = getGPIOPin(pinname[x]);
-                hcsrE[x] = gpio;
-                hcsrloopvar = true;
-                int gpio2 = getGPIOPin(pinname[x]);
-                hcsrT[x] = gpio2;
-              }
+            pinsignaltype[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
 
 
-              // Eğer eski bir DHT nesnesi varsa hafızayı boşaltalım (re-init koruması)
-              if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") == 0) {
-                if (DHTA[x] != NULL) {
-                  delete DHTA[x];
-                  DHTA[x] = NULL;
+            pinminvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+
+            if (pinlerdagitildi == false) {
+              if (PinState[x] == "") {
+                if (pinsignaltype[x] == "PWM") {
+                  int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
+                  if (asd < 0) PinState[x] = "0";
+                  if (asd > 255) PinState[x] = "255";  // String olduğu için tırnak içine alındı
                 }
-                // Eğer bu pin bir DHT sensörüyse nesneyi buracıkta yaratıyoruz:
-                if (pinsignaltype[x].indexOf("DHT") == 0) {
-                  uint8_t DHT_TYPE = DHT11;
-                  if (pinsignaltype[x] == "DHT1") DHT_TYPE = DHT11;
-                  else if (pinsignaltype[x] == "DHT2") DHT_TYPE = DHT12;
-                  else if (pinsignaltype[x] == "DHT3") DHT_TYPE = DHT21;
-                  else if (pinsignaltype[x] == "DHT4") DHT_TYPE = DHT22;
-                  else pinayarerrorlog = "DHT pinsignaltype yanlış " + pinsignaltype[x] + " olamaz. DHT11 için DHT1, DHT12 için DHT2, DHT21 için DHT3, DHT22 için DHT4 yazın.";
-                  // 🎯 İşte sihirli satır: Nesneyi dinamik olarak buradaki pinde oluşturduk!
-                  DHTA[x] = new DHT(getGPIOPin(pinname[x]), DHT_TYPE);
-                  DHTA[x]->begin();  // Pointer olduğu için '.' yerine '->' kullanılır
+                if (pinsignaltype[x] == "SER") {
+                  int asd = strtmp.substring(0, strtmp.indexOf("|")).toInt();
+                  if (asd < 0) PinState[x] = "0";
+                  if (asd > 180) PinState[x] = "180";  // String olduğu için tırnak içine alındı
+                } else {
+                  PinState[x] = strtmp.substring(0, strtmp.indexOf("|"));
+                }
+
+                if (pinsignaltype[x] == "BUZ") {
+                  int gpio = getGPIOPin(pinname[x]);
+                  PIN_TONE = gpio;
+                }
+
+                if (pinsignaltype[x] == "HCE") {
+                  int gpio = getGPIOPin(pinname[x]);
+                  hcsrE[x] = gpio;
+                  hcsrloopvar = true;
+                  int gpio2 = getGPIOPin(pinname[x]);
+                  hcsrT[x] = gpio2;
+                }
+
+                // 🎯 =================================================================
+                // 🎯 SERVO MOTOR İÇİN DİNAMİK NESNE YARATMA (DHT Mantığının Aynısı)
+                // -----------------------------------------------------------------
+                if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
+                  // Eğer o pinde eski bir servo nesnesi kalmışsa önce hafızayı tamamen boşaltalım (Re-init koruması)
+                  if (myservo[x] != NULL) {
+                    myservo[x]->detach();  // Önce pinden ayır
+                    delete myservo[x];     // Hafızadan sil
+                    myservo[x] = NULL;     // İşaretçiyi boşa çıkar
+                  }
+
+                  int8_t fizikselPin = getGPIOPin(pinname[x]);
+                  pinMode(fizikselPin, OUTPUT);
+
+                  // İşte sihirli nesneleştirme satırı: Yeni servo nesnesini dinamik yaratıyoruz!
+                  myservo[x] = new Servo();
+                  myservo[x]->attach(fizikselPin);  // Pointer olduğu için '->' kullanılır
+
+                  servovar[x] = true;  // Servonun başarıyla kurulduğunu onayla
+                  Serial.printf_P(PSTR("[SERVO] Pin %s dinamik nesne olarak basariyla kuruldu.\n"), pinname[x].c_str());
+                }
+
+                // Eğer eski bir DHT nesnesi varsa hafızayı boşaltalım (re-init koruması)
+                if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") == 0) {
+                  if (DHTA[x] != NULL) {
+                    delete DHTA[x];
+                    DHTA[x] = NULL;
+                  }
+                  // Eğer bu pin bir DHT sensörüyse nesneyi buracıkta yaratıyoruz:
+                  if (pinsignaltype[x].indexOf("DHT") == 0) {
+                    uint8_t DHT_TYPE = DHT11;
+                    if (pinsignaltype[x] == "DHT1") DHT_TYPE = DHT11;
+                    else if (pinsignaltype[x] == "DHT2") DHT_TYPE = DHT12;
+                    else if (pinsignaltype[x] == "DHT3") DHT_TYPE = DHT21;
+                    else if (pinsignaltype[x] == "DHT4") DHT_TYPE = DHT22;
+                    else pinayarerrorlog = "DHT pinsignaltype yanlış " + pinsignaltype[x] + " olamaz. DHT11 için DHT1, DHT12 için DHT2, DHT21 için DHT3, DHT22 için DHT4 yazın.";
+
+                    DHTA[x] = new DHT(getGPIOPin(pinname[x]), DHT_TYPE);
+                    DHTA[x]->begin();
+                  }
                 }
               }
             }
 
-            if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") < 0) {
-              pinMode(getGPIOPin(pinname[x]), INPUT);
-            }
+            pinval[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+            PinState[x] = pinval[x];
+
+            pinmaxvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+
+
+            acilseviyesi[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
+
+            acildeger[x] = strtmp.substring(0, strtmp.indexOf("|"));
+            strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
           }
-
-          pinval[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-          PinState[x] = pinval[x];
-
-          pinmaxvalue[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-
-          acilseviyesi[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
-
-          acildeger[x] = strtmp.substring(0, strtmp.indexOf("|"));
-          strtmp = strtmp.substring(strtmp.indexOf("|") + 1, strtmp.length());
         }
-
-
-
-
-
-
-
 
         //Serial.print("label bu");Serial.println(strtmp);
 
@@ -523,48 +546,84 @@ void dosyaOkupinayar() {
 
 void dosyaYazpinayar() {
 
-  pinayarerrorlog = "";
-  programerrorlog = "";
-
   reConnectsayac = millis();
+
+  // HTML'den gelen pinayartmp verisini düzeltiyoruz
   pinayartmp = Karakterduzeltfunc(pinayartmp);
-  pinayartmp.replace("\n\n", "");
+  pinayartmp.replace("\n\n", "\n");  // Çift satır boşluklarını teke indir
+  pinayartmp.trim();
 
-  int contpih = 0;
-  int n = 0;
+  String yeniPinAyarMetni = "";  // Yeniden inşa edeceğimiz güvenli metin
+  int baslangicIdx = 0;
+  int bitisIdx = 0;
+  bool formatHatasiVar = false;
 
-  while ((n = pinayartmp.indexOf('|', n)) != -1) {
-    n++;
-    contpih++;
+  // 1. ADIM: Metni satır satır bölerek tek tek inceliyoruz
+  while ((bitisIdx = pinayartmp.indexOf('\n', baslangicIdx)) != -1 || baslangicIdx < pinayartmp.length()) {
+
+    // Eğer son satırda \n yoksa metnin sonuna kadar al
+    if (bitisIdx == -1) bitisIdx = pinayartmp.length();
+
+    String satir = pinayartmp.substring(baslangicIdx, bitisIdx);
+    satir.trim();
+
+    if (satir.length() > 0) {
+      // Bu satırdaki | karakterlerini sayalım
+      int satirPipeSayisi = 0;
+      for (int i = 0; i < satir.length(); i++) {
+        if (satir[i] == '|') satirPipeSayisi++;
+      }
+
+      // KESİN KONTROL: Her bir satırda tam olarak 8 tane | olmak zorunda!
+      if (satirPipeSayisi != 8) {
+        formatHatasiVar = true;
+        break;  // Bir satır bile bozuksa döngüden çık
+      }
+      pinayarerrorlog = "";
+
+      // 2. ADIM: Çakışma Kontrolü (Sadece bu geçerli satır için)
+      if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) {
+        // Eğer satırda D6 veya D7 geçiyorsa ve başında zaten // yoksa engelle
+        if ((satir.indexOf("D6") != -1 || satir.indexOf("D7") != -1) && satir.indexOf("//") != 0) {
+          pinayarerrorlog = "Pinayar hatası: D6 veya D7 kullanılamaz! Program kısmında RXTX; tanımlı.";
+          satir = "//" + satir;  // Tüm satırı güvenle yorum satırına çeviriyoruz
+        }
+      }
+
+      // Temiz veya düzeltilmiş satırı yeni metne ekle
+      yeniPinAyarMetni += satir + "\n";
+    }
+
+    if (bitisIdx == pinayartmp.length()) break;
+    baslangicIdx = bitisIdx + 1;
   }
 
-  if (contpih % 8 != 0) {
-    pinayarerrorlog = "pinayar hatalı.";
-    pinayar = "";
+  // 3. ADIM: Format Hatası Varsa Kaydetmeden Çık
+  if (formatHatasiVar) {
+    pinayarerrorlog = "pinayar hatalı: Satırlardaki parametre sayısı eksik veya fazla!";
     return;
   }
 
-  if (pinayartmp != pinayar) {
-    pinayar = pinayartmp;
+  // 4. ADIM: Değişiklik Varsa LittleFS'e Güvenle Yaz (Flash Ömrünü Korur)
+  if (yeniPinAyarMetni != pinayar) {
+    pinayar = yeniPinAyarMetni;
+
     dosya.close();
     LittleFS.remove("/pinayar.txt");
     dosya = LittleFS.open("/pinayar.txt", "w+");
-    //pinayarYuzdeliifadesil();
 
-    dosya.print(pinayar);
+    if (dosya) {
+      dosya.print(pinayar);
+      dosya.close();
+      Serial.println(F("--- Yeni Pin Ayarları Kaydedildi ---"));
+      Serial.println(pinayar);
+    }
+
     if (habp == 2) pinayarchg = true;
-    dosya.close();
-    Serial.println(pinayar);
-
-    // int deleteResponseCode = firebaseRealtime.remove("/" + YOL + "/r/" , esphostname);
-    //fbdeletesayac();
-    //fbpinayaryaz = true;
     setup2();
     programrun();
   }
 }
-
-
 
 
 
@@ -656,6 +715,7 @@ void setup2() {
 
 
     for (int x = 0; x < pinsayisi + 1; x++) {
+
       if (pinmode[x] == "OUT" & pinsignaltype[x] == "DIG") {
         pinMode(getGPIOPin(pinname[x]), OUTPUT);
       }
@@ -674,15 +734,26 @@ void setup2() {
         //          pinMode(Pin[b], OUTPUT);
       }
 
+      if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
+        // Eğer o pinde eski bir servo nesnesi kalmışsa önce hafızayı tamamen boşaltalım (Re-init koruması)
+        if (myservo[x] != NULL) {
+          myservo[x]->detach();  // Önce pinden ayır
+          delete myservo[x];     // Hafızadan sil
+          myservo[x] = NULL;     // İşaretçiyi boşa çıkar
+        }
 
-      if (pinmode[x] == "OUT" & pinsignaltype[x] == "SER") {
+        int8_t fizikselPin = getGPIOPin(pinname[x]);
+        pinMode(fizikselPin, OUTPUT);
 
-        pinMode(getGPIOPin(pinname[x]), OUTPUT);
-        myservo[x].detach();
-        myservo[x].attach(getGPIOPin(pinname[x]));
-        //
+        // İşte sihirli nesneleştirme satırı: Yeni servo nesnesini dinamik yaratıyoruz!
+        myservo[x] = new Servo();
+        myservo[x]->attach(fizikselPin);  // Pointer olduğu için '->' kullanılır
+
+        servovar[x] = true;  // Servonun başarıyla kurulduğunu onayla
+        Serial.printf_P(PSTR("[SERVO] Pin %s dinamik nesne olarak basariyla kuruldu.\n"), pinname[x].c_str());
       }
     }
+        if(rxtxvar)rxtxsetup();
   }
 }
 
@@ -824,8 +895,8 @@ void connectWifi(void) {
     //                                wifiscan();
     //                                lookAP();// S etup HotSpot
 
-    String macdre = WiFi.macAddress();
-    WiFi.softAP("Esp-bos-" + macdre, "12345678");
+
+    WiFi.softAP("Esp-" + WiFi.macAddress(), "12345678");
     //delay(100);
     Serial.println(WiFi.localIP());
     Serial.println(WiFi.gatewayIP());
@@ -1044,22 +1115,44 @@ void dosyaOkuprogram() {
 
 
 void dosyaYazprogram(String programdatat) {
-  programdata = Karakterduzeltfunc(programdatat);
   reConnectsayac = millis();
-
-  //Serial.print("Yazilacakprogramdata:");
-  pinayarerrorlog = "";
   programerrorlog = "";
-  dosya.close();
-  LittleFS.remove("/program.txt");
-  Serial.println(programdata);
+  // 1. Gelen veriyi önce geçici bir değişkende düzeltiyoruz
+  String programdatatmp = Karakterduzeltfunc(programdatat);
 
-  dosya = LittleFS.open("/program.txt", "w+");
-  dosya.print(programdata);
-  dosya.close();
-  setup2();
-  if (pinayar.length() > 0 && programdata.length() > 0) programrun();
-  //ESP.reset();
+  // 2. Güvenlik ve Çakışma Kontrolünü geçici değişken üzerinde yapıyoruz
+  if (pinayar.indexOf("D6") != -1 || pinayar.indexOf("D7") != -1) {
+    if (programdatatmp.indexOf("RXTX") > -1 && programdatatmp.indexOf("//RXTX") < 0) {
+      programerrorlog = "Program hatası: D6, D7 pinayarda kullanılmış! Programda RXTX; kullanılamaz.";
+      // "RXTX" ifadesini devre dışı bırakmak için açıklama satırına çevir
+      programdatatmp.replace("RXTX", "//RXTX");
+    }
+  }
+
+  // 3. SADECE veri gerçekten DEĞİŞTİYSE dosyaya ve hafızaya yaz (Flash Ömrünü Korur)
+  if (programdatatmp != programdata) {
+    programdata = programdatatmp;  // Artık güvenli veriyi ana değişkene atabiliriz
+
+    dosya.close();
+    // LittleFS.remove("/program.txt"); // 'w+' modu zaten dosyayı sıfırlar, remove'a gerek yok
+
+    Serial.println(F("Yeni program kaydediliyor..."));
+    Serial.println(programdata);
+
+    dosya = LittleFS.open("/program.txt", "w+");
+    if (dosya) {
+      dosya.print(programdata);
+      dosya.close();
+    }
+
+    // Sistemi yeni ayarlarla tazele
+    setup2();
+    if (pinayar.length() > 0 && programdata.length() > 0) {
+      programrun();
+    }
+  } else {
+    Serial.println(F("Program verisinde değişiklik yok, yazma atlandı."));
+  }
 }
 
 
@@ -1153,6 +1246,16 @@ void setup() {
   Serial.println(ESP.getResetReason());
   Serial.println(ESP.getResetInfo());
 
+  // Önce lisans kontrolü (cihazorjinal durumunu belirler)
+  dosyaokucihazmac();
+
+  // YENİ EKLEME: Kalıcı aut durumunu dosyadan okuyoruz
+  dosyaOkuAutDurum();
+
+  dosyaOkuUzunMetrajMod();
+
+  dosyaokuuprogram();
+
   dosyaokuacl();
   dosyaokuhabp();
 
@@ -1199,8 +1302,7 @@ void setup() {
 
   //httpserver.setNoDelay(true);
 
-  macadr = macadr1 + macadr2;
-  macadr.toUpperCase();
+
 
   if (WiFi.status() != WL_CONNECTED) connectWifi();
 
@@ -1310,7 +1412,7 @@ bool htpcldepindegisti = false;
 int test = 1;
 
 
-WiFiUDP udp;
+
 
 void loop() {
   //Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
@@ -1318,41 +1420,12 @@ void loop() {
   //Serial.println(httpserver.status());
 
 
-  // put your main code here, to run repeatedly:
+
   otaloop();
 
 
 
-  /* ///////////////////
-  if(WiFi.status()==WL_CONNECTED)
-  {
-    if(udpbegin==false){
-      udp.begin(4210);
-      udpbegin=true;
-    }
-    int packetSize = udp.parsePacket();
-    if (packetSize) {
-    char buf[255];
-    udp.read(buf, 255);
-    //if (String(buf) == "DECLERE_ET") {
 
-            IPAddress lip = WiFi.localIP();
-            String lipStr = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
-            String gd = YOL + "[" + esphostname + "]" + lipStr;
-
-        int bufSize = gd.length() + 1; 
-        char gdchr[bufSize]; 
-        gd.toCharArray(gdchr, bufSize); 
-
-        udp.beginPacket(udp.remoteIP(), udp.remotePort());
-        udp.write(gdchr);
-        udp.endPacket();
-    //}
-  }
-
-  }
-  */
-  ////////////////
 
 
   if (mqttclient.connected() == true) {
@@ -1382,9 +1455,10 @@ void loop() {
 
 
 
-  harcananzaman = millis();
+  //harcananzaman = millis();
 
   MDNS.update();  // mDNS sorgularini guncellemek icindir
+
 
 
   xilent = httpserver.available();
@@ -1393,24 +1467,28 @@ void loop() {
     if (habp == 2) timereski = millis() + 10;
     if (habp == 1) timereski = millis() + 10;
     if (habp == 0) timereski = millis() + 10;
+
+    if (rxtxvar) rxtxloop();
+
     htpcl(xilent);
     if (htpcldepindegisti == true) {
       pinuygula();
     }
   }
 
-    serin();
+  serin();
 
+/*
   if (millis() - harcananzaman > (test * 200)) {
     Serial.println("htpclde vakit uzadı: ms>" + (String)(millis() - harcananzaman));
     test += 1;
     if (test > 10) test = 1;
   }
+*/
 
 
-
-  //geciktirmee //yavaşlatma
-  //if(macadr!=WiFi.macAddress()){delay(1000);}
+  //geciktirmee yavaşlatma 
+  if(cihazorjinal == false){delay(1000);}
 
 
   if (rescanwifi == true) {
@@ -1418,7 +1496,7 @@ void loop() {
     rescanwifi = 0;
   }
 
-  harcananzaman = millis();
+  //harcananzaman = millis();
 
   /////////////////// 5 saniyede bir acl ilanı yap
   if (mqttclient.connected()) {
@@ -1448,6 +1526,48 @@ void loop() {
     mqtterror = true;
   }
   ////////////////
+
+
+
+  if (WiFi.status() != WL_CONNECTED) {
+    if (millis() - reConnectsayac > 30000) {
+      reConnectsayac = millis();
+      connectWifi();
+      if (WiFi.status() == WL_CONNECTED) {
+
+        if (habp > 0) {
+          if (MQTTip.length() > 2) MQTTConnect();
+        }
+      }
+    }
+  }
+
+
+
+
+  if (millis() - ledsay > 880) {
+    if (millis() - ledsay == 881) {
+      digitalWrite(LED_BUILTIN, LOW);
+    }
+    if (millis() - ledsay > 1000) {
+      ledsay = millis();
+      digitalWrite(LED_BUILTIN, HIGH);
+
+
+      // int chk = DHTA.read();
+
+
+      // pin işlemleri rutini bitiş ////////////////////////////
+    }
+  }
+
+  for (int t = 0; t < MAX_USER + 1; t++) {
+    if (usertokn[t] != "" && userLevels[t] == 2) {
+      if (millis() - userlogouttime[t] > logintimeoutmax) {
+      }
+    }
+  }
+
 
 
   if (habp == -2) dosyaokuhabp();
@@ -1482,15 +1602,19 @@ void loop() {
   if (habp == 3) upd = 500;
 
 
+
+
+
+
   if ((millis() - timereski) % upd == 0 && fbisleniyor == false) {
     headerold = "";
-    harcananzaman = millis();
+    //harcananzaman = millis();
     if (millis() - timereski > 5000) timereski = millis();
     if (pinayar.length() > 0) updateinput();
     if (pinayar.length() > 0 && programdata.length() > 0) programrun();
     if (pinayar.length() > 0) updateoutput();
     if (pinayar.length() > 0) vrkontrol();
-    if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));
+    //if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));
   }
 
 
@@ -1529,56 +1653,16 @@ void loop() {
       }
     }
   }
-
-
-
-
-
-  if (WiFi.status() != WL_CONNECTED) {
-    if (millis() - reConnectsayac > 30000) {
-      reConnectsayac = millis();
-      connectWifi();
-      if (WiFi.status() == WL_CONNECTED) {
-        //udpbegin=false;
-        if (habp > 0) {
-          if (MQTTip.length() > 2) MQTTConnect();
-        }
-      }
-    }
-  }
-
-
-
-
-  if (millis() - ledsay > 880) {
-    if (millis() - ledsay == 881) {
-      digitalWrite(LED_BUILTIN, LOW);
-    }
-    if (millis() - ledsay > 1000) {
-      ledsay = millis();
-      digitalWrite(LED_BUILTIN, HIGH);
-
-
-      // int chk = DHTA.read();
-
-
-      // pin işlemleri rutini bitiş ////////////////////////////
-    }
-  }
-
-  for (int t = 0; t < MAX_USER + 1; t++) {
-    if (usertokn[t]!="" && userLevels[t]==2){
-        if (millis() - userlogouttime[t] > logintimeoutmax) {
-        }
-    }
-  }
 }
 
 
 void pinuygula() {
+
+  if (!cihazorjinal) return;
+
   if (programdata.length() > 4) programrun();
 
-  for (int x = 0; x < 11; x++) {
+  for (int x = 0; x < pinsayisi + 1; x++) {
 
 
     if (pinmode[x] == "OUT") {
@@ -1605,18 +1689,46 @@ void pinuygula() {
         }
       }
 
+      if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
+        if (servovar[x] && myservo[x] != NULL) {
+          // HANGİ DEĞERİN GELDİĞİNİ GÖRMEK İÇİN DEBUG LOGU EKLEYİN:
+          //Serial.printf_P(PSTR("[DEBUG] Servo tetiklendi! Gelen string: '%s'\n"), PinState[x].c_str());
+
+          int aciDeperi = constrain(PinState[x].toInt(), 0, 180);
+
+          //Serial.printf_P(PSTR("[DEBUG] Motora yazilan aci: %d\n"), aciDeperi);
+
+          myservo[x]->write(aciDeperi);
+
+          psco = true;
+          ePinState[x] = PinState[x];
+        }
+      }
+
 
       if (pinmode[x] == "OUT" && pinsignaltype[x] == "PWM") {
         int PWMdegerint = PinState[x].toInt();
         Outpwm(pinname[x], PWMdegerint);
       }
 
-      if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
-        int PWMdegerint = PinState[x].toInt();
-        myservo[x].write(PWMdegerint);
-      }
-      if (acildeyim[x] == true) {
-        PinState[x] = pinstatesakla;
+      if (ePinState[x] != PinState[x]) {
+        // 1. DURUM: SERVO MOTOR KONTROLÜ (Nesne Kontrollü Güvenli Sürüş)
+        // myservo[x] != NULL şartı sayesinde, nesne yaratılmadıysa asla koda girmez ve çökme yaşanmaz!
+        if (servovar[x] && myservo[x] != NULL) {
+          int aciDeperi = constrain(PinState[x].toInt(), 0, 180);
+
+          // 🎯 Pointer nesnesi olduğu için artık '.' yerine '->' kullanıyoruz:
+          myservo[x]->write(aciDeperi);
+
+          psco = true;
+          ePinState[x] = PinState[x];
+        }
+        // 2. DURUM: SENSÖR VE DİĞER SİNYAL TİPLERİ...
+        // ... (Geri kalan kodlarınız aynen devam ediyor) ...
+
+        if (acildeyim[x] == true) {
+          PinState[x] = pinstatesakla;
+        }
       }
     }
   }
@@ -1703,50 +1815,55 @@ if(userstmp.length()<1) break;
 
 
 String Karakterduzeltfunc(String gelent) {
-  Serial.println("Karakterduzelte girdim");
+  Serial.println(F("Karakterduzelte girdim"));
   Serial.println(gelent);
-  gelent.replace("+", " ");
-  gelent.replace("%20", " ");
-  gelent.replace("%26", "&");
-  gelent.replace("%28", "(");
-  gelent.replace("%29", ")");
-  gelent.replace("%7C", "|");
-  gelent.replace("%3B", ";");
-  gelent.replace("%3D", "=");
-  gelent.replace("%3F", "?");
-  gelent.replace("%3E", ">");
-  gelent.replace("%3C", "<");
-  gelent.replace("%7B", "{");
-  gelent.replace("%7D", "}");
-  gelent.replace("%5B", "[");
-  gelent.replace("%5D", "]");
-  gelent.replace("%2B", "+");
-  gelent.replace("%21", "!");
 
-  gelent.replace("%22", "\"");
-  gelent.replace("%3A", ":");
-  gelent.replace("%3B", "\"");
-  gelent.replace("%23", "#");
-  gelent.replace("%27", "'");
-  gelent.replace("%2C", ",");
-  gelent.replace("%C5%9E", "Ş");
-  gelent.replace("%C5%9F", "ş");
-  gelent.replace("%C3%87", "Ç");
-  gelent.replace("%C3%A7", "ç");
-  gelent.replace("%C3%96", "Ö");
-  gelent.replace("%C3%B6", "ö");
-  gelent.replace("%C3%9C", "Ü");
-  gelent.replace("%C3%BC", "ü");
-  gelent.replace("%C4%9E", "Ğ");
-  gelent.replace("%C4%9F", "ğ");
-  gelent.replace("%C4%B1", "ı");
-  gelent.replace("%C4%B0", "İ");
-  gelent.replace("%2F", "/");
-  gelent.replace("%3E", ">");
-  gelent.replace("%3C", "<");
-  gelent.replace("%0D%0A", "\n");
-  gelent.replace("%25", "%");
-  Serial.print("Düzeltme sonucu: ");
+  // 1. ADIM: Satır sonlarını (\r\n) en başta düzeltiyoruz ki metin satırlara düzgün ayrılsın
+  gelent.replace(F("%0D%0A"), F("\n"));
+  gelent.replace(F("+"), F(" "));
+  gelent.replace(F("%20"), F(" "));
+
+  // 2. ADIM: Standart Sembol Çözümleri
+  gelent.replace(F("%26"), F("&"));
+  gelent.replace(F("%28"), F("("));
+  gelent.replace(F("%29"), F(")"));
+  gelent.replace(F("%7C"), F("|"));  // Dik çizgiler temizleniyor
+  gelent.replace(F("%3B"), F(";"));
+  gelent.replace(F("%3D"), F("="));
+  gelent.replace(F("%3F"), F("?"));
+  gelent.replace(F("%3E"), F(">"));
+  gelent.replace(F("%3C"), F("<"));
+  gelent.replace(F("%7B"), F("{"));
+  gelent.replace(F("%7D"), F("}"));
+  gelent.replace(F("%5B"), F("["));
+  gelent.replace(F("%5D"), F("]"));
+  gelent.replace(F("%2B"), F("+"));
+  gelent.replace(F("%21"), F("!"));
+  gelent.replace(F("%22"), F("\""));
+  gelent.replace(F("%3A"), F(":"));  // İki noktalar temizleniyor
+  gelent.replace(F("%23"), F("#"));
+  gelent.replace(F("%27"), F("'"));
+  gelent.replace(F("%2C"), F(","));
+  gelent.replace(F("%2F"), F("/"));
+
+  // 3. ADIM: GÜVENLİ BÖLGE (Tüm sembol işlemleri bitti, şimdi gerçek yüzde işaretlerini çözebiliriz)
+  gelent.replace(F("%25"), F("%"));
+
+  // 4. ADIM: Türkçe Karakter Düzeltmeleri
+  gelent.replace(F("%C5%9E"), F("Ş"));
+  gelent.replace(F("%C5%9F"), F("ş"));
+  gelent.replace(F("%C3%87"), F("Ç"));
+  gelent.replace(F("%C3%A7"), F("ç"));
+  gelent.replace(F("%C3%96"), F("Ö"));
+  gelent.replace(F("%C3%B6"), F("ö"));
+  gelent.replace(F("%C3%9C"), F("Ü"));
+  gelent.replace(F("%C3%BC"), F("ü"));
+  gelent.replace(F("%C4%9E"), F("Ğ"));
+  gelent.replace(F("%C4%9F"), F("ğ"));
+  gelent.replace(F("%C4%B1"), F("ı"));
+  gelent.replace(F("%C4%B0"), F("İ"));
+
+  Serial.print(F("Düzeltme sonucu: "));
   Serial.println(gelent);
   return gelent;
 }

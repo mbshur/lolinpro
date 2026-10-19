@@ -10,6 +10,7 @@ uint8_t kiyassayisi;
 String parantezici;
 int aktifpinno;
 
+u_int8_t susluparantezsayisi=0;
 String ptm;
 
 void programrun() {
@@ -109,18 +110,21 @@ void satirislem() {
   // if için ///////////////////////////////////////////
 
   if (satiruppercase.indexOf("//") == 0) return;
-  Serial.println("SATIRIM:" + satiruppercase);
+  //Serial.println("SATIRIM:" + satiruppercase);
 
   //if (satiruppercase.indexOf("FBC ") == 0) firebasecihaztanitimi();  firebase için
        if (satiruppercase.indexOf("MQC ") == 0) mqttcihaztanitimi();
   else if (satiruppercase.indexOf("IF") == 0) gotoif();
   else if (satiruppercase.indexOf("BOOL") == 0) gotobool();
+  else if (satiruppercase.indexOf("RXTX") == 0 && !rxtxvar) rxtxsetup();
   else if (satiruppercase.indexOf("ACLTUT") == 0) ACLilanciyim = true;
-  else {
+  else if (satiruppercase.indexOf(";")>-1){
         ifparantezdisi(satiruppercase,satirsayisip);
-       }
+       } else return;
   // ????????????????????????????????????????????? sonra ne yaparız bilmem
 }
+
+
 
 
 /* firebase için
@@ -414,8 +418,39 @@ void gotoif() {
 
   if (ifsonuc == true) 
   {
-    satiruppercase.substring(satiruppercase.indexOf(")") + 1, satiruppercase.length());
+    //satiruppercase = satiruppercase.substring(satiruppercase.indexOf(")") + 1, satiruppercase.length());
     ifparantezdisi(satiruppercase, satirsayisip);
+  } else 
+  {
+    //satiruppercase = satiruppercase.substring(satiruppercase.indexOf(")") + 1, satiruppercase.length());
+    if(satiruppercase.indexOf("{")>-1)
+    {
+      susluparantezsayisi +=1;
+      if(satiruppercase.indexOf("}")>-1) susluparantezsayisi -=1;
+    }
+    if(susluparantezsayisi>0)
+    {
+      
+
+      // süslüparantez kapatı bul. true değil o yüzden.
+      for(int q=satirsayisip;q<100;q++)
+      {
+            if (ptm.indexOf("\n") > -1) ptm = ptm.substring(ptm.indexOf("\n") + 1, ptm.length());
+            satirp = ptm.substring(0, ptm.indexOf("\n"));
+                if(satirp.indexOf("{")>-1)
+                  {
+                  susluparantezsayisi +=1;}
+                  if(satirp.indexOf("}")>-1)
+                  {
+                  susluparantezsayisi -=1;}
+            if(susluparantezsayisi==0)
+            {
+              break; // son süslüparantezi } "kapatmayı" bulduk. sonrasına bakacağız.
+            }
+      }
+
+    }
+
   }
 }
 
@@ -447,7 +482,7 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
 
   if (yapilacaklar.indexOf("{") > -1) {
     //Serial.print("ptm:");Serial.println(ptm);
-    yapilacaklar = ptm.substring(ptm.indexOf("{") + 1, ptm.indexOf("}"));
+    yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.indexOf("}"));
     //  Serial.print("yapilacaklar:");
     //  Serial.println(yapilacaklar);
     yapilacaklar.replace("\n", "");
@@ -496,8 +531,8 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
       yapilacakis = yapilacaklar.substring(0, yapilacaklar.indexOf(";"));
       if (yapilacakis.indexOf("{") == 0) yapilacakis = yapilacakis.substring(1, yapilacakis.length());
       yapilacaklarislemsayisi = i;
-      Serial.print("yapılacakis ");
-      Serial.println(yapilacakis);
+      //Serial.print("yapılacakis ");
+      //Serial.println(yapilacakis);
       //Serial.print("yapilacaklarislemsayisi ");
       //Serial.println(yapilacaklarislemsayisi);
       // tam burada yapılacak hesabına git
@@ -575,7 +610,7 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
         //Serial.println(htyolla);
         httpgonder();
         delay(50);
-        Serial.println("programyurut > httpgonder ");
+        //Serial.println("programyurut > httpgonder ");
       } else
         yap(yapilacakis, yapilacaklarislemsayisi);
 
@@ -604,11 +639,16 @@ void yap(String yapilacakis, int islemno) {
 
   //Serial.print("\ndsol:" + dsol + "  dsag:" + dsag + "\n");
   if (dsol == "ACL") {
-    Serial.println("ACL: " + dsag);
+    //Serial.println("ACL: " + dsag);
     ACL = dsag;
     return;
   }
 
+  if(dsol == "TX>")
+  {
+    txsend(dsag);
+    return;
+  }
 
   for (int indis = 0; indis < 16; indis++)  // her islem için döngü
   {

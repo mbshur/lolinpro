@@ -190,13 +190,28 @@ void serin()
       }
 */
 
-      if(sergel.indexOf("dosyasil:")==0)
-      {
-                String ds=sergel.substring(sergel.indexOf("il:")+3,sergel.length());
-                dosya.close();
-                LittleFS.remove(ds);
-                Serial.println(ds + " dosyası silindi.");
-      }
+if (sergel.indexOf("dosyasil:") == 0) 
+{
+  // "dosyasil:" ifadesi tam olarak 9 karakterdir. 
+  // 9. karakterden başlayarak satır sonuna kadar olan kısmı kesiyoruz.
+  String ds = sergel.substring(9); 
+  ds.trim(); // Çok Kritik: Seri monitörden gelen \r veya \n gizli karakterlerini temizler!
+
+  dosya.close();
+  
+  // Dosyanın gerçekten var olup olmadığını kontrol edip silelim
+  if (LittleFS.exists(ds)) {
+    LittleFS.remove(ds);
+    // F() makrosu sayesinde seri port metinleri RAM (SRAM) kaplamaz:
+    Serial.print(ds);
+    Serial.println(F(" dosyasi silindi."));
+  } else {
+    Serial.print(ds);
+    Serial.println(F(" dosyasi bulunamadi!"));
+  }
+}
+
+
       if(sergel.indexOf("userlist")==0)
       {
         Serial.println(users);

@@ -510,6 +510,77 @@ void dosyayazfbuserpass()
 }
 */
 
+void dosyaOkuUzunMetrajMod() {
+  if (LittleFS.exists("/umod.txt")) {
+    File f = LittleFS.open("/umod.txt", "r");
+    if (f) {
+      String durum = f.readStringUntil('\n');
+      durum.trim();
+      f.close();
+      uzunMetrajVar = (durum == "1"); // 1 ise true, değilse false yapar
+    }
+  }
+}
+
+void dosyaokuuprogram() {
+  uprogramdata = "";
+  dosya.close();
+  
+  if (LittleFS.exists("/uprogram.txt")) {
+    dosya = LittleFS.open("/uprogram.txt", "r");
+    if (dosya) {
+      uprogramdata = dosya.readString();
+      uprogramdata.trim();
+      dosya.close();
+      Serial.println(F("[LittleFS] Uzun metraj program verisi basariyla okundu."));
+    }
+  }
+}
+
+void dosyazuprogram(String gelenUP_Data) {
+  reConnectsayac = millis();
+  uprogramerrorlog = "";
+
+  // 1. Karakter düzeltmelerini yapıyoruz
+  String uprogramtmp = Karakterduzeltfunc(gelenUP_Data);
+  uprogramtmp.replace("\n\n", "\n");
+  uprogramtmp.trim();
+
+  // 2. Çakışma Güvenlik Duvarı: Pin ayarlarında D6/D7 varsa ve uprogramda RXTX geçtiyse engelle
+  if (pinayar.indexOf("D6") != -1 || pinayar.indexOf("D7") != -1) {
+    if (uprogramtmp.indexOf("RXTX") != -1) {
+      uprogramerrorlog = "HATA: D6/D7 pinayarda kayitli! Uzun metrajda RXTX; kullanilamaz.";
+      uprogramtmp.replace("RXTX", "//RXTX");
+    }
+  }
+
+  // 3. Sadece veri değiştiyse Flash hafızaya yaz (Flash Ömrünü Korur)
+  if (uprogramtmp != uprogramdata) {
+    uprogramdata = uprogramtmp;
+
+    dosya.close();
+    dosya = LittleFS.open("/uprogram.txt", "w+");
+    if (dosya) {
+      dosya.print(uprogramdata);
+      dosya.flush();
+      dosya.close();
+      Serial.println(F("[LittleFS] Yeni uzun metraj program basariyla kaydedildi."));
+    }
+    
+    setup2(); // Sistem ayarlarını yenile
+  } else {
+    Serial.println(F("[LittleFS] Uzun metraj verisinde degisiklik yok, yazma atlandi."));
+  }
+}
+
+
+
+
+
+
+
+
+
 String butonactcol = "d1ca03";
 String butonpascol = "A3A3A3";
 String butonayrcol = "20d3c8";
@@ -647,3 +718,21 @@ void butonpbgcolyaz() {
   butonpbgcoloku();
 }
 
+void dosyaOkuAutDurum() {
+  // Varsayılan olarak aut = 0 başlasın
+  aut = 0; 
+  
+  if (LittleFS.exists("/autdurum.txt")) {
+    File f = LittleFS.open("/autdurum.txt", "r");
+    if (f) {
+      String dosyaIcerik = f.readStringUntil('\n');
+      dosyaIcerik.trim();
+      f.close();
+      
+      if (dosyaIcerik == "2") {
+        aut = 2;
+        Serial.println(F("[AUT] Kalici Login Aktif: aut=2 olarak baslatildi."));
+      }
+    }
+  }
+}
