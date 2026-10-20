@@ -109,27 +109,11 @@ void updateinput() {  //degisenler="";
       }
 
       if (ePinState[x] != PinState[x]) {
-        // ------------------------------------------------=================
-        // 1. DURUM: SERVO MOTOR KONTROLÜ (ÇIKIŞ - OUTPUT)
-        // ------------------------------------------------=================
-  if (servovar[x] && myservo[x] != NULL) 
-  {
-    // HANGİ DEĞERİN GELDİĞİNİ GÖRMEK İÇİN DEBUG LOGU EKLEYİN:
-    Serial.printf_P(PSTR("[DEBUG] Servo tetiklendi! Gelen string: '%s'\n"), PinState[x].c_str());
 
-    int aciDeperi = constrain(PinState[x].toInt(), 0, 180); 
-    
-    Serial.printf_P(PSTR("[DEBUG] Motora yazilan aci: %d\n"), aciDeperi);
-
-    myservo[x]->write(aciDeperi); 
-    
-    psco = true; 
-    ePinState[x] = PinState[x]; 
-  }
         // ------------------------------------------------=================
         // 2. DURUM: SENSÖR VE GİRİŞ SİNYAL TİPLERİ (GİRİŞ - INPUT)
         // ------------------------------------------------=================
-        else if (pinsignaltype[x].indexOf("DH") > -1) {
+        if (pinsignaltype[x].indexOf("DH") > -1) {
           psci = true;  // Giriş değişti bayrağı
           ePinState[x] = PinState[x];
         } else if (pinsignaltype[x] == "HCE" && PinState[x].toInt() > 2) {
@@ -203,6 +187,25 @@ void updateoutput() {
         pinstatesakla = PinState[x];
         PinState[x] = acildeger[x];
       }
+        // ------------------------------------------------=================
+        // 1. DURUM: SERVO MOTOR KONTROLÜ (ÇIKIŞ - OUTPUT)
+        // ------------------------------------------------=================
+  if (servovar[x] && myservo[x] != NULL) 
+  {
+    // HANGİ DEĞERİN GELDİĞİNİ GÖRMEK İÇİN DEBUG LOGU EKLEYİN:
+    Serial.printf_P(PSTR("[DEBUG] Servo tetiklendi! Gelen string: '%s'\n"), PinState[x].c_str());
+
+    int aciDeperi = constrain(PinState[x].toInt(), 0, 180); 
+    
+    Serial.printf_P(PSTR("[DEBUG] Motora yazilan aci: %d\n"), aciDeperi);
+
+    myservo[x]->write(aciDeperi); 
+    
+    psco = true; 
+    ePinState[x] = PinState[x]; 
+  }
+  
+
 
       if (pinsignaltype[x] == "PWM") {
         int PWMdegerint = PinState[x].toInt();

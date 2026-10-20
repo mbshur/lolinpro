@@ -428,6 +428,7 @@ void gotoif() {
       susluparantezsayisi +=1;
       if(satiruppercase.indexOf("}")>-1) susluparantezsayisi -=1;
     }
+
     if(susluparantezsayisi>0)
     {
       
@@ -443,10 +444,14 @@ void gotoif() {
                   if(satirp.indexOf("}")>-1)
                   {
                   susluparantezsayisi -=1;}
+
+          if(ptm.length()<1){susluparantezsayisi=0;break;}
+
             if(susluparantezsayisi==0)
             {
               break; // son süslüparantezi } "kapatmayı" bulduk. sonrasına bakacağız.
             }
+
       }
 
     }
@@ -620,8 +625,10 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
       if (yapilacaklar.length() < 1) { break; }
     }
   } else {
+    if (yapilacaklar.length() > 3) {
     programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş.\n";
     return;
+    }
   }
 }
 

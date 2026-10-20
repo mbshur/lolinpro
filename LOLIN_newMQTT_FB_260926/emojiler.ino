@@ -1,4 +1,16 @@
 /*
+
+IF(ACL==0){D6=0;}
+IF(ACL>0){D6=1;}
+//RCXTCX;
+//if(D3t<21.5){D2=1;}
+//if(D3t>21.5){D2=0;}
+//if(ACL<2 && D1==1){ACL=3;}
+//if(ACL>0 && ACL<4 && D3==0){ACL=0;}
+//aa
+
+
+
 // menu ☰  PLL
 ✨ Özellikler:
 - ✅ Kendinden ışıklı OLED ekran — arka aydınlatmaya ihtiyaç duymaz, net görüntü sağlar.

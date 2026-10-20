@@ -1681,9 +1681,8 @@ if (header.indexOf(F("/serveripayar")) > -1) {
             }
 
             if (pinayar.length() > 0) updateinput();
-            if (pinayar.length() > 0 && programdata.length() > 0) programrun();
+            if (pinayar.length() > 0 && programdata.length() > 0 && psci==true) programrun();
             if (pinayar.length() > 0) updateoutput();
-
             creator += "Ş";
 
             // --- ANA SAYFA BAŞLANGICI VE CSS OPTİMİZASYONU (SIFIR RAM) ---
