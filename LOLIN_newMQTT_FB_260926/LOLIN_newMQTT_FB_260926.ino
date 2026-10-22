@@ -187,7 +187,7 @@ String yazi;
 
 
 File dosya;
-
+File udos;
 
 String pinayarerrorlog = "";
 String programerrorlog = "";
