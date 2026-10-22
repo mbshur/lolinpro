@@ -1,6 +1,5 @@
 
 int fbsayac=0;
-String esayacyani="";
 String tamUrl;
 
 

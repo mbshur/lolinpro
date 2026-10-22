@@ -1,5 +1,5 @@
-
-int degisecekno = -10000;
+unsigned long milis100;
+int degisecekno = -100;
 
 int satirsayisip;
 
@@ -10,11 +10,11 @@ uint8_t kiyassayisi;
 String parantezici;
 int aktifpinno;
 
-u_int8_t susluparantezsayisi=0;
+u_int8_t susluparantezsayisi = 0;
 String ptm;
 
 void programrun() {
-
+  satirsayisip = 0;
   String pdt = programdata;
   pdt.toUpperCase();
   if (pdt.indexOf("ACLTUT") < 0) ACLilanciyim = false;
@@ -43,12 +43,26 @@ void programrun() {
      firebase son
     */
   }
-  for (int i = 11; i < 16; i++) {
+  for (int i = 11; i < 21; i++) {
     degdeg[i] = "";
     degis[i] = "";
   }
 
   if (programdata.length() < 4) return;
+
+  // timer değişkenleri için
+  if(milis100<millis()){
+  for (int ii = 0; ii < 11; ii++) {
+     if (tmris[ii].length() > 0) {
+        if (tmrdeg[ii].toFloat() > 0) {
+        tmrdeg[ii] = String(tmrdeg[ii].toFloat() - 1);
+      }
+     }
+  }
+    milis100=millis()+100;
+  }
+
+
 
   progmsg = "";
 
@@ -56,16 +70,20 @@ void programrun() {
   ptm = programdata;
 
 
-  for (int q = 1; q < 100; q++) {
-    satirsayisip = q;
+  for (int q = 1; q < 200; q++) {
+    satirsayisip += 1;
     if (ptm.length() < 3) break;
-    String spacesil=ptm; spacesil.trim();
+    String spacesil = ptm;
+    spacesil.trim();
     if (spacesil.indexOf("\n") > 0 && spacesil.indexOf("\n") < 2) break;
+    
     satirp = ptm.substring(0, ptm.indexOf("\n"));
+    
     satirislem();
+    
     if (ptm.indexOf("\n") > -1) ptm = ptm.substring(ptm.indexOf("\n") + 1, ptm.length());
     else break;
-    ;
+    
     //Serial.println("satirp "); Serial.println(satirp);
     yield();
   }
@@ -113,14 +131,15 @@ void satirislem() {
   //Serial.println("SATIRIM:" + satiruppercase);
 
   //if (satiruppercase.indexOf("FBC ") == 0) firebasecihaztanitimi();  firebase için
-       if (satiruppercase.indexOf("MQC ") == 0) mqttcihaztanitimi();
+  if (satiruppercase.indexOf("TMR ") == 0) timertanitimi();
+  else if (satiruppercase.indexOf("DEG ") == 0) degiskentanitimi();
+  else if (satiruppercase.indexOf("MQC ") == 0) mqttcihaztanitimi();
   else if (satiruppercase.indexOf("IF") == 0) gotoif();
-  else if (satiruppercase.indexOf("BOOL") == 0) gotobool();
   else if (satiruppercase.indexOf("RXTX") == 0 && !rxtxvar) rxtxsetup();
   else if (satiruppercase.indexOf("ACLTUT") == 0) ACLilanciyim = true;
-  else if (satiruppercase.indexOf(";")>-1){
-        ifparantezdisi(satiruppercase,satirsayisip);
-       } else return;
+  else if (satiruppercase.indexOf(";") > -1) {
+    ifparantezdisi(satiruppercase, satirsayisip);
+  } else return;
   // ????????????????????????????????????????????? sonra ne yaparız bilmem
 }
 
@@ -148,6 +167,47 @@ void firebasecihaztanitimi() {
 }
 firebase için */
 
+
+void timertanitimi() {
+  for (int ii = 0; ii < 11; ii++) {
+    if (satirp.indexOf("=") > 0) {
+
+        if(tmris[ii] == satirp.substring(4, satirp.indexOf("=")))
+        {
+        break;
+        }
+
+        if (tmris[ii] == "" || tmris[ii] == "null") {
+          String tmrstr = satirp;
+          tmris[ii] = tmrstr.substring(4, tmrstr.indexOf("="));
+          tmrdeg[ii] = tmrstr.substring(tmrstr.indexOf("=") + 1, tmrstr.indexOf(";"));
+          break;
+        }
+    } else {
+      progmsg += "TMR hatası. TMR TIMER1=10; şeklinde olmalı. satır no: " + (String)satirsayisip + " komut: " + satirp + "\n";
+    }
+  }
+}
+
+
+
+void degiskentanitimi() {
+  for (int ii = 10; ii < 21; ii++) {
+    if (satirp.indexOf("=") > 0) {
+      if (degis[ii] == "" || degis[ii] == "null" || degis[ii] == satirp.substring(4, satirp.indexOf("="))) {
+        String degisdegdeg = satirp;
+        degis[ii] = degisdegdeg.substring(4, degisdegdeg.indexOf("="));
+        degdeg[ii] = degisdegdeg.substring(degisdegdeg.indexOf("=") + 1, degisdegdeg.indexOf(";"));
+        break;
+      }
+    } else {
+      progmsg += "DEG hatası. DEG SAYI1=1; şeklinde olmalı. satır no: " + (String)satirsayisip + " komut: " + satirp + "\n";
+    }
+  }
+}
+
+
+
 void mqttcihaztanitimi() {
   //Serial.println("FBCihaz tanıtımı");
   for (int ii = 0; ii < 6; ii++) {
@@ -164,26 +224,6 @@ void mqttcihaztanitimi() {
   }
 }
 
-void gotobool() {
-  String satiruppercase = satirp;
-  satiruppercase.toUpperCase();
-  String boolsonrasi = satiruppercase.substring(5, satiruppercase.length());
-  boolsonrasi.trim();
-  String strtmp;
-  int boolstatetmp;
-
-  if (boolsonrasi.indexOf("=") > -1) {
-    strtmp = boolsonrasi.substring(0, boolsonrasi.indexOf("="));
-    boolstatetmp = (boolsonrasi.substring(boolsonrasi.indexOf("=") + 1, boolsonrasi.length() - 1)).toInt();
-    //Serial.print(strtmp);Serial.println(boolstatetmp);
-  }
-
-  if (boolsonrasi.indexOf("=") < 0) {
-    strtmp = boolsonrasi.substring(0, boolsonrasi.indexOf(";"));
-    boolstatetmp = 0;
-    //Serial.print(strtmp);Serial.println(boolstatetmp);
-  }
-}
 
 
 bool paranteziciislem(String parantezi) {
@@ -227,12 +267,15 @@ bool paranteziciislem(String parantezi) {
   if (sag == "") { programerrorlog += "Kiyaslamada sag taraf bos! Satir:" + String(satirsayisip) + "\n"; }
   if (programerrorlog != "") return false;
 
-  aktifpinno = -10000;
-
+  aktifpinno = -100;
+     // Serial.print("sol " + sol + "\n");
   // 🎯 KRİTİK DÜZELTME: equalsIgnoreCase kullanarak harf uyuşmazlığı tamamen çözüldü
   if (sol.equalsIgnoreCase("ACL")) {
     solstate = ACL;
   } else {
+
+
+
 
     bool tempvar = false;
     bool humvar = false;
@@ -241,10 +284,11 @@ bool paranteziciislem(String parantezi) {
 
 
     if (tempvar == false && humvar == false) {
-      String SOLL=sol;
+      String SOLL = sol;
       SOLL.toUpperCase();
-      for (int pinbul = 0; pinbul < 16; pinbul++) {
-        if (SOLL==degis[pinbul]) {  // Büyük/küçük harf fark etmeksizin eşleşir
+
+      for (int pinbul = 0; pinbul < 21; pinbul++) {
+        if (SOLL == degis[pinbul]) {  // Büyük/küçük harf fark etmeksizin eşleşir
           solstate = degdeg[pinbul];
           aktifpinno = pinbul;
           break;
@@ -252,10 +296,10 @@ bool paranteziciislem(String parantezi) {
       }
     } else {
       if (tempvar == true || humvar == true) sol = sol.substring(0, sol.length() - 1);
-      for (int pinbul = 0; pinbul < 16; pinbul++) {
-        String SOLL=sol;
+      for (int pinbul = 0; pinbul < 11; pinbul++) {
+        String SOLL = sol;
         SOLL.toUpperCase();
-        if (SOLL == (degis[pinbul])) { 
+        if (SOLL == (degis[pinbul])) {
           if (pinsignaltype[pinbul].indexOf("DHT") > -1) {
             if (tempvar == true) {
               if (degdeg[pinbul].indexOf("t") > -1) solstate = degdeg[pinbul].substring(1, degdeg[pinbul].indexOf("h"));
@@ -265,8 +309,8 @@ bool paranteziciislem(String parantezi) {
               else solstate = 200;
             }
             aktifpinno = pinbul;
-          
-              //Serial.println("SOLSTATE " + solstate);
+
+            //Serial.println("SOLSTATE " + solstate);
 
             break;
           } else {
@@ -278,10 +322,22 @@ bool paranteziciislem(String parantezi) {
     }
   }
 
-  if (!sol.equalsIgnoreCase("ACL") && aktifpinno == -10000) {
+  for (int ii = 0; ii < 11; ii++) {
+    if (sol == tmris[ii]) {
+      solstate = tmrdeg[ii];
+      aktifpinno=-10;
+
+      //Serial.println("tmris  " + tmris[ii] + "    sol " + solstate);
+      //Serial.println("tmrdeg " + tmrdeg[ii] + "    sag " + sag);
+
+    }
+  }
+
+  if (!sol.equalsIgnoreCase("ACL") && aktifpinno == -100) {
     programerrorlog += "if satır içi soldaki tanimli degil " + sol + " Satir:" + String(satirsayisip) + "\n";
     return false;
   }
+
 
   // Matematiksel Kıyaslamalar
   float solFloat = solstate.toFloat();
@@ -301,7 +357,7 @@ bool paranteziciislem(String parantezi) {
     ifsonucu = (solFloat != sagFloat);
   }
 
-/*
+  /*
   Serial.print(F(" Kiyaslanacak: "));
   Serial.println(parantezi);
   Serial.print("SOLFLOAT ");
@@ -416,46 +472,41 @@ void gotoif() {
   }
 
 
-  if (ifsonuc == true) 
-  {
+  if (ifsonuc == true) {
     //satiruppercase = satiruppercase.substring(satiruppercase.indexOf(")") + 1, satiruppercase.length());
     ifparantezdisi(satiruppercase, satirsayisip);
-  } else 
-  {
+  } else {
     //satiruppercase = satiruppercase.substring(satiruppercase.indexOf(")") + 1, satiruppercase.length());
-    if(satiruppercase.indexOf("{")>-1)
-    {
-      susluparantezsayisi +=1;
-      if(satiruppercase.indexOf("}")>-1) susluparantezsayisi -=1;
+    if (satiruppercase.indexOf("{") > -1) {
+      susluparantezsayisi += 1;
+      if (satiruppercase.indexOf("}") > -1) susluparantezsayisi -= 1;
     }
 
-    if(susluparantezsayisi>0)
-    {
-      
+    if (susluparantezsayisi > 0) {
+      satirsayisip -= 1;
 
       // süslüparantez kapatı bul. true değil o yüzden.
-      for(int q=satirsayisip;q<100;q++)
-      {
-            if (ptm.indexOf("\n") > -1) ptm = ptm.substring(ptm.indexOf("\n") + 1, ptm.length());
-            satirp = ptm.substring(0, ptm.indexOf("\n"));
-                if(satirp.indexOf("{")>-1)
-                  {
-                  susluparantezsayisi +=1;}
-                  if(satirp.indexOf("}")>-1)
-                  {
-                  susluparantezsayisi -=1;}
+      for (int q = satirsayisip; q < 200; q++) {
+        if (ptm.indexOf("\n") > -1) ptm = ptm.substring(ptm.indexOf("\n") + 1, ptm.length());
+        satirp = ptm.substring(0, ptm.indexOf("\n"));
+        satirsayisip += 1;
+        if (satirp.indexOf("{") > -1) {
+          susluparantezsayisi += 1;
+        }
+        if (satirp.indexOf("}") > -1) {
+          susluparantezsayisi -= 1;
+        }
 
-          if(ptm.length()<1){susluparantezsayisi=0;break;}
+        if (ptm.length() < 1) {
+          susluparantezsayisi = 0;
+          break;
+        }
 
-            if(susluparantezsayisi==0)
-            {
-              break; // son süslüparantezi } "kapatmayı" bulduk. sonrasına bakacağız.
-            }
-
+        if (susluparantezsayisi == 0) {
+          break;  // son süslüparantezi } "kapatmayı" bulduk. sonrasına bakacağız.
+        }
       }
-
     }
-
   }
 }
 
@@ -491,7 +542,6 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
     //  Serial.print("yapilacaklar:");
     //  Serial.println(yapilacaklar);
     yapilacaklar.replace("\n", "");
-
   }
   //Serial.print("programdata:");
   //Serial.println(programdata);
@@ -526,7 +576,7 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
     for (int i = 0; i < 11; i++) {
 
       if (yapilacaklar.indexOf(" ") == 0) {
-        for (int j = 0; j < 100; j++) {
+        for (int j = 0; j < 200; j++) {
           yapilacaklar = yapilacaklar.substring(1, yapilacaklar.length());
           if (yapilacaklar.indexOf(" ") != 0) break;
         }
@@ -543,6 +593,16 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
       // tam burada yapılacak hesabına git
       String yais = yapilacakis;
       yais.toUpperCase();
+          //Serial.println(yais);
+          //Serial.println(tmrdeg[0]);
+          if(yais.indexOf("BUZ>")==0)
+          {
+            String pns=yais.substring(yais.indexOf(">")+1,yais.length());
+            play(pns);
+            return;
+          }
+
+
       if (yais.indexOf("MQTT:") == 0) {
         if (habp > 0) {
 
@@ -617,17 +677,20 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
         delay(50);
         //Serial.println("programyurut > httpgonder ");
       } else
-        yap(yapilacakis, yapilacaklarislemsayisi);
+       { 
+        yapilacakis.replace(" ","");
+        if(yapilacakis.indexOf("}") !=0) yap(yapilacakis, yapilacaklarislemsayisi);
 
       //Serial.println(yapilacakis);
-
+      }
+      
       yapilacaklar = yapilacaklar.substring(yapilacaklar.indexOf(";") + 1, yapilacaklar.length());
       if (yapilacaklar.length() < 1) { break; }
     }
   } else {
     if (yapilacaklar.length() > 3) {
-    programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş.\n";
-    return;
+      programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş.\n";
+      return;
     }
   }
 }
@@ -645,38 +708,34 @@ void yap(String yapilacakis, int islemno) {
   String dsag = noktalivirgulekadar.substring(noktalivirgulekadar.indexOf("=") + 1, noktalivirgulekadar.indexOf(";"));
 
   //Serial.print("\ndsol:" + dsol + "  dsag:" + dsag + "\n");
+      aktifpinno = -100;
+  
+  for (int ii = 0; ii < 11; ii++) {
+    if (dsol == tmris[ii]) {
+       tmrdeg[ii] = dsag;
+       return;
+    }
+  }
+  
+  
   if (dsol == "ACL") {
     //Serial.println("ACL: " + dsag);
     ACL = dsag;
     return;
   }
 
-  if(dsol == "TX>")
-  {
+  if (dsol == "TX>") {
     txsend(dsag);
     return;
   }
 
-  for (int indis = 0; indis < 16; indis++)  // her islem için döngü
-  {
-    if (indis < 6) {
-      /*
-      String fbcupercase = fbc[indis];
-      fbcupercase.toUpperCase();
-      //if(indis<2)Serial.print("dsol ve fbc :");Serial.println(dsol + "   " + fbcupercase);
-      if (dsol == fbcupercase) {
-        //if(indis<2)Serial.print("efbtd ve fbtd :");Serial.println(efbtd[indis] + "   " + fbtd[indis]);
-        fbtd[indis] = dsag;
-        if (efbtd[indis] != fbtd[indis]) {
-          //  Serial.print("dsol ve fbc :");Serial.println(dsol + "   " + fbcupercase);
-          //efbtd[indis] = dsag;
-          progmsg += (String)satirsayisip + " satır>" + yapilacakis + " degisti.<br>";
-          //  Serial.print(fbcyol[indis] + " ------> ");Serial.println(fbtd[indis]);
-        }
-      }
-      */
-    }
 
+
+
+  for (int indis = 0; indis < 21; indis++)  // her islem için döngü
+  {
+
+    if (indis >= 0 && indis < 11){
     if (dsol == degis[indis]) {
       degdeg[indis] = dsag;
       PinState[indis] = dsag;
@@ -684,18 +743,26 @@ void yap(String yapilacakis, int islemno) {
       progmsg += (String)satirsayisip + " satır>" + yapilacakis + " degisti.<br>";
       //Serial.print(pinname[indis] + " ------> ");Serial.println(degis[indis]);
       //Serial.print(pinname[indis] + " ------> ");Serial.println(dsag);
+      aktifpinno= -10;
+    }
     }
 
-
-    if (indis >= 11 && indis < 16)  // degiskenleri tut
+    if (indis >= 11 && indis < 21)  // degiskenleri tut
     {
       if (dsol == degis[indis]) {
         degdeg[indis] = dsag;
         progmsg += (String)satirsayisip + " satır>" + yapilacakis + " degisti.<br>";
         //Serial.print(pinname[indis] + " ------> ");Serial.println(degis[indis]);
+      aktifpinno = -10;
       }
     }
 
+
     // 0-10  PİN     11-20 degisken
   }
+
+  if (aktifpinno == -100) {
+    programerrorlog += "tanimli olmayan değişken var: " + dsol + " Satir:" + String(satirsayisip) + "\n";
+  }
+
 }

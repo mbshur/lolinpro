@@ -40,12 +40,13 @@ void play(String melody)
 */
 
 
-unsigned long duration = 100;
+unsigned long duration = 1000;
 double frequency;
 
 void play(String melody) {
 if(melody.length()<1)return;
-    duration=(100/(melody.length()));
+        //Serial.println("çaldım " + notalar);
+    duration=(1000/(melody.length()));
     for (int ml = 0; ml < melody.length(); ml++) {
         char nota = melody.charAt(ml);  // Tek karakter al
 

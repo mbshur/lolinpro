@@ -891,6 +891,7 @@ if (header.indexOf(F("/pnayar")) > -1 || header.indexOf(F("/programkayit")) > -1
     else xilent.print(F(" yazıldı.<br>"));
   }
 
+ /*
   // =================================================================
  // --- HTML ARAYÜZ ÇIKTI BÖLÜMÜ ---
   xilent.print(F("<style>\r\n"
@@ -912,6 +913,7 @@ if (uzunMetrajVar) {
   
   xilent.print(F("  <p style='font-size: 12px; color: gray; margin: 5px 0 0 0;'>Modu değiştirmek için butona tıklayın. Sistem otomatik yenilenecektir.</p>\r\n"
                  "</div>\r\n"));
+*/
 
 
   // TABLO 1: PIN AYARLARI TABLOSU (Aynen korunuyor)
@@ -954,7 +956,7 @@ if (uzunMetrajVar) {
   else {
     // 🎯 Standart Kısa Program Dünyası (/programkayit ve programdata)
     xilent.printf_P(PSTR("<table><caption>STANDART PROGRAM GİRİŞİ</caption>\r\n"
-                         "<tr><td scope='col'>Program (program.txt):<br>\r\n"
+                         "<tr><td scope='col'>Program (program):<br>\r\n"
                          "<form method='get' action='%s/programkayit'>\r\n"
                          "<textarea name='is' id='id' cols='60' rows='15'>%s</textarea><br>\r\n"
                          "<input type='submit' value='Programı Kaydet'>\r\n"

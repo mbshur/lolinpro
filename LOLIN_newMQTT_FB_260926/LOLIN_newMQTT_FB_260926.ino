@@ -169,13 +169,11 @@ String Program;
 
 // PROGRAM İÇİN ////////////////////////
 String satirp;
-String degis[15];
-String degdeg[15];
-String fbc[5];
-String fbcyol[5];
-String fbtd[5];
-String efbtd[5];  //FBden gonderilecek bilgi eslikisi
-// 0-10  PİN     11-30 degisken    31-50 booldegisken  51-70 boolsonuc
+String degis[20];
+String degdeg[20];
+String tmris[10];
+String tmrdeg[10];
+// 0-10  PİN     11-20 degisken 
 
 
 ////////////////////////////////////////
