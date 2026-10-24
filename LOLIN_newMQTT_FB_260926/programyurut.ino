@@ -266,15 +266,29 @@ bool paranteziciislem(String parantezi) {
       String SOLL = sol;
       SOLL.toUpperCase();
 
-      for (int pinbul = 0; pinbul < 21; pinbul++) {
+      for (int pinbul = 0; pinbul < 10; pinbul++) {
         if(!standartprogram) Serial.println( String(pinbul) + " " + SOLL + " >< " + degis[pinbul] +  " degiskendegeri " + degdeg[pinbul]);
+
         if (SOLL == degis[pinbul]) {  // Büyük/küçük harf fark etmeksizin eşleşir
           solstate = degdeg[pinbul];
-          if(SOLL == "TX>")PROGNOX=pinbul;
           aktifpinno = pinbul;
           break;
         }
       }
+
+      for (int pb = 11; pb < 21; pb++) {
+        if(pb<14)Serial.println( String(pb) + " " + SOLL + " >< " + degis[pb] +  " degiskendegeri " + degdeg[pb]);
+
+        if (SOLL == degis[pb]) {  // Büyük/küçük harf fark etmeksizin eşleşir
+          solstate = degdeg[pb];
+          if(SOLL == "PROGNO")PROGNOX=solstate;
+          aktifpinno = -10;
+          break;
+        }
+      }
+
+
+
     } else {
       if (tempvar == true || humvar == true) sol = sol.substring(0, sol.length() - 1);
       for (int pinbul = 0; pinbul <10; pinbul++) {
@@ -669,17 +683,17 @@ if (dsol == "TX>") {
   for (int indis = 0; indis < 21; indis++)  // her islem için döngü
   {
 
-    if (indis >= 0 && indis < 11){
+    if (indis >= 0 && indis < 10){
     if (dsol == degis[indis]) {
       degdeg[indis] = dsag;
       PinState[indis] = dsag;
-      if (indis < 11 && ePinState[indis] != PinState[indis]) psco = true;
+      if (indis < 10 && ePinState[indis] != PinState[indis]) psco = true;
       progmsg += (String)satirsayisip + " satır>" + yapilacakis + " degisti.<br>";
       aktifpinno= -10;
     }
     }
 
-    if (indis >= 11 && indis < 21)  // degiskenleri tut
+    if (indis >= 10 && indis < 21)  // degiskenleri tut
     {
       if (dsol == degis[indis]) {
         degdeg[indis] = dsag;

@@ -1618,24 +1618,30 @@ void loop() {
   if (habp == 3) upd = 500;
 
 
-  timerGeriSay(); 
-  // 🎯 2. UZUN METRAJ MOTORUNU ŞARTIN DIŞINA ÇIKARIYORUZ!
-  // Kendi zaman bariyeri (100ms) sayesinde ESP'yi yormadan sürekli canlı tarama yapacak.
+
  
    //uzunmetraj(); 
-   if (millis() - timereski > 50){ timereski = millis(); uzunmetraj(); }
+ 
 
 
   if ((millis() - timereski) % upd == 0 && fbisleniyor == false) {
     headerold = "";
     //harcananzaman = millis();
-    //if (millis() - timereski > 50){ timereski = millis(); uzunmetraj(); }
+
     if (pinayar.length() > 0) updateinput();
     if (pinayar.length() > 0 && programdata.length() > 0) programrun();
 
 
     if (pinayar.length() > 0) updateoutput();
     if (pinayar.length() > 0) vrkontrol();
+
+
+  timerGeriSay(); 
+  // 🎯 2. UZUN METRAJ MOTORUNU ŞARTIN DIŞINA ÇIKARIYORUZ!
+  // Kendi zaman bariyeri (100ms) sayesinde ESP'yi yormadan sürekli canlı tarama yapacak.
+
+
+  if(uzunMetrajVar)if (millis() - timereski > 50){ timereski = millis(); uzunmetraj(); }
     //if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));
   }
 

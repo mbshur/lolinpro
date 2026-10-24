@@ -53,6 +53,7 @@ if (aktifTmrDeger != nullptr && (*aktifTmrDeger).toInt() > 0) {
     // Motoru tetikliyoruz: Sizin mevcut satirislem fonksiyonunuz bu satırı da tıpkı ana program gibi yorumlar
     ifsonuc = false;
     Serial.println(altSatir); // Uno donanım hattına (HW Serial) doğrudan gönderir
+
     satirislem();
 
     // 🎯 KUSURSUZ PARANTEZ ATLAMA MOTORU (Alt modül içindeki IF kontrolleri için de birebir çalışır)

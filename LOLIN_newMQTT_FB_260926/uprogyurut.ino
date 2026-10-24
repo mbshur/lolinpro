@@ -117,6 +117,9 @@ void urunloop() {
     satirsayisip = loopSatirNo; 
 
     ifsonuc = false;
+
+
+
     satirislem(); // Burada alt dosya tetiklendi ve altDosyaCalisiyor = true oldu
 
     // 🎯 EĞER ALT DOSYA BAŞLADIYSA ANA DOSYA DÖNGÜSÜNÜ KIR:
@@ -124,6 +127,9 @@ void urunloop() {
       return; // urunloop'tan hemen çık, bir sonraki çağrıda altDosyaYurut() çalışsın!
     }
 
+    
+
+    Serial.println("satirp " + satirp);
 
     Serial.println("PROGNO: " + PROGNOX);
     Serial.println("ifsonuc: " + String(ifsonuc)); 
