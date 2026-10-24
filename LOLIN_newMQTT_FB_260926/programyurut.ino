@@ -14,6 +14,7 @@ u_int8_t susluparantezsayisi = 0;
 String ptm;
 
 bool standartprogram=false;
+bool altProgramIptalBayragi = false; // Standart programdan gelen anlık DUR emri için
 
 String PROGNOX;
 
@@ -267,7 +268,7 @@ bool paranteziciislem(String parantezi) {
       SOLL.toUpperCase();
 
       for (int pinbul = 0; pinbul < 10; pinbul++) {
-        if(!standartprogram) Serial.println( String(pinbul) + " " + SOLL + " >< " + degis[pinbul] +  " degiskendegeri " + degdeg[pinbul]);
+        //if(!standartprogram) Serial.println( String(pinbul) + " " + SOLL + " >< " + degis[pinbul] +  " degiskendegeri " + degdeg[pinbul]);
 
         if (SOLL == degis[pinbul]) {  // Büyük/küçük harf fark etmeksizin eşleşir
           solstate = degdeg[pinbul];
@@ -277,7 +278,7 @@ bool paranteziciislem(String parantezi) {
       }
 
       for (int pb = 11; pb < 21; pb++) {
-        if(pb<14)Serial.println( String(pb) + " " + SOLL + " >< " + degis[pb] +  " degiskendegeri " + degdeg[pb]);
+        //if(pb<14)Serial.println( String(pb) + " " + SOLL + " >< " + degis[pb] +  " degiskendegeri " + degdeg[pb]);
 
         if (SOLL == degis[pb]) {  // Büyük/küçük harf fark etmeksizin eşleşir
           solstate = degdeg[pb];
@@ -608,8 +609,8 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
       } else
        { 
         yapilacakis.replace(" ","");
-        if(yapilacakis.indexOf("}") !=0) yap(yapilacakis, yapilacaklarislemsayisi);
-      }
+        if(yapilacakis.indexOf("}") != 0) yap(yapilacakis, yapilacaklarislemsayisi);
+       }
       
       yapilacaklar = yapilacaklar.substring(yapilacaklar.indexOf(";") + 1, yapilacaklar.length());
       if (yapilacaklar.length() < 1) { break; }
@@ -652,6 +653,26 @@ for (int ii = 0; ii <10; ii++) {
     ACL = dsag;
     return;
   }
+
+
+// void yap(String yapilacakis, int islemno) fonksiyonunun içi:
+if (dsol == "DUR") {
+  // 🎯 GÜVENLİK SİGORTASI: Eğer alt program zaten çalışmıyorsa (false ise) 
+  // boşu boşuna işlem yapma, log basma ve fonksiyonu hemen terk et!
+  if (altDosyaCalisiyor == false) {
+    return; 
+  }
+
+  // Eğer alt program o sırada AKTİF olarak çalışıyorsa kesme işlemlerini yap:
+  altProgramIptalBayragi = true; 
+  ualtprogdur();                 
+  
+  dsol = ""; 
+  satirp = ""; 
+  yield();
+  return; 
+}
+
 
 if (dsol == "TX>") {
   String bilesen_ani = dsag;

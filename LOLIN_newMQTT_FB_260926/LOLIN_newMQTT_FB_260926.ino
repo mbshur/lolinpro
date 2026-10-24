@@ -200,6 +200,8 @@ File dosya;
 File udos;
 File ualt_dosya;
 bool altDosyaCalisiyor = false;
+unsigned long ualt_bekleme_sure = 0; // W:1000 bekleme zamanı için milisaniye tutucu
+bool ualt_bekliyor = false;          // Bekleme durumunda mıyız bayrağı
 String aktifAltDosyaAdi = "";
 
 unsigned long uzunMetrajMilis = 0;
