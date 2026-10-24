@@ -1,63 +1,54 @@
 
-void serin()
-{ 
-  if(Serial.available())
-  {
-        String sergel=Serial.readStringUntil('\n');
-        Serial.println(sergel);
+void serin() {
+  if (Serial.available()) {
+    String sergel = Serial.readStringUntil('\n');
+    Serial.println(sergel);
 
 
 
-// ssid ve pass kısmı başladı ///////////////////////////////////////////////////
+    // ssid ve pass kısmı başladı ///////////////////////////////////////////////////
 
-      if(sergel=="wifitara")
-      {
-        wifiscan();
-      }
+    if (sergel == "wifitara") {
+      wifiscan();
+    }
 
-      if(sergel.indexOf("ssid?")==0)
-      {
-        Serial.println(sergel + " = " + ssid);
-      }
-      if(sergel.indexOf("pass?")==0)
-      {
-        Serial.println(sergel + " = " + pass);
-      }
+    if (sergel.indexOf("ssid?") == 0) {
+      Serial.println(sergel + " = " + ssid);
+    }
+    if (sergel.indexOf("pass?") == 0) {
+      Serial.println(sergel + " = " + pass);
+    }
 
-      if(sergel.indexOf("ssid=")==0)
-      {
-        ssid=sergel.substring(5,sergel.length());
+    if (sergel.indexOf("ssid=") == 0) {
+      ssid = sergel.substring(5, sergel.length());
       Serial.println(ssid + " ssid güncellendi. ssid şifresini girin pass=.....");
-      }
+    }
 
-      if(sergel.indexOf("pass=")==0)
-      {
-        pass=sergel.substring(5,sergel.length());
-        Serial.println(pass + " pass guncellendi 'kaydet' ile kaydedin.");
-      }
+    if (sergel.indexOf("pass=") == 0) {
+      pass = sergel.substring(5, sergel.length());
+      Serial.println(pass + " pass guncellendi 'kaydet' ile kaydedin.");
+    }
 
-      if(sergel.indexOf("kaydet")==0)
-      {
-        dosyayazssidpass();
-        Serial.println("kaydedildi. 'reset' ile resetleyin...");
-      }
+    if (sergel.indexOf("kaydet") == 0) {
+      dosyayazssidpass();
+      Serial.println("kaydedildi. 'reset' ile resetleyin...");
+    }
 
-///////////////////////////////////////////////////////////// ssid pass kısmı bitti
+    ///////////////////////////////////////////////////////////// ssid pass kısmı bitti
 
-// ismim kısmı başı ////////////////////////////////
+    // ismim kısmı başı ////////////////////////////////
 
-      if(sergel.indexOf("ismim=")==0)
-      {
-        esphostname=sergel.substring(6,sergel.length());
-        dosyayazmyssidname();
-        Serial.println( "Cihaz ismi güncellendi.");
-      }
+    if (sergel.indexOf("ismim=") == 0) {
+      esphostname = sergel.substring(6, sergel.length());
+      dosyayazmyssidname();
+      Serial.println("Cihaz ismi güncellendi.");
+    }
 
 
-/////////////////////////////////// ismim kısmı sonu
+    /////////////////////////////////// ismim kısmı sonu
 
 
-/*
+    /*
 ///// firebase başlangıç /////////////////////////////////////////////////////////
 
       if(sergel.indexOf("fburl=")==0)
@@ -123,129 +114,136 @@ void serin()
 ///////////////////////////////////////////////////////////// firebase bitti
 */
 
-      if(sergel.indexOf("habp0")>-1) 
-      {
-        habp = 0; dosyayazhabp();
-        delay(100); ESP.reset();
-      }
+    if (sergel.indexOf("habp0") > -1) {
+      habp = 0;
+      dosyayazhabp();
+      delay(100);
+      ESP.reset();
+    }
 
-      if(sergel.indexOf("habp1")>-1) 
-      {
-        habp = 1; dosyayazhabp();
-        delay(100); ESP.reset();
-      }
+    if (sergel.indexOf("habp1") > -1) {
+      habp = 1;
+      dosyayazhabp();
+      delay(100);
+      ESP.reset();
+    }
 
-      if(sergel.indexOf("habp2")>-1) 
-      {
-        habp = 2; dosyayazhabp();
-        delay(100); ESP.reset();
-      }
+    if (sergel.indexOf("habp2") > -1) {
+      habp = 2;
+      dosyayazhabp();
+      delay(100);
+      ESP.reset();
+    }
 
-      if(sergel.indexOf("htpcd")>-1) 
-      {
-        htpcldis = true;
-      }
-      
-      if(sergel.indexOf("htpcl")>-1) 
-      {
-        htpcldis = false;
-      }
+    if (sergel.indexOf("htpcd") > -1) {
+      htpcldis = true;
+    }
 
+    if (sergel.indexOf("htpcl") > -1) {
+      htpcldis = false;
+    }
 
 
-/// yardım başı /////////////////////////////////////////////////////////
 
-      if(sergel.length()<1 || sergel.indexOf("yardım")==0)
-      {
-            Serial.println("wifitara   - wifi taramak için");
-            Serial.println("ssid=      - ssid ayarları başlatmak için.");
-            Serial.println("ismim=     - Cihaza isim vermek için.");
-            Serial.println("fburl=     - Firebase ayarları başlatmak için.");
-            Serial.println("fben=      - Firebase açmak için. fben=1, kapatmak için fben=0");
-            Serial.println("htserverip - Httpserver ip gösterir");
-            Serial.println("habpX      - X=0 kapali 1 MQTT 2 Firebase  resetler");
-            Serial.println("htpcldis   - htpclye git kapali htpcldis=T");
-            Serial.println("htpcl      - htpclye git açık htpcldis=F");
-            Serial.println("durum      - durumları listeler");
-            Serial.println("reset      - Cihazı resetler. ");
-      }
-  
+    /// yardım başı /////////////////////////////////////////////////////////
 
-      if(sergel.indexOf("durum")==0)
-      {
-        IPAddress lip = WiFi.localIP();
-            String lipStr = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
-        Serial.print("Local ip  : "); Serial.println(lipStr);
-            Serial.println("firebase Açık  : "+ String(fben));
-//            if(Firebase.ready())Serial.println("Firebase durumu: Bağlı" );
-//            if(!Firebase.ready())Serial.println("Firebase durumu: Bağlı değil" );
-            Serial.println("reset  - Cihazı resetler. ");
-            Serial.println(httpserver.status());
-      }
+    if (sergel.length() < 1 || sergel.indexOf("yardım") == 0) {
+      Serial.println("wifitara   - wifi taramak için");
+      Serial.println("ssid=      - ssid ayarları başlatmak için.");
+      Serial.println("ismim=     - Cihaza isim vermek için.");
+      Serial.println("fburl=     - Firebase ayarları başlatmak için.");
+      Serial.println("fben=      - Firebase açmak için. fben=1, kapatmak için fben=0");
+      Serial.println("htserverip - Httpserver ip gösterir");
+      Serial.println("habpX      - X=0 kapali 1 MQTT 2 Firebase  resetler");
+      Serial.println("htpcldis   - htpclye git kapali htpcldis=T");
+      Serial.println("htpcl      - htpclye git açık htpcldis=F");
+      Serial.println("durum      - durumları listeler");
+      Serial.println("reset      - Cihazı resetler. ");
+    }
 
-/*
+
+    if (sergel.indexOf("durum") == 0) {
+      IPAddress lip = WiFi.localIP();
+      String lipStr = String(lip[0]) + '.' + String(lip[1]) + '.' + String(lip[2]) + '.' + String(lip[3]);
+      Serial.print("Local ip  : ");
+      Serial.println(lipStr);
+      Serial.println("firebase Açık  : " + String(fben));
+      //            if(Firebase.ready())Serial.println("Firebase durumu: Bağlı" );
+      //            if(!Firebase.ready())Serial.println("Firebase durumu: Bağlı değil" );
+      Serial.println("reset  - Cihazı resetler. ");
+      Serial.println(httpserver.status());
+    }
+
+    /*
       if(sergel.indexOf("htserverip")==0)
       {
             Serial.println("http 8080 Serveri : "+ htServerip);
       }
 */
 
-if (sergel.indexOf("dosyasil:") == 0) 
-{
-  // "dosyasil:" ifadesi tam olarak 9 karakterdir. 
-  // 9. karakterden başlayarak satır sonuna kadar olan kısmı kesiyoruz.
-  String ds = sergel.substring(9); 
-  ds.trim(); // Çok Kritik: Seri monitörden gelen \r veya \n gizli karakterlerini temizler!
+    if (sergel.indexOf("dosyasil:") == 0) {
+      // "dosyasil:" ifadesi tam olarak 9 karakterdir.
+      // 9. karakterden başlayarak satır sonuna kadar olan kısmı kesiyoruz.
+      String ds = sergel.substring(9);
+      ds.trim();  // Çok Kritik: Seri monitörden gelen \r veya \n gizli karakterlerini temizler!
 
-  dosya.close();
-  
-  // Dosyanın gerçekten var olup olmadığını kontrol edip silelim
-  if (LittleFS.exists(ds)) {
-    LittleFS.remove(ds);
-    // F() makrosu sayesinde seri port metinleri RAM (SRAM) kaplamaz:
-    Serial.print(ds);
-    Serial.println(F(" dosyasi silindi."));
-  } else {
-    Serial.print(ds);
-    Serial.println(F(" dosyasi bulunamadi!"));
-  }
-}
+      dosya.close();
 
-
-      if(sergel.indexOf("userlist")==0)
-      {
-        Serial.println(users);
+      // Dosyanın gerçekten var olup olmadığını kontrol edip silelim
+      if (LittleFS.exists(ds)) {
+        LittleFS.remove(ds);
+        // F() makrosu sayesinde seri port metinleri RAM (SRAM) kaplamaz:
+        Serial.print(ds);
+        Serial.println(F(" dosyasi silindi."));
+      } else {
+        Serial.print(ds);
+        Serial.println(F(" dosyasi bulunamadi!"));
       }
+    }
 
-      if(sergel.indexOf("dosyaoku:")==0)
-      {
-                String ds=sergel.substring(sergel.indexOf("ku:")+3,sergel.length());
-                dosya.close();
-                dosya = LittleFS.open(ds, "r");
-                if (dosya) {
-                String en = dosya.readString();
-                Serial.println(ds + "dosya içeriği"); Serial.println(dosya);
-                }else{
-                Serial.println(ds + " dosyası yok ");
-                }
-                dosya.close();
+
+    if (sergel.indexOf("userlist") == 0) {
+      Serial.println(users);
+    }
+
+    if (sergel.indexOf("dosyaoku:") == 0) {
+      String ds = sergel.substring(sergel.indexOf("ku:") + 3, sergel.length());
+      dosya.close();
+      dosya = LittleFS.open(ds, "r");
+      if (dosya) {
+        String en = dosya.readString();
+        Serial.println(ds + "dosya içeriği");
+        Serial.println(dosya);
+      } else {
+        Serial.println(ds + " dosyası yok ");
       }
+      dosya.close();
+    }
 
-if(sergel.indexOf("degis")==0)
-{
-        for (int i = 0; i < 21; i++) {
-        Serial.println(String(i) + "-" + degis[i] +" deger:" +degdeg[i]);
+    if (sergel.indexOf("degis") == 0) {
+      for (int i = 0; i < 21; i++) {
+        Serial.println(String(i) + "-" + degis[i] + " deger:" + degdeg[i]);
       }
-}
+    }
 
 
-      if(sergel.indexOf("mac")==0)
-      {
-        Serial.print("Mac:");Serial.println(Serial.println(WiFi.macAddress()));
+    if (sergel.indexOf("mac") == 0) {
+      Serial.print("Mac:");
+      Serial.println(Serial.println(WiFi.macAddress()));
+    }
+    //////////////////////////////////////////////////////////yardım bitti
+    if (sergel.indexOf("dir")==0) {
+      Dir dir = LittleFS.openDir("/");
+      String fName = "";
+      while (dir.next()) {
+        fName += "  /" + dir.fileName() + "\n";
       }
-//////////////////////////////////////////////////////////yardım bitti
+      Serial.print(F("Dosyalar:\n"));
+      Serial.print(fName);
+    }
 
-      if(sergel.indexOf("resetle")==0)ESP.restart();
 
+
+    if (sergel.indexOf("resetle") == 0) ESP.restart();
   }
 }

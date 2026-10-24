@@ -153,6 +153,9 @@ DHT* DHTA[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 Servo* myservo[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 bool servovar[10] = { false };  // Hangi servonun aktif olduğunu takip eden bayrak
 
+// 🎯 ANA TANIM: Pointer değişkeninin kendisini burada fiziksel olarak var ediyoruz
+String* aktifTmrDeger = nullptr; 
+
 int hcsrT[10];
 int hcsrE[10];
 int edistance[10];
@@ -195,7 +198,12 @@ String yazi;
 
 File dosya;
 File udos;
+File ualt_dosya;
+bool altDosyaCalisiyor = false;
+String aktifAltDosyaAdi = "";
+
 unsigned long uzunMetrajMilis = 0;
+
 
 String pinayarerrorlog = "";
 String programerrorlog = "";
@@ -1496,7 +1504,7 @@ void loop() {
 
 
   //geciktirmee yavaşlatma 
-  if(cihazorjinal == false){delay(1000);}
+  if(cihazorjinal == false){delay(3000);}
 
 
   if (rescanwifi == true) {
@@ -1615,13 +1623,13 @@ void loop() {
   // Kendi zaman bariyeri (100ms) sayesinde ESP'yi yormadan sürekli canlı tarama yapacak.
  
    //uzunmetraj(); 
-
+   if (millis() - timereski > 50){ timereski = millis(); uzunmetraj(); }
 
 
   if ((millis() - timereski) % upd == 0 && fbisleniyor == false) {
     headerold = "";
     //harcananzaman = millis();
-    if (millis() - timereski > 5000){ timereski = millis(); uzunmetraj(); }
+    //if (millis() - timereski > 50){ timereski = millis(); uzunmetraj(); }
     if (pinayar.length() > 0) updateinput();
     if (pinayar.length() > 0 && programdata.length() > 0) programrun();
 
@@ -1833,7 +1841,7 @@ String Karakterduzeltfunc(String gelent) {
   Serial.println(gelent);
 
   // 1. ADIM: Satır sonlarını (\r\n) en başta düzeltiyoruz ki metin satırlara düzgün ayrılsın
-  gelent.replace(F("%0D%0A"), F("\n"));
+
   gelent.replace(F("+"), F(" "));
   gelent.replace(F("%20"), F(" "));
 
@@ -1876,7 +1884,7 @@ String Karakterduzeltfunc(String gelent) {
   gelent.replace(F("%C4%9F"), F("ğ"));
   gelent.replace(F("%C4%B1"), F("ı"));
   gelent.replace(F("%C4%B0"), F("İ"));
-
+  gelent.replace(F("%0D%0A"), F("\n"));
   Serial.print(F("Düzeltme sonucu: "));
   Serial.println(gelent);
   return gelent;

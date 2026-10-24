@@ -63,6 +63,14 @@ void runsetup() {
 
 // --- 2. UZUN METRAJ GERÇEK ZAMANLI ÇALIŞTIRMA TARAMASI (LOOP:) ---
 void urunloop() {
+
+  // Eğer bir alt senaryo tetiklendiyse, ana dosyayı okumayı durdur ve alt dosyayı koştur
+  if (altDosyaCalisiyor) {
+    altDosyaYurut();
+    return; // Alt dosya bitene kadar urunloop'un kalan kısmına (ana dosyaya) geçme!
+  }
+
+
   if (!udos) {
     udos = LittleFS.open("/uprogram.txt", "r");
     loopSatirNo = 0; 
@@ -105,12 +113,17 @@ void urunloop() {
     // LOOP içindeyken yanlışlıkla tekrar SETUP: etiketine rastlanırsa atla
     if (satir.indexOf("SETUP:") != -1) continue;
 
-    satirp = satir; 
+        satirp = satir; 
     satirsayisip = loopSatirNo; 
 
-    // Motor tetikleniyor
-    ifsonuc=false;
-    satirislem(); 
+    ifsonuc = false;
+    satirislem(); // Burada alt dosya tetiklendi ve altDosyaCalisiyor = true oldu
+
+    // 🎯 EĞER ALT DOSYA BAŞLADIYSA ANA DOSYA DÖNGÜSÜNÜ KIR:
+    if (altDosyaCalisiyor) {
+      return; // urunloop'tan hemen çık, bir sonraki çağrıda altDosyaYurut() çalışsın!
+    }
+
 
     Serial.println("PROGNO: " + PROGNOX);
     Serial.println("ifsonuc: " + String(ifsonuc)); 

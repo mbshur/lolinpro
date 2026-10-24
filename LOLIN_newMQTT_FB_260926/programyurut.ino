@@ -303,19 +303,19 @@ bool paranteziciislem(String parantezi) {
     }
   }
 
-// Alternatif Sadeleştirme (İsteğe Bağlı)
 String* aktifTmrIsim = standartprogram ? tmris : utmris;
-String* aktifTmrDeger = standartprogram ? tmrdeg : utmrdeg;
-  for (int ii = 0; ii <10; ii++) {
-    if (sol == aktifTmrIsim[ii]) {
-      solstate = aktifTmrDeger[ii];
-      aktifpinno=-10;
+String* aktifTmrDegerDizi = standartprogram ? tmrdeg : utmrdeg; // Sizin orijinal diziniz
 
-      //Serial.println("tmris  " + tmris[ii] + "    sol " + solstate);
-      //Serial.println("tmrdeg " + tmrdeg[ii] + "    sag " + sag);
+for (int ii = 0; ii < 11; ii++) {
+  if (sol == aktifTmrIsim[ii]) {
+    solstate = aktifTmrDegerDizi[ii];
+    aktifpinno = -10;
 
-    }
+    // 🎯 SİHİRLİ BAĞLANTI: 
+    // O an eşleşen zamanlayıcı String hücre adresini (&) kilit pointer'ımıza eşitliyoruz!
+    aktifTmrDeger = &aktifTmrDegerDizi[ii]; 
   }
+}
 
 
 
@@ -639,10 +639,31 @@ for (int ii = 0; ii <10; ii++) {
     return;
   }
 
-  if (dsol == "TX>") {
+if (dsol == "TX>") {
+  String bilesen_ani = dsag;
+  bilesen_ani.trim();
+
+  String altSenaryoYolu = "/_" + bilesen_ani + ".txt"; 
+
+  if (LittleFS.exists(altSenaryoYolu)) {
+    Serial.printf("[uprog-tetik] Alt senaryo bulundu: %s. Baslatiliyor...\n", bilesen_ani.c_str());
+    
+    if (ualt_dosya) ualt_dosya.close(); 
+    ualt_dosya = LittleFS.open(altSenaryoYolu, "r");
+    if (ualt_dosya) {
+      altDosyaCalisiyor = true;
+      aktifAltDosyaAdi = bilesen_ani;
+      
+      // 🎯 SİHİRLİ DOKUNUŞ: Ana dosyanın while döngüsünü anında kır!
+      // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır.
+      return; 
+    }
+  } 
+  else {
     txsend(dsag);
     return;
   }
+}
 
 
   for (int indis = 0; indis < 21; indis++)  // her islem için döngü
