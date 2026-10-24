@@ -231,6 +231,14 @@ if (sergel.indexOf("dosyasil:") == 0)
                 dosya.close();
       }
 
+if(sergel.indexOf("degis")==0)
+{
+        for (int i = 0; i < 21; i++) {
+        Serial.println(String(i) + "-" + degis[i] +" deger:" +degdeg[i]);
+      }
+}
+
+
       if(sergel.indexOf("mac")==0)
       {
         Serial.print("Mac:");Serial.println(Serial.println(WiFi.macAddress()));

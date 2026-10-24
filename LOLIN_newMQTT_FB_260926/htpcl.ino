@@ -891,7 +891,7 @@ if (header.indexOf(F("/pnayar")) > -1 || header.indexOf(F("/programkayit")) > -1
     else xilent.print(F(" yazıldı.<br>"));
   }
 
- /*
+ 
   // =================================================================
  // --- HTML ARAYÜZ ÇIKTI BÖLÜMÜ ---
   xilent.print(F("<style>\r\n"
@@ -913,7 +913,7 @@ if (uzunMetrajVar) {
   
   xilent.print(F("  <p style='font-size: 12px; color: gray; margin: 5px 0 0 0;'>Modu değiştirmek için butona tıklayın. Sistem otomatik yenilenecektir.</p>\r\n"
                  "</div>\r\n"));
-*/
+
 
 
   // TABLO 1: PIN AYARLARI TABLOSU (Aynen korunuyor)

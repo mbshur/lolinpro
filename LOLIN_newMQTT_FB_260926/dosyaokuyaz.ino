@@ -547,9 +547,9 @@ void dosyazuprogram(String gelenUP_Data) {
   uprogramtmp.trim();
 
   // 2. Çakışma Güvenlik Duvarı: Pin ayarlarında D6/D7 varsa ve uprogramda RXTX geçtiyse engelle
-  if (pinayar.indexOf("D6") != -1 || pinayar.indexOf("D7") != -1) {
+  if (pinayar.indexOf("D0") != -1 || pinayar.indexOf("D2") != -1) {
     if (uprogramtmp.indexOf("RXTX") != -1) {
-      uprogramerrorlog = "HATA: D6/D7 pinayarda kayitli! Uzun metrajda RXTX; kullanilamaz.";
+      uprogramerrorlog = "HATA: D0/D2 pinayarda kayitli! Uzun metrajda RXTX; kullanilamaz.";
       uprogramtmp.replace("RXTX", "//RXTX");
     }
   }
@@ -567,7 +567,14 @@ void dosyazuprogram(String gelenUP_Data) {
       Serial.println(F("[LittleFS] Yeni uzun metraj program basariyla kaydedildi."));
     }
     
-    setup2(); // Sistem ayarlarını yenile
+  for (int i = 11; i < 21; i++) {
+    degdeg[i] = "";
+    degis[i] = "";
+  }
+
+    //setup2(); // Sistem ayarlarını yenile
+    stg=0;
+
   } else {
     Serial.println(F("[LittleFS] Uzun metraj verisinde degisiklik yok, yazma atlandi."));
   }

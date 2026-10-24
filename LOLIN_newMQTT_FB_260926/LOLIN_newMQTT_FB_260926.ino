@@ -22,6 +22,7 @@ MQTTClient mqttclient;
 String MQTTip = "";
 
 
+#define MAX_TIMERS 11
 
 //String USER_EMAIL1 = "";  // "asd"     @ işareti sonradan eklenecek
 //String USER_EMAIL2 = "";  //"gmail.com"
@@ -171,13 +172,19 @@ String Program;
 String satirp;
 String degis[20];
 String degdeg[20];
-String tmris[10];
-String tmrdeg[10];
+String tmris[MAX_TIMERS];
+String tmrdeg[MAX_TIMERS];
 // 0-10  PİN     11-20 degisken 
 
 
 ////////////////////////////////////////
 
+// UZUN METRAJ PROGRAM İÇİN /////////////////
+// Uzun metraj programı timer dizileri
+String utmris[MAX_TIMERS];
+String utmrdeg[MAX_TIMERS];
+
+////////
 //DHT dht(DHTPIN, DHTTYPE);
 //DHT DHTA(D8, DHT11);
 
@@ -188,6 +195,7 @@ String yazi;
 
 File dosya;
 File udos;
+unsigned long uzunMetrajMilis = 0;
 
 String pinayarerrorlog = "";
 String programerrorlog = "";
@@ -582,8 +590,8 @@ void dosyaYazpinayar() {
       // 2. ADIM: Çakışma Kontrolü (Sadece bu geçerli satır için)
       if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) {
         // Eğer satırda D6 veya D7 geçiyorsa ve başında zaten // yoksa engelle
-        if ((satir.indexOf("D6") != -1 || satir.indexOf("D7") != -1) && satir.indexOf("//") != 0) {
-          pinayarerrorlog = "Pinayar hatası: D6 veya D7 kullanılamaz! Program kısmında RXTX; tanımlı.";
+        if ((satir.indexOf("D0") != -1 || satir.indexOf("D2") != -1) && satir.indexOf("//") != 0) {
+          pinayarerrorlog = "Pinayar hatası: D0 veya D2 kullanılamaz! Program kısmında RXTX; tanımlı.";
           satir = "//" + satir;  // Tüm satırı güvenle yorum satırına çeviriyoruz
         }
       }
@@ -673,11 +681,12 @@ void espLolin() {
   Pin[9] = A0;
 }
 */
-
+uint8_t stg = 0;
 
 void setup2() {
 
   dosyaOkupinayar();
+  dosyaokuuprogram();
 
   if (pinayar.length() > 3) {
     dosyaOkuprogram();
@@ -751,6 +760,7 @@ void setup2() {
         Serial.printf_P(PSTR("[SERVO] Pin %s dinamik nesne olarak basariyla kuruldu.\n"), pinname[x].c_str());
       }
     }
+
         if(rxtxvar)rxtxsetup();
   }
 }
@@ -1600,16 +1610,22 @@ void loop() {
   if (habp == 3) upd = 500;
 
 
-
+  timerGeriSay(); 
+  // 🎯 2. UZUN METRAJ MOTORUNU ŞARTIN DIŞINA ÇIKARIYORUZ!
+  // Kendi zaman bariyeri (100ms) sayesinde ESP'yi yormadan sürekli canlı tarama yapacak.
+ 
+   //uzunmetraj(); 
 
 
 
   if ((millis() - timereski) % upd == 0 && fbisleniyor == false) {
     headerold = "";
     //harcananzaman = millis();
-    if (millis() - timereski > 5000) timereski = millis();
+    if (millis() - timereski > 5000){ timereski = millis(); uzunmetraj(); }
     if (pinayar.length() > 0) updateinput();
     if (pinayar.length() > 0 && programdata.length() > 0) programrun();
+
+
     if (pinayar.length() > 0) updateoutput();
     if (pinayar.length() > 0) vrkontrol();
     //if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));

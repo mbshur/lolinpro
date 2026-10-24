@@ -15,14 +15,16 @@ String ptm;
 
 bool standartprogram=false;
 
+String PROGNOX;
+
 void programrun() {
-  standartprogram=ture;
+  standartprogram=true;
   satirsayisip = 0;
   String pdt = programdata;
   pdt.toUpperCase();
   if (pdt.indexOf("ACLTUT") < 0) ACLilanciyim = false;
   pdt = "";
-  for (int i = 0; i < 11; i++)  // İLK 10 SAYI 10 PİN İSİM VE DEĞERLERİNİ AL degis degdeg e yaz
+  for (int i = 0; i <10; i++)  // İLK 10 SAYI 10 PİN İSİM VE DEĞERLERİNİ AL degis degdeg e yaz
   {
     if (programdata.substring(0, 1) == "\n") programdata = programdata.substring(1, programdata.length());  //arada programdata için temizlik yap
     degis[i] = pinname[i];
@@ -46,16 +48,18 @@ void programrun() {
      firebase son
     */
   }
+  /*
   for (int i = 11; i < 21; i++) {
     degdeg[i] = "";
     degis[i] = "";
   }
+  */
 
   if (programdata.length() < 4) return;
 
   // timer değişkenleri için
   if(milis100<millis()){
-  for (int ii = 0; ii < 11; ii++) {
+  for (int ii = 0; ii <10; ii++) {
      if (tmris[ii].length() > 0) {
         if (tmrdeg[ii].toFloat() > 0) {
         tmrdeg[ii] = String(tmrdeg[ii].toFloat() - 1);
@@ -97,7 +101,7 @@ void programrun() {
 
   if (ACL.toInt() < 6) {
     if (eACL.toInt() != ACL.toInt()) {
-      for (int sta = 0; sta < 11; sta++) {
+      for (int sta = 0; sta <10; sta++) {
         if (acilseviyesi[sta] != " ") {
           String pinmodesta = pinmode[sta];
           pinmodesta.toUpperCase();
@@ -142,7 +146,7 @@ void satirislem() {
 
 
 void timertanitimi() {
-  for (int ii = 0; ii < 11; ii++) {
+  for (int ii = 0; ii <10; ii++) {
     if (satirp.indexOf("=") > 0) {
 
         if(tmris[ii] == satirp.substring(4, satirp.indexOf("=")))
@@ -165,12 +169,14 @@ void timertanitimi() {
 
 
 void degiskentanitimi() {
-  for (int ii = 10; ii < 21; ii++) {
+  Serial.println("degisken tanımına gelen satirp:" +  satirp );
+  for (int ii = 11; ii < 21; ii++) {
     if (satirp.indexOf("=") > 0) {
       if (degis[ii] == "" || degis[ii] == "null" || degis[ii] == satirp.substring(4, satirp.indexOf("="))) {
         String degisdegdeg = satirp;
         degis[ii] = degisdegdeg.substring(4, degisdegdeg.indexOf("="));
         degdeg[ii] = degisdegdeg.substring(degisdegdeg.indexOf("=") + 1, degisdegdeg.indexOf(";"));
+        Serial.print("[ii]:"  + String(ii) + " degis[ii]:" + degis[ii] + " degdeg[ii]:" + degdeg[ii]);
         break;
       }
     } else {
@@ -261,15 +267,17 @@ bool paranteziciislem(String parantezi) {
       SOLL.toUpperCase();
 
       for (int pinbul = 0; pinbul < 21; pinbul++) {
+        if(!standartprogram) Serial.println( String(pinbul) + " " + SOLL + " >< " + degis[pinbul] +  " degiskendegeri " + degdeg[pinbul]);
         if (SOLL == degis[pinbul]) {  // Büyük/küçük harf fark etmeksizin eşleşir
           solstate = degdeg[pinbul];
+          if(SOLL == "TX>")PROGNOX=pinbul;
           aktifpinno = pinbul;
           break;
         }
       }
     } else {
       if (tempvar == true || humvar == true) sol = sol.substring(0, sol.length() - 1);
-      for (int pinbul = 0; pinbul < 11; pinbul++) {
+      for (int pinbul = 0; pinbul <10; pinbul++) {
         String SOLL = sol;
         SOLL.toUpperCase();
         if (SOLL == (degis[pinbul])) {
@@ -295,9 +303,12 @@ bool paranteziciislem(String parantezi) {
     }
   }
 
-  for (int ii = 0; ii < 11; ii++) {
-    if (sol == tmris[ii]) {
-      solstate = tmrdeg[ii];
+// Alternatif Sadeleştirme (İsteğe Bağlı)
+String* aktifTmrIsim = standartprogram ? tmris : utmris;
+String* aktifTmrDeger = standartprogram ? tmrdeg : utmrdeg;
+  for (int ii = 0; ii <10; ii++) {
+    if (sol == aktifTmrIsim[ii]) {
+      solstate = aktifTmrDeger[ii];
       aktifpinno=-10;
 
       //Serial.println("tmris  " + tmris[ii] + "    sol " + solstate);
@@ -305,6 +316,8 @@ bool paranteziciislem(String parantezi) {
 
     }
   }
+
+
 
   if (!sol.equalsIgnoreCase("ACL") && aktifpinno == -100) {
     programerrorlog += "if satır içi soldaki tanimli degil " + sol + " Satir:" + String(satirsayisip) + "\n";
@@ -434,7 +447,7 @@ void gotoif() {
 
   if (ifsonuc == true) {
     ifparantezdisi(satiruppercase, satirsayisip);
-  } else {
+  } else if(standartprogram==true){
     if (satiruppercase.indexOf("{") > -1) {
       susluparantezsayisi += 1;
       if (satiruppercase.indexOf("}") > -1) susluparantezsayisi -= 1;
@@ -496,7 +509,7 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
 
 
 
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i <10; i++) {
 
       if (yapilacaklar.indexOf(" ") == 0) {
         for (int j = 0; j < 200; j++) {
@@ -604,12 +617,21 @@ void yap(String yapilacakis, int islemno) {
   String dsag = noktalivirgulekadar.substring(noktalivirgulekadar.indexOf("=") + 1, noktalivirgulekadar.indexOf(";"));
       aktifpinno = -100;
  
-  for (int ii = 0; ii < 11; ii++) {
-    if (dsol == tmris[ii]) {
-       tmrdeg[ii] = dsag;
-       return;
-    }
+
+String* aktifTmrIsim = standartprogram ? tmris : utmris;
+String* aktifTmrDeger = standartprogram ? tmrdeg : utmrdeg;
+
+for (int ii = 0; ii <10; ii++) {
+  // void yap içinde aranan sol taraf değişkeni 'dsol'dur
+  if (dsol == aktifTmrIsim[ii]) { 
+    
+    // 🎯 KRİTİK DÜZELTME: Geçici solstate yerine doğrudan dizinin hafızasına yazıyoruz!
+    aktifTmrDeger[ii] = dsag; 
+    
+    return; // Atama yapıldı, fonksiyondan güvenle çıkabiliriz
   }
+}
+
   
   
   if (dsol == "ACL") {
@@ -652,4 +674,30 @@ void yap(String yapilacakis, int islemno) {
     programerrorlog += "tanimli olmayan değişken var: " + dsol + " Satir:" + String(satirsayisip) + "\n";
   }
 
+}
+
+// --- 1. BAĞIMSIZ ZAMAN EKSİLTME MOTORU ---
+void timerGeriSay() {
+  if (millis() >= milis100) {
+    // 1. STANDART PROGRAM TİMER'LARI (100ms'de bir 1 eksiltir)
+    for (int ii = 0; ii < MAX_TIMERS; ii++) {
+      if (tmris[ii].length() > 0) {
+        float standartVal = tmrdeg[ii].toFloat();
+        if (standartVal > 0) {
+          tmrdeg[ii] = String(standartVal - 1);
+        }
+      }
+    }
+
+    // 2. UZUN METRAJ PROGRAM TİMER'LARI (100ms'de bir 1 eksiltir)
+    for (int ii = 0; ii < MAX_TIMERS; ii++) {
+      if (utmris[ii].length() > 0) {
+        float uzunmetrajVal = utmrdeg[ii].toFloat();
+        if (uzunmetrajVal > 0) {
+          utmrdeg[ii] = String(uzunmetrajVal - 1);
+        }
+      }
+    }
+    milis100 = millis() + 100;
+  }
 }

@@ -6,16 +6,16 @@ SoftwareSerial unoSerial;
 
 void rxtxsetup() {
 rxtxvar=true;  
-const int8_t ESP_RX_PIN = D6; // Uno'nun TX'inden (direnç korumalı) gelen hat
-const int8_t ESP_TX_PIN = D7; // Uno'nun RX'ine giden hat
-const uint32_t BAUD_RATE = 57600;
+const int8_t ESP_RX_PIN = D0; // Uno'nun TX'inden (direnç korumalı) gelen hat
+const int8_t ESP_TX_PIN = D2; // Uno'nun RX'ine giden hat
+const uint32_t BAUD_RATE = 19200;
 
   // Software Serial pin yapılandırması ve 19200 baud başlatılması
   // (RX, TX) parametreleri sırasıyla verilir
 // Yazılımsal portu sabit pinlerimiz ve 19200 baud ile başlatıyoruz
   unoSerial.begin(BAUD_RATE, SWSERIAL_8N1, ESP_RX_PIN, ESP_TX_PIN, false);
   
-  Serial.println(F("Sistem Hazır. D6(RX) ve D7(TX) üzerinden 19200 baud ile dinleniyor..."));
+  Serial.println(F("Sistem Hazır. D2(RX) ve D0(TX) üzerinden 57200 baud ile dinleniyor..."));
 }
 
 void rxtxloop() {
@@ -35,5 +35,6 @@ void rxtxloop() {
 
 void txsend(String txveri)
 {
+  //Serial.println("txveri gönderildi. Veri:" + txveri);
    unoSerial.println(txveri);
 }
