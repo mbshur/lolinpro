@@ -213,7 +213,7 @@ void serin() {
       if (dosya) {
         String en = dosya.readString();
         Serial.println(ds + "dosya içeriği");
-        Serial.println(dosya);
+        Serial.println(en);
       } else {
         Serial.println(ds + " dosyası yok ");
       }
@@ -236,7 +236,7 @@ void serin() {
       Dir dir = LittleFS.openDir("/");
       String fName = "";
       while (dir.next()) {
-        fName += "  /" + dir.fileName() + "\n";
+        fName += dir.fileName() + ",";
       }
       Serial.print(F("Dosyalar:\n"));
       Serial.print(fName);

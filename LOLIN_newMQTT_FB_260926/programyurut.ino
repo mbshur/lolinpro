@@ -714,14 +714,51 @@ if (dsol == "TX>") {
     }
     }
 
-    if (indis >= 10 && indis < 21)  // degiskenleri tut
+
+// 🎯 DEĞİŞKENLERİ TUTAN VE MATEMATİKSEL İŞLEM YAPABİLEN SIFIR HATALI KISIM
+    if (indis >= 10 && indis < 21)  
     {
       if (dsol == degis[indis]) {
-        degdeg[indis] = dsag;
+        
+        // ➕ ARTTIRMA İŞLEMİ DÜZELTMESİ (Örn: I=I@1;)
+        if (dsag.indexOf("@") > 0) {
+          String solDegisken = dsag.substring(0, dsag.indexOf("@"));
+          String artisMiktari = dsag.substring(dsag.indexOf("@") + 1);
+          solDegisken.trim(); artisMiktari.trim();
+          
+          if (solDegisken == degis[indis]) {
+            int mevcutSayi = degdeg[indis].toInt(); 
+            int artisSayisi = artisMiktari.toInt();
+            
+            // Matematiksel toplamayı yapıp String olarak hücreye yazıyoruz
+            degdeg[indis] = String(mevcutSayi + artisSayisi); 
+          }
+        }
+        // ➖ AZALTMA İŞLEMİ DÜZELTMESİ (Örn: I=I-1; için isterseniz '-' kalabilir veya onu da değiştirebilirsiniz)
+        else if (dsag.indexOf("-") > 0) {
+          String solDegisken = dsag.substring(0, dsag.indexOf("-"));
+          String azalisMiktari = dsag.substring(dsag.indexOf("-") + 1);
+          solDegisken.trim(); azalisMiktari.trim();
+          
+          if (solDegisken == degis[indis]) {
+            int mevcutSayi = degdeg[indis].toInt();
+            int azalisSayisi = azalisMiktari.toInt();
+            
+            degdeg[indis] = String(mevcutSayi - azalisSayisi);
+          }
+        }
+        // Standart Atama işlemi ise (Örn: I=0;) direkt yaz
+        else {
+          degdeg[indis] = dsag;
+        }
+
         progmsg += (String)satirsayisip + " satır>" + yapilacakis + " degisti.<br>";
-      aktifpinno = -10;
+        Serial.printf_P(PSTR("[Dinamik Matematik] %s yeni degeri: %s\n"), degis[indis].c_str(), degdeg[indis].c_str());
+        aktifpinno = -10;
+        break;
       }
     }
+  
 
     // 0-10  PİN     11-20 degisken
   }

@@ -154,7 +154,7 @@ Servo* myservo[10] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NUL
 bool servovar[10] = { false };  // Hangi servonun aktif olduğunu takip eden bayrak
 
 // 🎯 ANA TANIM: Pointer değişkeninin kendisini burada fiziksel olarak var ediyoruz
-String* aktifTmrDeger = nullptr; 
+String* aktifTmrDeger = nullptr;
 
 int hcsrT[10];
 int hcsrE[10];
@@ -177,7 +177,7 @@ String degis[20];
 String degdeg[20];
 String tmris[MAX_TIMERS];
 String tmrdeg[MAX_TIMERS];
-// 0-10  PİN     11-20 degisken 
+// 0-10  PİN     11-20 degisken
 
 
 ////////////////////////////////////////
@@ -200,11 +200,19 @@ File dosya;
 File udos;
 File ualt_dosya;
 bool altDosyaCalisiyor = false;
-unsigned long ualt_bekleme_sure = 0; // W:1000 bekleme zamanı için milisaniye tutucu
-bool ualt_bekliyor = false;          // Bekleme durumunda mıyız bayrağı
+unsigned long ualt_bekleme_sure = 0;  // W:1000 bekleme zamanı için milisaniye tutucu
+bool ualt_bekliyor = false;           // Bekleme durumunda mıyız bayrağı
 String aktifAltDosyaAdi = "";
 
 unsigned long uzunMetrajMilis = 0;
+String slaves[10];
+String slavestx[10];
+String slavesrx[10];
+
+// Global Değişkenler (Lolin'in en tepesinde tanımlı olmalı)
+bool chzBloguIcindeyiz = false;
+String aktifChzIsmi = "";
+String birlesikDefMetni = "";
 
 
 String pinayarerrorlog = "";
@@ -380,7 +388,7 @@ void dosyaOkupinayar() {
     }
     dosya.close();
 
-    if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) rxtxvar=true;
+    if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) rxtxvar = true;
 
     strtmp = pinayar;
     Serial.println("dosyaokupinayar.");
@@ -437,7 +445,7 @@ void dosyaOkupinayar() {
 
             x = pinismiint;
             //pinsatir[x] = strtmp.substring(0,strtmp.indexOf("\n"));
-            if(strtmp.indexOf("D4")>-1)LED_BUILTIN_devredisi=true;
+            if (strtmp.indexOf("D4") > -1) LED_BUILTIN_devredisi = true;
             //Serial.println(j);
 
             pinname[x] = pinnametm.substring(0, pinnametm.indexOf("|"));
@@ -771,7 +779,7 @@ void setup2() {
       }
     }
 
-        if(rxtxvar)rxtxsetup();
+    if (rxtxvar) rxtxsetup();
   }
 }
 
@@ -1496,7 +1504,7 @@ void loop() {
 
   serin();
 
-/*
+  /*
   if (millis() - harcananzaman > (test * 200)) {
     Serial.println("htpclde vakit uzadı: ms>" + (String)(millis() - harcananzaman));
     test += 1;
@@ -1505,8 +1513,8 @@ void loop() {
 */
 
 
-  //geciktirmee yavaşlatma 
-  if(cihazorjinal == false){delay(3000);}
+  //geciktirmee yavaşlatma
+  if (cihazorjinal == false) { delay(3000); }
 
 
   if (rescanwifi == true) {
@@ -1621,9 +1629,9 @@ void loop() {
 
 
 
- 
-   //uzunmetraj(); 
- 
+
+  //uzunmetraj();
+
 
 
   if ((millis() - timereski) % upd == 0 && fbisleniyor == false) {
@@ -1638,51 +1646,60 @@ void loop() {
     if (pinayar.length() > 0) vrkontrol();
 
 
-  timerGeriSay(); 
-  // 🎯 2. UZUN METRAJ MOTORUNU ŞARTIN DIŞINA ÇIKARIYORUZ!
-  // Kendi zaman bariyeri (100ms) sayesinde ESP'yi yormadan sürekli canlı tarama yapacak.
+    timerGeriSay();
+    // 🎯 2. UZUN METRAJ MOTORUNU ŞARTIN DIŞINA ÇIKARIYORUZ!
+    // Kendi zaman bariyeri (100ms) sayesinde ESP'yi yormadan sürekli canlı tarama yapacak.
 
 
-  if(uzunMetrajVar)if (millis() - timereski > 50){ timereski = millis(); uzunmetraj(); }
+    if (uzunMetrajVar)
+      if (millis() - timereski > 50) {
+        timereski = millis();
+        uzunmetraj();
+      }
     //if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));
   }
 
+// firebase enable yani açık ise alttaki işlemleri yap
+  if (fben) {
+    if (habp > 0 && habp < 3) {
+      if (habp == 2) {
+        if (psco == true || psci == true || htpcldepindegisti == true) {
+          String mqyo = "/" + YOL + "/FBSERVER";
+          String mqda = "FBSERVER>" + esphostname + "pin";
 
-  if (habp > 0 && habp < 3) {
-    if (habp == 2) {
-      if (psco == true || psci == true || htpcldepindegisti == true) {
-        String mqyo = "/" + YOL + "/FBSERVER";
-        String mqda = "FBSERVER>" + esphostname + "pin";
+          if (ACLilanciyim == true) { mqda += "ACL:" + String(ACL) + ","; }
 
-        if (ACLilanciyim == true) { mqda += "ACL:" + String(ACL) + ","; }
-
-        for (int hh = 0; hh < 11; hh++) {
-          if (pinname[hh] != "") {
-            mqda += pinname[hh] + ":" + PinState[hh] + ",";
+          for (int hh = 0; hh < 11; hh++) {
+            if (pinname[hh] != "") {
+              mqda += pinname[hh] + ":" + PinState[hh] + ",";
+            }
           }
+          mqttsend(mqyo, mqda);
+          psci = false;
+          psco = false;
         }
-        mqttsend(mqyo, mqda);
-        psci = false;
-        psco = false;
       }
     }
-  }
 
-  if (habp == 3) {
-    if (millis() - timereski >= 5000) {
-      timereski = millis();
-      //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
-      if (fben != 0 && pinayar.length() > 0 && ACL.toInt() != 9 && fbisleniyor == false) {
-        //updateinput();
-        //programrun();
-        //updateoutput();
-        mqttclient.unsubscribe("/" + YOL + "/#");
-        fbisleniyor = true;
-        fbsayacoku();
-        mqttclient.subscribe("/" + YOL + "/#");
+
+    if (habp == 3) {
+      if (millis() - timereski >= 5000) {
+        timereski = millis();
+        //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
+        if (fben != 0 && pinayar.length() > 0 && ACL.toInt() != 9 && fbisleniyor == false) {
+          //updateinput();
+          //programrun();
+          //updateoutput();
+          mqttclient.unsubscribe("/" + YOL + "/#");
+          fbisleniyor = true;
+          fbsayacoku();
+          mqttclient.subscribe("/" + YOL + "/#");
+        }
       }
     }
   }
+  // firebase enable yani açık ise üstteki işlemleri yap
+
 }
 
 
@@ -1848,16 +1865,24 @@ String Karakterduzeltfunc(String gelent) {
   Serial.println(F("Karakterduzelte girdim"));
   Serial.println(gelent);
 
-  // 1. ADIM: Satır sonlarını (\r\n) en başta düzeltiyoruz ki metin satırlara düzgün ayrılsın
+  // 1. ADIM: Satır sonlarını en başta düzeltiyoruz
+  gelent.replace(F("%0D%0A"), F("\n"));
 
+  // 🎯 GİZEMİ BİTİREN EN KRİTİK ADIM (Sıralama Güncellemesi):
+
+  // 🎯 Şimdi de o oluşan %2B kodunu (yani gerçek artıyı) boşluk filtresine yakalanmasın diye 
+  // sadece 1 byte yer kaplayan '~' ASCII karakterine maskeliyoruz.
+  
+  // Tarayıcının kelime aralarına koyduğu o sahte tekli '+' işaretlerini normal boşluk yapıyoruz
   gelent.replace(F("+"), F(" "));
   gelent.replace(F("%20"), F(" "));
-
-  // 2. ADIM: Standart Sembol Çözümleri
+  // Ve son dokunuş: Maskelediğimiz o '~' karakterini nihayet hak ettiği tek bir "+" işaretine dönüştürüyoruz!
+    gelent.replace(F("%2B"), F("+"));
+  // 3. ADIM: Standart Sembol Çözümleri (Mevcut kodlarınız aynen devam ediyor)
   gelent.replace(F("%26"), F("&"));
   gelent.replace(F("%28"), F("("));
   gelent.replace(F("%29"), F(")"));
-  gelent.replace(F("%7C"), F("|"));  // Dik çizgiler temizleniyor
+  gelent.replace(F("%7C"), F("|"));  
   gelent.replace(F("%3B"), F(";"));
   gelent.replace(F("%3D"), F("="));
   gelent.replace(F("%3F"), F("?"));
@@ -1867,19 +1892,16 @@ String Karakterduzeltfunc(String gelent) {
   gelent.replace(F("%7D"), F("}"));
   gelent.replace(F("%5B"), F("["));
   gelent.replace(F("%5D"), F("]"));
-  gelent.replace(F("%2B"), F("+"));
   gelent.replace(F("%21"), F("!"));
   gelent.replace(F("%22"), F("\""));
-  gelent.replace(F("%3A"), F(":"));  // İki noktalar temizleniyor
+  gelent.replace(F("%3A"), F(":"));  
   gelent.replace(F("%23"), F("#"));
   gelent.replace(F("%27"), F("'"));
   gelent.replace(F("%2C"), F(","));
   gelent.replace(F("%2F"), F("/"));
+  gelent.replace(F("%40"), F("@"));
+  // 4. ADIM: Güvenli Bölge ve Türkçe Karakterler
 
-  // 3. ADIM: GÜVENLİ BÖLGE (Tüm sembol işlemleri bitti, şimdi gerçek yüzde işaretlerini çözebiliriz)
-  gelent.replace(F("%25"), F("%"));
-
-  // 4. ADIM: Türkçe Karakter Düzeltmeleri
   gelent.replace(F("%C5%9E"), F("Ş"));
   gelent.replace(F("%C5%9F"), F("ş"));
   gelent.replace(F("%C3%87"), F("Ç"));
@@ -1892,212 +1914,10 @@ String Karakterduzeltfunc(String gelent) {
   gelent.replace(F("%C4%9F"), F("ğ"));
   gelent.replace(F("%C4%B1"), F("ı"));
   gelent.replace(F("%C4%B0"), F("İ"));
-  gelent.replace(F("%0D%0A"), F("\n"));
+
+  gelent.replace(F("%25"), F("%"));
+
   Serial.print(F("Düzeltme sonucu: "));
   Serial.println(gelent);
   return gelent;
-}
-
-/*
-String Karakterduzeltfunc(String gelent){
-
-String gelentt;
-String gidens;
-String gidentt;
-String sdf;
-String sdf2;
-int yuzdemi;
-int artimi;
-
-String karakter[38];
-String yerinegec[38];
-
- karakter[0] ="+";   //    :boşluk databloğu içinde iken
-          yerinegec[0] = " ";
- karakter[1] ="%20"; //  :boşluk actionadresi icinde iken
-          yerinegec[1] = " ";
- karakter[2] ="%25"; //  :%
-          yerinegec[2] = "%";
- karakter[3] ="%26"; //  :&
-          yerinegec[3] = "&";
- karakter[4] ="%28"; //  :(
-          yerinegec[4] = "(";
- karakter[5] ="%29"; //  :)
-          yerinegec[5] = ")";
- karakter[6] ="%7C"; //  :|
-          yerinegec[6] = "|";
- karakter[7] ="%2F"; //  :/
-          yerinegec[7] = "/";
- karakter[8] ="%3B"; //  :;
-          yerinegec[8] = ";";
- karakter[9] ="%3D"; //  :=
-          yerinegec[9] = "=";
- karakter[10] ="%3F"; //  :?
-          yerinegec[10] = "?";
- karakter[11] ="%3E"; //  :>
-          yerinegec[11] = ">";
- karakter[12] ="%3C"; //  :<
-          yerinegec[12] = "<";
- karakter[13] ="%7B"; //  :{
-          yerinegec[13] = "{";
- karakter[14] ="%7D"; //  :}
-          yerinegec[14] = "}";
- karakter[15] ="%5B"; //  :[
-          yerinegec[15] = "[";
- karakter[16] ="%5D"; //  :]
-          yerinegec[16] = "]";
- karakter[17] ="%2B"; //  :+
-          yerinegec[17] = "+";
-//         - * /  aynı
- karakter[18] ="%21"; //  :!
-          yerinegec[18] = "!";
-
-  karakter[19] ="%0D%0A"; //: \r\n  (enter ve satır sonu) karakterleri
-        yerinegec[19] = "\n";
-
-  karakter[20] ="%22"; 
-        yerinegec[20] = "\"";
-
-  karakter[21] ="%3A";  
-        yerinegec[21] = ":";
-
-  karakter[22] ="%3B";  
-        yerinegec[22] = "\"";
-
-  karakter[23] ="%23";  
-        yerinegec[23] = "#";
-
-  karakter[24] ="%27";  
-        yerinegec[24] = "'";
-
-  karakter[25] ="%2C";  
-        yerinegec[25] = ",";
-
-  karakter[26] ="%C5%9E";  
-        yerinegec[26] = "Ş";
-
-  karakter[27] ="%C5%9F";  
-        yerinegec[27] = "ş";
-
-  karakter[28] ="%C3%87";  
-        yerinegec[28] = "Ç";
-        
-  karakter[29] ="%C3%A7";  
-        yerinegec[29] = "ç";
-
-  karakter[30] ="%C3%96";  
-        yerinegec[30] = "Ö";
-        
-  karakter[31] ="%C3%B6";  
-        yerinegec[31] = "ö";
-
-  karakter[32] ="%C3%9C";
-        yerinegec[32] = "Ü";
-        
-  karakter[33] ="%C3%BC"; 
-        yerinegec[33] = "ü";
-
-  karakter[34] ="%C4%9E";  
-        yerinegec[34] = "Ğ";
-        
-  karakter[35] ="%C4%9F";  
-        yerinegec[35] = "ğ";
-
-  karakter[36] ="%C4%B1";  
-        yerinegec[36] = "ı";
-        
-  karakter[37] ="%C4%B0";  
-        yerinegec[37] = "İ";
-
-
-
-gelentt = gelent;
-gidens="";
-  for(int y=0;y<gelentt.length()+1;y++){
-    if(gelentt.length()<1)break;
-     yuzdemi=10000;
-     artimi=10000;
-
-     if(gelentt.indexOf("%")>-1){yuzdemi=gelentt.indexOf("%");}
-     if(gelentt.indexOf("+")>-1){artimi=gelentt.indexOf("+");}
-     if(yuzdemi<artimi)
-     {
-           sdf="";
-           sdf2="";
-          gidentt += gelentt.substring(0,yuzdemi);
-          sdf = gelentt.substring(yuzdemi,yuzdemi+3);
-          sdf2 = gelentt.substring(yuzdemi,yuzdemi+6);
-          
-          if(sdf2=="%0D0A")sdf="%0D%0A";
-          if(sdf2=="%C5%9E")sdf="%C5%9E";
-          if(sdf2=="%C5%9F")sdf="%C5%9F";  
-          if(sdf2=="%C3%87")sdf="%C3%87";  
-          if(sdf2=="%C3%A7")sdf="%C3%A7";  
-          if(sdf2=="%C3%96")sdf="%C3%96";  
-          if(sdf2=="%C3%B6")sdf="%C3%B6";  
-          if(sdf2=="%C3%9C")sdf="%C3%9C";  
-          if(sdf2=="%C3%BC")sdf="%C3%BC";  
-          if(sdf2=="%C4%9E")sdf="%C4%9E";  
-          if(sdf2=="%C4%9F")sdf="%C4%9F";  
-          if(sdf2=="%C4%B1")sdf="%C4%B1";  
-          if(sdf2=="%C4%B0")sdf="%C4%B0";  
-
-
-          for (int c=1;c<38;c++)
-          {
-              if(karakter[c].indexOf(sdf)>-1)
-              {
-              gidentt += yerinegec[c];
-              gelentt = gelentt.substring(yuzdemi+sdf.length(),gelentt.length());
-              y=yuzdemi+sdf.length();
-              break; 
-              }
-          }
-     }
-
-     if(artimi<yuzdemi)
-          {
-            gidentt += gelentt.substring(0,artimi);
-
-              gidentt += yerinegec[0];
-              gelentt = gelentt.substring(artimi+1,gelentt.length());
-              y=artimi;
-          }
-     
-
-     if(artimi==yuzdemi)
-          {
-            gidentt += gelentt;
-            break;
-          }
-          //Serial.println(gelentt);
-     }
-
-      gelentt="";
-      sdf="";
-
-      String gidenrn=gidentt;
-      gidentt="";
-      //Serial.println(gidens);
-      gidens="";
-      Serial.println(gidenrn);
-
-    for(int x=0;x<gidenrn.length()+1;x++)
-    {
-      if(gidenrn.indexOf("\n\n")>-1)
-      {
-        gidens += gidenrn.substring(0, (gidenrn.indexOf("\n\n"))) + "\n";
-            gidenrn=gidenrn.substring(gidenrn.indexOf("\n\n")+2,gidenrn.length());
-      } else 
-      {
-        gidens += gidenrn.substring(0, gidenrn.length());
-        break;
-      }
-    }
-      String gidenstm=gidens;
-      Serial.println(gidens);
-      return gidens;
-      
-
-  }
-*/
+} 

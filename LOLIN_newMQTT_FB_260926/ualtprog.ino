@@ -13,9 +13,9 @@ void altDosyaYurut() {
   if (ualt_bekliyor) {
     if (millis() < ualt_bekleme_sure) {
       yield();
-      return; // Süre dolana kadar fonksiyonu burada kes, YENİ SATIRA GEÇME!
+      return; 
     } else {
-      ualt_bekliyor = false; // Süre doldu, kilidi aç
+      ualt_bekliyor = false; 
     }
   }
 
@@ -41,6 +41,67 @@ void altDosyaYurut() {
     if (altSatir == "" || altSatir.indexOf("//") == 0) {
       yield();
       return; 
+    }
+
+    // 🎯 3A. DİNAMİK CHZ BLOK BAŞLANGIÇ YAKALAYICI (Örn: CHZ UNO1[)
+    if (altSatir.indexOf("CHZ ") == 0 && altSatir.indexOf("[") > -1) {
+      chzBloguIcindeyiz = true;
+      aktifChzIsmi = altSatir.substring(4, altSatir.indexOf("["));
+      aktifChzIsmi.trim();
+      aktifChzIsmi.toUpperCase();
+
+      // Cihaz adını slaves dizisindeki ilk boş yere kaydet (Yoksa ekle)
+      for (int s = 0; s < 10; s++) {
+        if (slaves[s] == aktifChzIsmi) break; 
+        if (slaves[s] == "") {
+          slaves[s] = aktifChzIsmi;
+          break;
+        }
+      }
+      
+      // İlk tanım parçasını birleşik metne ekle
+      birlesikDefMetni += "DEF<" + aktifChzIsmi + ">[";
+      yield();
+      return; // CHZ satırını erittik, sonraki satıra geçmek için fonksiyondan çık
+    }
+
+    // 🎯 3B. CHZ BLOĞU İÇİNDEKİ VERİLERİ BİRLEŞTİRME VE DÖNÜŞTÜRME MOTORU
+    if (chzBloguIcindeyiz) {
+      if (altSatir.indexOf("]") > -1) {
+        // Blok bitti, sonundaki fazla boru '|' işaretini silip kapatıyoruz
+        if (birlesikDefMetni.endsWith("|")) {
+          birlesikDefMetni = birlesikDefMetni.substring(0, birlesikDefMetni.length() - 1);
+        }
+        birlesikDefMetni += "];";
+        chzBloguIcindeyiz = false;
+
+        // Dosyadaki bir sonraki satıra bakıyoruz, eğer yeni bir CHZ bloğu başlamıyorsa 
+        // toplanan tüm tanımlamaları tek bir paket halinde Uno hattına fırlatıyoruz!
+        int sonrakiByte = ualt_dosya.peek(); 
+        // Eğer sırada yeni bir CHZ bloğu yoksa birleşik ağ paketini TX et
+        if (sonrakiByte != 'C') { 
+          satirp = "TX>=" + birlesikDefMetni;
+          birlesikDefMetni = ""; // Bir sonraki senaryolar için temizle
+          
+          // Akışı bozmamak için normal satirislem fonksiyonuna pasla (Uno'ya gönderir)
+          satirsayisip = 999;
+          ifsonuc = false;
+          satirislem();
+        }
+      } else {
+        // Blok içindeki elemanları dönüştür: "STP SM:2,3;" -> "STP=SM:2,3|"
+        String icerik = altSatir;
+        if (icerik.endsWith(";")) icerik = icerik.substring(0, icerik.length() - 1);
+        
+        // İlk boşluğu bulup '=' yapalım (Örn: "STP SM:2,3" -> "STP=SM:2,3")
+        int ilkBosluk = icerik.indexOf(" ");
+        if (ilkBosluk > 0) {
+          icerik = icerik.substring(0, ilkBosluk) + "=" + icerik.substring(ilkBosluk + 1);
+        }
+        birlesikDefMetni += icerik + "|";
+      }
+      yield();
+      return; // Blok içi satırları yuttuk, normal işleme motoruna sokmuyoruz
     }
 
     // Etiket satırlarını (Örn: E1:) doğrudan pas geç
@@ -95,7 +156,7 @@ void altDosyaYurut() {
       return; 
     }
 
-    // 🎯 7. GERİ KAZANILAN KUSURSUZ PARANTEZ ATLAMA MOTORUNUZ (Orijinal Kodunuz):
+    // 🎯 7. GERİ KAZANILAN KUSURSUZ PARANTEZ ATLAMA MOTORUNUZ:
     if (ifsonuc == false && altSatir.indexOf("{") != -1) {
       int p_sayac = 1;
       
@@ -122,12 +183,13 @@ void altDosyaYurut() {
     aktifTmrDeger = nullptr; 
     ualt_bekliyor = false;
     altProgramIptalBayragi = false;
+    chzBloguIcindeyiz = false; // Güvenlik amacıyla sıfırla
+    birlesikDefMetni = "";
     aktifAltDosyaAdi = "";
   }
   
   yield(); 
 }
-
 
 
 void ualtprogdur() {

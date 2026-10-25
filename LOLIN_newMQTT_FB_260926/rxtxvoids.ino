@@ -21,15 +21,28 @@ const uint32_t BAUD_RATE = 19200;
 void rxtxloop() {
   // Uno'dan veri gelip gelmediğini kontrol et
   if (unoSerial.available()) {
-    String gelenVeri = unoSerial.readStringUntil('\n');
-    gelenVeri.trim();
-    
-    rxtampon += gelenVeri;
+  String gelenHat = Serial.readStringUntil('\n');
+  gelenHat.trim(); // Örn: "UNO1:error"
 
-    // Gelen veriyi (D1|OUT|DIG|...) ekrana bas
-    Serial.printf_P(PSTR("Gelen Paket: %s\n"), gelenVeri.c_str());
-    
-    // Ayrıştırma ve işleme mantığınızı buraya ekleyebilirsiniz
+  if (gelenHat.indexOf(":") > 0) {
+    String cihaz = gelenHat.substring(0, gelenHat.indexOf(":"));
+    String durum = gelenHat.substring(gelenHat.indexOf(":") + 1);
+    cihaz.trim(); cihaz.toUpperCase();
+
+    for (int s = 0; s < 10; s++) {
+      if (slaves[s] == cihaz) {
+        slavesrx[s] = gelenHat; // Gelen son hatayı/veriyi kaydet
+
+        if (durum.equalsIgnoreCase("error")) {
+          Serial.printf("[SİSTEM TEŞHİS] %s Cihazı Çöktü!\n", cihaz.c_str());
+          Serial.printf("-> Gönderilen Son Emir: %s\n", slavestx[s].c_str());
+          // İsteğe bağlı olarak hata anında sistemi korumaya alabilirsiniz
+          ualtprogdur();
+        }
+        break;
+      }
+    }
+  }
   }
   }
 

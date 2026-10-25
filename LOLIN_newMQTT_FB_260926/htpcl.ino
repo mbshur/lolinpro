@@ -270,83 +270,87 @@ void htpcl(WiFiClient xilent) {
             Menu = 9;  // Doğrudan Lisans Menüsüne yönlendir
           }
 
-// -----------------------------------------------------------------
-// 3. MENÜ 9: Lisans Giriş Ekranı HTML Çıktısı
-// -----------------------------------------------------------------
-if (Menu == 9) {
-  if (header.indexOf("/") > -1) {
+          // -----------------------------------------------------------------
+          // 3. MENÜ 9: Lisans Giriş Ekranı HTML Çıktısı
+          // -----------------------------------------------------------------
+          if (Menu == 9) {
+            if (header.indexOf("/") > -1) {
 
-    // Güvenlik motorumuzdan o anki MAC adresine göre parazitli kodu üretiyoruz
-    String gercekMac = WiFi.macAddress();
-    gercekMac.replace(":", "");
+              // Güvenlik motorumuzdan o anki MAC adresine göre parazitli kodu üretiyoruz
+              String gercekMac = WiFi.macAddress();
+              gercekMac.replace(":", "");
 
-    // Anlık olarak 1-4 arası random sayı üretip talep kodunu hazırlıyoruz (max 5 hariçtir, 1,2,3,4 üretir)
-    int anlikRnd = random(1, 5);
-    String ekranaBasilacakTalepKodu = talepKoduUret(gercekMac, anlikRnd);
+              // Anlık olarak 1-4 arası random sayı üretip talep kodunu hazırlıyoruz (max 5 hariçtir, 1,2,3,4 üretir)
+              int anlikRnd = random(1, 5);
+              String ekranaBasilacakTalepKodu = talepKoduUret(gercekMac, anlikRnd);
 
-    // HTML Başlangıcı ve CSS (Tamamen Flash bellekte - F makrosu ile)
-    xilent.print(F("<!DOCTYPE HTML>\r\n<html>\r\n<head>\r\n"
-                   "<meta name='viewport' content='width=device-width, initial-scale=1'>\r\n"
-                   "<meta charset='UTF-8'>\r\n"
-                   "<style>\r\n"
-                   "body { font-family: sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }\r\n"
-                   ".box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); max-width: 350px; margin: auto; }\r\n"
-                   "input[type='text'] { width: 90%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; text-align: center; text-transform: uppercase; }\r\n"
-                   "input[type='submit'] { width: 95%; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }\r\n"
-                   ".btn-aktif { background-color: #4CAF50; color: white; }\r\n"
-                   ".btn-aktif:hover { background-color: #45a049; }\r\n"
-                   ".btn-devam { background-color: #008CBA; color: white; }\r\n"
-                   ".btn-devam:hover { background-color: #007B9A; }\r\n"
-                   "</style>\r\n</head>\r\n<body>\r\n<div class='box'>\r\n"));
+              // HTML Başlangıcı ve CSS (Tamamen Flash bellekte - F makrosu ile)
+              xilent.print(F("<!DOCTYPE HTML>\r\n<html>\r\n<head>\r\n"
+                             "<meta name='viewport' content='width=device-width, initial-scale=1'>\r\n"
+                             "<meta charset='UTF-8'>\r\n"
+                             "<style>\r\n"
+                             "body { font-family: sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }\r\n"
+                             ".box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); max-width: 350px; margin: auto; }\r\n"
+                             "input[type='text'] { width: 90%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; text-align: center; text-transform: uppercase; }\r\n"
+                             "input[type='submit'] { width: 95%; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }\r\n"
+                             ".btn-aktif { background-color: #4CAF50; color: white; }\r\n"
+                             ".btn-aktif:hover { background-color: #45a049; }\r\n"
+                             ".btn-devam { background-color: #008CBA; color: white; }\r\n"
+                             ".btn-devam:hover { background-color: #007B9A; }\r\n"
+                             "</style>\r\n</head>\r\n<body>\r\n<div class='box'>\r\n"));
 
-    // --------------------------------=================================
-    // SENARYO A: AKTİVASYON BAŞARILI İSE (Sizin eklediğiniz harika kısım)
-    // --------------------------------=================================
-    if (cihazorjinal) {
-      Menu = 0; // Menüyü ana sayfaya serbest bırakıyoruz
-      
-      // Başarılı uyarısı ve Mavi renkli şık bir DEVAM ET butonu basıyoruz
-      xilent.printf_P(PSTR("<h2><font color='#4CAF50'>AKTİVASYON BAŞARILI</font></h2>\r\n"
-                           "<p style='color:gray; font-size:14px; font-weight:bold;'>%s</p><br>\r\n"
-                           "<form autocomplete='off' action='/' method='post'>\r\n"
-                           "<input type='submit' class='btn-devam' value='SİSTEME GİRİŞ YAP'>\r\n"
-                           "</form>\r\n"), pinayarerrorlog.c_str());
-      
-      xilent.print(F("</div>\r\n</body>\r\n</html>\r\n")); // div kutusu ve HTML güvenle kapatıldı
-      xilent.println();
-      xilent.abort();
-      pinayarerrorlog="";
-      return;
-    } 
-    // --------------------------------=================================
-    // SENARYO B: CİHAZ LİSANS BEKLİYOR İSE (Normal Kilit Ekranı)
-    // --------------------------------=================================
-    else {
-      // Başlık ve Hata Mesajı Alanı (Eğer önceden hatalı girildiyse uyarı basar)
-      xilent.printf_P(PSTR("<h2><font color='#FF0000'>LİSANS GEREKLİ</font></h2>\r\n"
-                           "<p style='color:gray; font-size:13px;'>Cihaz klonlanmış veya henüz aktif edilmemiş.</p>\r\n"
-                           "<p style='color:red; font-weight:bold;'>%s</p>\r\n"), pinayarerrorlog.c_str());
+              // --------------------------------=================================
+              // SENARYO A: AKTİVASYON BAŞARILI İSE (Sizin eklediğiniz harika kısım)
+              // --------------------------------=================================
+              if (cihazorjinal) {
+                Menu = 0;  // Menüyü ana sayfaya serbest bırakıyoruz
 
-      // Talep Kodunu Gösterdiğimiz Alan
-      xilent.printf_P(PSTR("<div style='background:#eee; padding:10px; border-radius:4px; font-weight:bold; letter-spacing:1px; color:#333; font-size:16px;'>\r\n"
-                           "Talep Kodu:<br><span style='color:#007BFF;'>%s</span>\r\n"
-                           "</div><br>\r\n"), ekranaBasilacakTalepKodu.c_str());
+                // Başarılı uyarısı ve Mavi renkli şık bir DEVAM ET butonu basıyoruz
+                xilent.printf_P(PSTR("<h2><font color='#4CAF50'>AKTİVASYON BAŞARILI</font></h2>\r\n"
+                                     "<p style='color:gray; font-size:14px; font-weight:bold;'>%s</p><br>\r\n"
+                                     "<form autocomplete='off' action='/' method='post'>\r\n"
+                                     "<input type='submit' class='btn-devam' value='SİSTEME GİRİŞ YAP'>\r\n"
+                                     "</form>\r\n"),
+                                pinayarerrorlog.c_str());
 
-      // Lisans Giriş Formu
-      xilent.printf_P(PSTR("<form autocomplete='off' action='%s/lisanskontrol' method='get'>\r\n"
-                           "<label style='font-size:14px; font-weight:bold;'>Aktivasyon Kodunu Girin:</label><br>\r\n"
-                           "<input type='text' name='lskod' placeholder='702BA...' maxlength='20' required><br><br>\r\n"
-                           "<input type='submit' class='btn-aktif' value='AKTİF ET'>\r\n"
-                           "</form>\r\n"), usertoken.c_str());
+                xilent.print(F("</div>\r\n</body>\r\n</html>\r\n"));  // div kutusu ve HTML güvenle kapatıldı
+                xilent.println();
+                xilent.abort();
+                pinayarerrorlog = "";
+                return;
+              }
+              // --------------------------------=================================
+              // SENARYO B: CİHAZ LİSANS BEKLİYOR İSE (Normal Kilit Ekranı)
+              // --------------------------------=================================
+              else {
+                // Başlık ve Hata Mesajı Alanı (Eğer önceden hatalı girildiyse uyarı basar)
+                xilent.printf_P(PSTR("<h2><font color='#FF0000'>LİSANS GEREKLİ</font></h2>\r\n"
+                                     "<p style='color:gray; font-size:13px;'>Cihaz klonlanmış veya henüz aktif edilmemiş.</p>\r\n"
+                                     "<p style='color:red; font-weight:bold;'>%s</p>\r\n"),
+                                pinayarerrorlog.c_str());
 
-      // HTML Kapanışı
-      xilent.print(F("</div>\r\n</body>\r\n</html>\r\n"));
-      xilent.println();
-      xilent.abort();
-      return;
-    }
-  }
-}
+                // Talep Kodunu Gösterdiğimiz Alan
+                xilent.printf_P(PSTR("<div style='background:#eee; padding:10px; border-radius:4px; font-weight:bold; letter-spacing:1px; color:#333; font-size:16px;'>\r\n"
+                                     "Talep Kodu:<br><span style='color:#007BFF;'>%s</span>\r\n"
+                                     "</div><br>\r\n"),
+                                ekranaBasilacakTalepKodu.c_str());
+
+                // Lisans Giriş Formu
+                xilent.printf_P(PSTR("<form autocomplete='off' action='%s/lisanskontrol' method='get'>\r\n"
+                                     "<label style='font-size:14px; font-weight:bold;'>Aktivasyon Kodunu Girin:</label><br>\r\n"
+                                     "<input type='text' name='lskod' placeholder='702BA...' maxlength='20' required><br><br>\r\n"
+                                     "<input type='submit' class='btn-aktif' value='AKTİF ET'>\r\n"
+                                     "</form>\r\n"),
+                                usertoken.c_str());
+
+                // HTML Kapanışı
+                xilent.print(F("</div>\r\n</body>\r\n</html>\r\n"));
+                xilent.println();
+                xilent.abort();
+                return;
+              }
+            }
+          }
 
 
 
@@ -622,7 +626,7 @@ if (Menu == 9) {
               // Dinamik Hostname basımı
               xilent.printf_P(PSTR("<font size='3' color='#FF0000'>%s</font><br>informations<br>\r\n"), esphostname.c_str());
               // xo2 içeriği (xo2 global veya lokal bir String ise)
-              
+
               xilent.println(xo2);
               xilent.print(F("<br><br>\r\n"));
 
@@ -840,237 +844,285 @@ if (Menu == 9) {
 
             httpheader(xilent);
 
-if (header.indexOf(F("/pnayar")) > -1 || header.indexOf(F("/programkayit")) > -1 || header.indexOf(F("/uprogramkayit")) > -1 || header.indexOf(F("/umoddegis")) > -1) {
+            if (header.indexOf(F("/pnayar")) > -1 || header.indexOf(F("/programkayit")) > -1 || header.indexOf(F("/uprogramkayit")) > -1 || header.indexOf(F("/umoddegis")) > -1) {
 
-  // --- 1. ÇALIŞMA MODU DEĞİŞTİRME ---
-  if (header.indexOf(F("/umoddegis")) > -1) {
-    uzunMetrajVar = !uzunMetrajVar;
-    dosya.close();
-    dosya = LittleFS.open("/umod.txt", "w+");
-    if (dosya) {
-      dosya.print(uzunMetrajVar ? "1" : "0");
-      dosya.close();
-    }
-    header = "GET /" + usertoken + "/pnayar HTTP/1.1";
-  }
+              // --- 1. ÇALIŞMA MODU DEĞİŞTİRME ---
+              if (header.indexOf(F("/umoddegis")) > -1) {
+                uzunMetrajVar = !uzunMetrajVar;
+                dosya.close();
+                dosya = LittleFS.open("/umod.txt", "w+");
+                if (dosya) {
+                  dosya.print(uzunMetrajVar ? "1" : "0");
+                  dosya.close();
+                }
+                header = "GET /" + usertoken + "/pnayar HTTP/1.1";
+              }
 
-  // --- 2. VERİ İŞLEME VE DOSYA YAZMA ---
-  if (header.indexOf(F("/programkayit?is=")) > -1) {
-    String programdatatm = header.substring(header.indexOf(F("kayit?is=")) + 9, header.indexOf(F(" HTTP/1.1")));
-    xilent.print(F("<br>program"));
-    dosyaYazprogram(programdatatm);
-    if (programerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
-    else xilent.print(F(" yazıldı.<br>"));
-  }
+              // --- 2. VERİ İŞLEME VE DOSYA YAZMA ---
+              if (header.indexOf(F("/programkayit?is=")) > -1) {
+                String programdatatm = header.substring(header.indexOf(F("kayit?is=")) + 9, header.indexOf(F(" HTTP/1.1")));
+                xilent.print(F("<br>program"));
+                dosyaYazprogram(programdatatm);
+                if (programerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
+                else xilent.print(F(" yazıldı.<br>"));
+              }
 
-// O an editörde hangi dosyanın açık olduğunu belirleyen lokal değişken
-  String duzenlenenAni = "uprogram";
-  if (header.indexOf("secilenani=") > -1) {
-    int sIdx = header.indexOf("secilenani=") + 11;
-    int eIdx = header.indexOf(" ", sIdx);
-    if (eIdx == -1) eIdx = header.indexOf("&", sIdx);
-    if (eIdx > sIdx) {
-      duzenlenenAni = header.substring(sIdx, eIdx);
-      duzenlenenAni.trim();
-    }
-  }
+              // O an editörde hangi dosyanın açık olduğunu belirleyen lokal değişken
+              String duzenlenenAni = "uprogram";
+              if (header.indexOf("secilenani=") > -1) {
+                int sIdx = header.indexOf("secilenani=") + 11;
+                int eIdx = header.indexOf(" ", sIdx);
+                if (eIdx == -1) eIdx = header.indexOf("&", sIdx);
+                if (eIdx > sIdx) {
+                  duzenlenenAni = header.substring(sIdx, eIdx);
+                  duzenlenenAni.trim();
+                }
+              }
 
-  // =================================================================
-  // --- 2. VERİ İŞLEME VE DOSYA YAZMA BÖLÜMÜ ---
-  // =================================================================
-  if (header.indexOf(F("/programkayit?is=")) > -1) {
-    String programdatatm = header.substring(header.indexOf(F("kayit?is=")) + 9, header.indexOf(F(" HTTP/1.1")));
-    xilent.print(F("<br>program"));
-    dosyaYazprogram(programdatatm);
-    if (programerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
-    else xilent.print(F(" yazıldı.<br>"));
-  }
+              // =================================================================
+              // --- 2. VERİ İŞLEME VE DOSYA YAZMA BÖLÜMÜ ---
+              // =================================================================
+              if (header.indexOf(F("/programkayit?is=")) > -1) {
+                String programdatatm = header.substring(header.indexOf(F("kayit?is=")) + 9, header.indexOf(F(" HTTP/1.1")));
+                xilent.print(F("<br>program"));
+                dosyaYazprogram(programdatatm);
+                if (programerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
+                else xilent.print(F(" yazıldı.<br>"));
+              }
 
-  // B. Uzun Metraj veya Alt Dosya Kaydet / Silme İsteği
-   if (header.indexOf("/uprogramkayit?is=") > -1) {
-    String uprogramdatatm = "";
-    int startIdx = header.indexOf("uprogramkayit?is=");
-    if (startIdx > -1) {
-      startIdx += 17; // "uprogramkayit?is=" kelimesini atla
-      
-      // 🎯 KRİTİK DÜZELTME: Bitiş noktasını ararken doğrudan ' HTTP/1.1' ifadesini baz alıyoruz.
-      // Araya giren '&secilenani=' parametresini Karakterduzeltfunc'tan SONRA ayıklayacağız.
-      int endIdx = header.indexOf(" HTTP/1.1", startIdx);
-      
-      if (endIdx > startIdx) {
-        uprogramdatatm = header.substring(startIdx, endIdx);
-      }
-    }
-    
-    // Önce karakterleri çözüyoruz (URL Decode)
-    uprogramdatatm = Karakterduzeltfunc(uprogramdatatm);
-    
-    // 🎯 ÇİFT ETKİLENMEYİ ÖNLEME: Eğer Karakterduzeltfunc sonrasına '&secilenani=' sızdıysa onu şimdi temizle
-    if (uprogramdatatm.indexOf("&secilenani=") > -1) {
-      uprogramdatatm = uprogramdatatm.substring(0, uprogramdatatm.indexOf("&secilenani="));
-    }
-    uprogramdatatm.trim();
+              // B. Uzun Metraj veya Alt Dosya Kaydet / Silme İsteği
+              if (header.indexOf("/uprogramkayit?is=") > -1) {
+                String uprogramdatatm = "";
+                int startIdx = header.indexOf("uprogramkayit?is=");
+                if (startIdx > -1) {
+                  startIdx += 17;  // "uprogramkayit?is=" kelimesini atla
 
-    if (duzenlenenAni == "uprogram") {
-      xilent.print(F("<br>uzun metraj ana program"));
-      dosyazuprogram(uprogramdatatm); 
-    } else {
-      String aniYolu = "/_" + duzenlenenAni + ".txt";
-      if (uprogramdatatm == "" || uprogramdatatm.startsWith("// Silinecek")) {
-        if (LittleFS.exists(aniYolu)) {
-          LittleFS.remove(aniYolu);
-          xilent.printf("<br><b>%s</b> silindi.<br>", duzenlenenAni.c_str());
-        }
-        duzenlenenAni = "uprogram"; // Silindiyse ana programa dön
-      } else {
-        File aniDosya = LittleFS.open(aniYolu, "w+");
-        if (aniDosya) {
-          aniDosya.print(uprogramdatatm);
-          aniDosya.flush();
-          aniDosya.close();
-          xilent.printf("<br><b>%s</b> kaydedildi.<br>", duzenlenenAni.c_str());
-        }
-      }
-    }
-  }
+                  // 🎯 KRİTİK DÜZELTME: Bitiş noktasını ararken doğrudan ' HTTP/1.1' ifadesini baz alıyoruz.
+                  // Araya giren '&secilenani=' parametresini Karakterduzeltfunc'tan SONRA ayıklayacağız.
+                  int endIdx = header.indexOf(" HTTP/1.1", startIdx);
 
-  if (header.indexOf(F("/pnayar?is=")) > -1) {
-    pinayartmp = header.substring(header.indexOf(F("?is=")) + 4, header.indexOf(F(" HTTP/1.1")));
-    xilent.print(F("<br>pinayar"));
-    dosyaYazpinayar();
-    dosyaOkupinayar();
-    if (pinayarerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
-    else xilent.print(F(" yazıldı.<br>"));
-  }
+                  if (endIdx > startIdx) {
+                    uprogramdatatm = header.substring(startIdx, endIdx);
+                  }
+                }
 
-  // =================================================================
-  // --- 3. HTML ARAYÜZ ÇIKTI BÖLÜMÜ ---
-  // =================================================================
+                // Önce karakterleri çözüyoruz (URL Decode)
+                uprogramdatatm = Karakterduzeltfunc(uprogramdatatm);
+
+                // 🎯 ÇİFT ETKİLENMEYİ ÖNLEME: Eğer Karakterduzeltfunc sonrasına '&secilenani=' sızdıysa onu şimdi temizle
+                if (uprogramdatatm.indexOf("&secilenani=") > -1) {
+                  uprogramdatatm = uprogramdatatm.substring(0, uprogramdatatm.indexOf("&secilenani="));
+                }
+                uprogramdatatm.trim();
+
+                if (duzenlenenAni == "uprogram") {
+                  xilent.print(F("<br>uzun metraj ana program"));
+                  dosyazuprogram(uprogramdatatm);
+                } else {
+                  String aniYolu = "/_" + duzenlenenAni + ".txt";
+                  if (uprogramdatatm == "" || uprogramdatatm.startsWith("// Silinecek")) {
+                    if (LittleFS.exists(aniYolu)) {
+                      LittleFS.remove(aniYolu);
+                      xilent.printf("<br><b>%s</b> silindi.<br>", duzenlenenAni.c_str());
+                    }
+                    duzenlenenAni = "uprogram";  // Silindiyse ana programa dön
+                  } else {
+                    File aniDosya = LittleFS.open(aniYolu, "w+");
+                    if (aniDosya) {
+                      aniDosya.print(uprogramdatatm);
+                      aniDosya.flush();
+                      aniDosya.close();
+                      xilent.printf("<br><b>%s</b> kaydedildi.<br>", duzenlenenAni.c_str());
+                    }
+                  }
+                }
+              }
+
+              if (header.indexOf(F("/pnayar?is=")) > -1) {
+                pinayartmp = header.substring(header.indexOf(F("?is=")) + 4, header.indexOf(F(" HTTP/1.1")));
+                xilent.print(F("<br>pinayar"));
+                dosyaYazpinayar();
+                dosyaOkupinayar();
+                if (pinayarerrorlog != "") xilent.print(F(" yazılmadı. Hatalı giriş var.<br>"));
+                else xilent.print(F(" yazıldı.<br>"));
+              }
+
+              // =================================================================
+              // --- 3. HTML ARAYÜZ ÇIKTI BÖLÜMÜ ---
+              // =================================================================
+              xilent.print(F("<style>\r\n"
+                             "  .btn-mod { padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }\r\n"
+                             "  .btn-ani { padding: 6px 10px; margin: 5px 2px; border: 1px solid #2196F3; background: #e3f2fd; cursor: pointer; font-size:12px; font-weight:bold; border-radius:4px; color:#0d47a1; }\r\n"
+                             "  .btn-ani-active { border: 1px solid #e65100; background: #fff3e0; color: #e65100; }\r\n"
+                             "</style>\r\n"
+                             "<div style='background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);'>\r\n"
+                             "  <span style='font-weight: bold; font-size: 15px;'>Çalışma Modu: </span>"));
+
+              if (uzunMetrajVar) {
+                xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #4CAF50;' "
+                                     "onclick=\"window.location.href='http://%s/%s/umoddegis'\">🚀 UZUN METRAJ MODU (AKTİF)</button>"),
+                                WiFi.localIP().toString().c_str(), usertoken.c_str());
+              } else {
+                xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #555;' "
+                                     "onclick=\"window.location.href='http://%s/%s/umoddegis'\">📝 STANDART MOD (AKTİF)</button>"),
+                                WiFi.localIP().toString().c_str(), usertoken.c_str());
+              }
+
+              xilent.print(F("  <p style='font-size: 12px; color: gray; margin: 5px 0 0 0;'>Modu değiştirmek için butona tıklayın. Sistem otomatik yenilenecektir.</p>\r\n"
+                             "</div>\r\n"));
+
+              // TABLO 1: PIN AYARLARI TABLOSU (Aynen korunuyor)
+              xilent.printf_P(PSTR("<br><br><table> <caption>PIN AYARLARI</caption> <tr> <td scope='col'>pin ayarları:</td><td scope='col'>Pin Hata</td></tr>\r\n"
+                                   "<td><form method='get' action='%s/pnayar'>\r\n"
+                                   "<textarea name='is' id='id' cols='40' rows='10'>%s</textarea><br>\r\n"
+                                   "<input type='submit' value='Pinayar Kaydet'>\r\n"
+                                   "</form>\r\n"
+                                   "</td><td style='font-size:12px;vertical-align:top;'>"),
+                              usertoken.c_str(), pinayartmp.c_str());
+
+              xilent.println(pinayarerrorlog);
+              xilent.print(F("</td></tr></table>\r\n"
+                             "<label style='font-size:14px;'>\r\n"
+                             "Altta bir ornek verilmistir.<br>\r\n"
+                             "<a href='https://github.com' target='_blank'>Yardım [TR]</a><br>\r\n"
+                             "D1|OUT|DIG|0|0|1|0|0|Sarj1_pirizi<br>\r\n"
+                             "</label><br>\r\n"));
+
+              // TABLO 2: DİNAMİK PROGRAM GİRİŞİ TABLOSU
+              if (uzunMetrajVar) {
+                // Düzenlenen dosyaya göre textarea içeriğini havada belirliyoruz
+                String ekranaBasilacakVeri = "";
+                if (duzenlenenAni == "uprogram") {
+                  ekranaBasilacakVeri = uprogramdata;
+                } else {
+                  String dosyaYolu = "/_" + duzenlenenAni + ".txt";
+                  if (LittleFS.exists(dosyaYolu)) {
+                    File f = LittleFS.open(dosyaYolu, "r");
+                    ekranaBasilacakVeri = f.readString();
+                    f.close();
+                  } else {
+                    ekranaBasilacakVeri = "// " + duzenlenenAni + " senaryo satirlari\n";
+                  }
+                }
+
+
+                // fnames başı
+// 🎯 FNAMES BAŞI (Optimize Edilmiş Kararlı Sürüm)
+if (uzunMetrajVar) {
+  // Web arayüzünün HTML başlığını gönderiyoruz
   xilent.print(F("<style>\r\n"
-                 "  .btn-mod { padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }\r\n"
-                 "  .btn-ani { padding: 6px 10px; margin: 5px 2px; border: 1px solid #2196F3; background: #e3f2fd; cursor: pointer; font-size:12px; font-weight:bold; border-radius:4px; color:#0d47a1; }\r\n"
-                 "  .btn-ani-active { border: 1px solid #e65100; background: #fff3e0; color: #e65100; }\r\n"
+                 "  .btn-mod { padding: 5px 10px; background: #e0e0e0; color: #333; border-radius: 4px; "
+                 "             display: inline-block; margin: 3px; font-size: 13px; font-weight: bold; }\r\n"
                  "</style>\r\n"
                  "<div style='background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);'>\r\n"
-                 "  <span style='font-weight: bold; font-size: 15px;'>Çalışma Modu: </span>"));
+                 "  <span style='font-weight: bold; font-size: 15px;'>Flashta Kayıtlı Alt Programlar: </span><br><br>\r\n"
+                 "  <div style='margin-top: 5px;'>"));
 
-  if (uzunMetrajVar) {
-    xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #4CAF50;' "
-                         "onclick=\"window.location.href='http://%s/%s/umoddegis'\">🚀 UZUN METRAJ MODU (AKTİF)</button>"), 
-                    WiFi.localIP().toString().c_str(), usertoken.c_str());
-  } else {
-    xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #555;' "
-                         "onclick=\"window.location.href='http://%s/%s/umoddegis'\">📝 STANDART MOD (AKTİF)</button>"), 
-                    WiFi.localIP().toString().c_str(), usertoken.c_str());
+  Dir dir = LittleFS.openDir("/");
+  int bulunanDosyaSayisi = 0;
+
+  while (dir.next()) {
+    String dosyaAdi = dir.fileName();
+    
+    // 🎯 Sadece başı "_" ile başlayan alt program senaryolarını yakala (Örn: _PR1.txt)
+    if (dosyaAdi.indexOf("_") == 0 && dosyaAdi.indexOf(".") > -1) {
+      // Başındaki "_"yi ve sonundaki ".txt" uzantısını temizleyip saf ismi alıyoruz
+      String temizIsim = dosyaAdi.substring(1, dosyaAdi.indexOf("."));
+      temizIsim.toUpperCase(); // Hepsini büyük harf yapalım şık dursun
+
+      // RAM'i şişirmeden, bulduğumuz her dosyayı anında şık birer kutucuk olarak web arayüzüne basıyoruz
+      xilent.printf_P(PSTR("<span class='btn-mod'>%s</span> "), temizIsim.c_str());
+      bulunanDosyaSayisi++;
+    }
   }
-  
-  xilent.print(F("  <p style='font-size: 12px; color: gray; margin: 5px 0 0 0;'>Modu değiştirmek için butona tıklayın. Sistem otomatik yenilenecektir.</p>\r\n"
+
+  if (bulunanDosyaSayisi == 0) {
+    xilent.print(F("<span style='color:gray; font-style:italic;'>Kayıtlı alt program bulunamadı.</span>"));
+  }
+
+  // HTML kutusunu kapatıyoruz
+  xilent.print(F("  </div>\r\n"
+                 "  <p style='font-size: 12px; color: gray; margin: 10px 0 0 0;'>Dosya olarak tanımlanmasa da Flashta kayıtlı olan tüm alt programlar.</p>\r\n"
                  "</div>\r\n"));
-
-  // TABLO 1: PIN AYARLARI TABLOSU (Aynen korunuyor)
-  xilent.printf_P(PSTR("<br><br><table> <caption>PIN AYARLARI</caption> <tr> <td scope='col'>pin ayarları:</td><td scope='col'>Pin Hata</td></tr>\r\n"
-                       "<td><form method='get' action='%s/pnayar'>\r\n"
-                       "<textarea name='is' id='id' cols='40' rows='10'>%s</textarea><br>\r\n"
-                       "<input type='submit' value='Pinayar Kaydet'>\r\n"
-                       "</form>\r\n"
-                       "</td><td style='font-size:12px;vertical-align:top;'>"),
-                  usertoken.c_str(), pinayartmp.c_str());
-
-  xilent.println(pinayarerrorlog);
-  xilent.print(F("</td></tr></table>\r\n"
-                 "<label style='font-size:14px;'>\r\n"
-                 "Altta bir ornek verilmistir.<br>\r\n"
-                 "<a href='https://github.com' target='_blank'>Yardım [TR]</a><br>\r\n"
-                 "D1|OUT|DIG|0|0|1|0|0|Sarj1_pirizi<br>\r\n"
-                 "</label><br>\r\n"));
-
-  // TABLO 2: DİNAMİK PROGRAM GİRİŞİ TABLOSU
-  if (uzunMetrajVar) {
-    // Düzenlenen dosyaya göre textarea içeriğini havada belirliyoruz
-    String ekranaBasilacakVeri = "";
-    if (duzenlenenAni == "uprogram") {
-      ekranaBasilacakVeri = uprogramdata;
-    } else {
-      String dosyaYolu = "/_" + duzenlenenAni + ".txt";
-      if (LittleFS.exists(dosyaYolu)) {
-        File f = LittleFS.open(dosyaYolu, "r");
-        ekranaBasilacakVeri = f.readString();
-        f.close();
-      } else {
-        ekranaBasilacakVeri = "// " + duzenlenenAni + " senaryo satirlari\n";
-      }
-    }
-
-    // 🎯 FİKRİNİZ: Form gönderirken o anki aktif alt senaryoyu linke parametre olarak ekliyoruz
-    xilent.printf_P(PSTR("<table><caption>UZUN METRAJ ŞOV GİRİŞİ (<span style='color:#e65100; font-weight:bold;'>%s</span>)</caption>\r\n"
-                         "<tr><td scope='col'>\r\n"
-                         "<div id='aniButonAlani' style='margin-bottom:8px; padding:5px; background:#f5f5f5; border-radius:4px;'></div>\r\n"
-                         "<form method='get' action='%s/uprogramkayit'>\r\n"
-                         "<textarea name='is' id='uprogTextarea' cols='60' rows='15'>%s</textarea><br>\r\n"
-                         "<input type='hidden' name='secilenani' value='%s'>\r\n" // Hangi ani olduğunu formla birlikte gizli gönder
-                         "<input type='submit' value='Senaryoyu Kaydet'>\r\n"
-                         "</form>\r\n"
-                         "</td></tr><br>\r\n"),
-                    duzenlenenAni.c_str(), usertoken.c_str(), ekranaBasilacakVeri.c_str(), duzenlenenAni.c_str());
-
-    if (uprogramerrorlog.length() < 1) {
-      xilent.print(F("<td style='font-size:12px;vertical-align:top;'>Hata yok</td>\r\n"));
-    } else {
-      xilent.printf_P(PSTR("<td scope='col' style='font-size:12px;vertical-align:top;'>Şov Hatası: %s</td>\r\n"), uprogramerrorlog.c_str());
-    }
-
-    // 🎯 FİKRİNİZ: Akıllı Buton Yönetimi - Eğer alt senaryodaysak "Ana Program" butonu oluşur, uprogram'daysak alt dosyalar listelenir!
-    xilent.printf_P(PSTR("<script>\r\n"
-                         "document.addEventListener('DOMContentLoaded', function() {\r\n"
-                         "  var aktifAni = '%s';\r\n"
-                         "  var alan = document.getElementById('aniButonAlani');\r\n"
-                         "  if (!alan) return;\r\n"
-                         "  if (aktifAni !== 'uprogram') {\r\n"
-                         "    alan.innerHTML = \"<button class='btn-ani btn-ani-active' onclick=\\\"window.location.href='http://%s/%s/pnayar?secilenani=uprogram'\\\">🏠 ANA PROGRAMA GİRİŞ</button>\";\r\n"
-                         "  } else {\r\n"
-                         "    var txt = document.getElementById('uprogTextarea').value;\r\n"
-                         "    var match = txt.match(/DOSYA\\s+([^;]+);/);\r\n"
-                         "    if (match) {\r\n"
-                         "      alan.innerHTML = '<b>Alt Senaryolar:</b> ';\r\n"
-                         "      var dosyalar = match[1].split(',');\r\n"
-                         "      dosyalar.forEach(function(d) {\r\n"
-                         "        var temizAd = d.trim();\r\n"
-                         "        if(temizAd) {\r\n"
-                         "          var btn = document.createElement('button');\r\n"
-                         "          btn.className = 'btn-ani';\r\n"
-                         "          btn.innerText = temizAd;\r\n"
-                         "          btn.onclick = function(e) {\r\n"
-                         "            e.preventDefault();\r\n"
-                         "            window.location.href = 'http://%s/%s/pnayar?secilenani=' + temizAd;\r\n"
-                         "          };\r\n"
-                         "          alan.appendChild(btn);\r\n"
-                         "        }\r\n"
-                         "      });\r\n"
-                         "    } else { alan.innerHTML = '<i>uprogram.txt içinde DOSYA tanımı bulunamadı.</i>'; }\r\n"
-                         "  }\r\n"
-                         "});\r\n"
-                         "</script>\r\n"),
-                  duzenlenenAni.c_str(), WiFi.localIP().toString().c_str(), usertoken.c_str(), WiFi.localIP().toString().c_str(), usertoken.c_str());
-  } 
-  else {
-    xilent.printf_P(PSTR("<table><caption>STANDART PROGRAM GİRİŞİ</caption>\r\n"
-                         "<tr><td scope='col'>Program (program):<br>\r\n"
-                         "<form method='get' action='%s/programkayit'>\r\n"
-                         "<textarea name='is' id='id' cols='60' rows='15'>%s</textarea><br>\r\n"
-                         "<input type='submit' value='Programı Kaydet'>\r\n"
-                         "</form>\r\n"
-                         "</td></tr><br>\r\n"),
-                    usertoken.c_str(), programdata.c_str());
-
-    if (programerrorlog.length() < 1) {
-      xilent.print(F("<td style='font-size:12px;vertical-align:top;'>Hata yok</td>\r\n"));
-    } else {
-      xilent.printf_P(PSTR("<td scope='col' style='font-size:12px;vertical-align:top;'>Program Hatası: %s</td>\r\n"), programerrorlog.c_str());
-    }
-  }
-
-  xilent.print(F("</tr><br></table><br><br><br><br>\r\n"));
 }
+// 🎯 FNAMES SONU
+                // fnames
+
+
+
+
+
+
+                // 🎯 FİKRİNİZ: Form gönderirken o anki aktif alt senaryoyu linke parametre olarak ekliyoruz
+                xilent.printf_P(PSTR("<table><caption>UZUN METRAJ ŞOV GİRİŞİ (<span style='color:#e65100; font-weight:bold;'>%s</span>)</caption>\r\n"
+                                     "<tr><td scope='col'>\r\n"
+                                     "<div id='aniButonAlani' style='margin-bottom:8px; padding:5px; background:#f5f5f5; border-radius:4px;'></div>\r\n"
+                                     "<form method='get' action='%s/uprogramkayit'>\r\n"
+                                     "<textarea name='is' id='uprogTextarea' cols='60' rows='15'>%s</textarea><br>\r\n"
+                                     "<input type='hidden' name='secilenani' value='%s'>\r\n"  // Hangi ani olduğunu formla birlikte gizli gönder
+                                     "<input type='submit' value='Senaryoyu Kaydet'>\r\n"
+                                     "</form>\r\n"
+                                     "</td></tr><br>\r\n"),
+                                duzenlenenAni.c_str(), usertoken.c_str(), ekranaBasilacakVeri.c_str(), duzenlenenAni.c_str());
+
+                if (uprogramerrorlog.length() < 1) {
+                  xilent.print(F("<td style='font-size:12px;vertical-align:top;'>Hata yok</td>\r\n"));
+
+                } else {
+                  xilent.printf_P(PSTR("<td scope='col' style='font-size:12px;vertical-align:top;'>Şov Hatası: %s</td>\r\n"), uprogramerrorlog.c_str());
+                }
+
+                // 🎯 FİKRİNİZ: Akıllı Buton Yönetimi - Eğer alt senaryodaysak "Ana Program" butonu oluşur, uprogram'daysak alt dosyalar listelenir!
+                xilent.printf_P(PSTR("<script>\r\n"
+                                     "document.addEventListener('DOMContentLoaded', function() {\r\n"
+                                     "  var aktifAni = '%s';\r\n"
+                                     "  var alan = document.getElementById('aniButonAlani');\r\n"
+                                     "  if (!alan) return;\r\n"
+                                     "  if (aktifAni !== 'uprogram') {\r\n"
+                                     "    alan.innerHTML = \"<button class='btn-ani btn-ani-active' onclick=\\\"window.location.href='http://%s/%s/pnayar?secilenani=uprogram'\\\">🏠 ANA PROGRAMA GİRİŞ</button>\";\r\n"
+                                     "  } else {\r\n"
+                                     "    var txt = document.getElementById('uprogTextarea').value;\r\n"
+                                     "    var match = txt.match(/DOSYA\\s+([^;]+);/);\r\n"
+                                     "    if (match) {\r\n"
+                                     "      alan.innerHTML = '<b>Alt Senaryolar:</b> ';\r\n"
+                                     "      var dosyalar = match[1].split(',');\r\n"
+                                     "      dosyalar.forEach(function(d) {\r\n"
+                                     "        var temizAd = d.trim();\r\n"
+                                     "        if(temizAd) {\r\n"
+                                     "          var btn = document.createElement('button');\r\n"
+                                     "          btn.className = 'btn-ani';\r\n"
+                                     "          btn.innerText = temizAd;\r\n"
+                                     "          btn.onclick = function(e) {\r\n"
+                                     "            e.preventDefault();\r\n"
+                                     "            window.location.href = 'http://%s/%s/pnayar?secilenani=' + temizAd;\r\n"
+                                     "          };\r\n"
+                                     "          alan.appendChild(btn);\r\n"
+                                     "        }\r\n"
+                                     "      });\r\n"
+                                     "    } else { alan.innerHTML = '<i>uprogram.txt içinde DOSYA tanımı bulunamadı.</i>'; }\r\n"
+                                     "  }\r\n"
+                                     "});\r\n"
+                                     "</script>\r\n"),
+                                duzenlenenAni.c_str(), WiFi.localIP().toString().c_str(), usertoken.c_str(), WiFi.localIP().toString().c_str(), usertoken.c_str());
+              } else {
+                xilent.printf_P(PSTR("<table><caption>STANDART PROGRAM GİRİŞİ</caption>\r\n"
+                                     "<tr><td scope='col'>Program (program):<br>\r\n"
+                                     "<form method='get' action='%s/programkayit'>\r\n"
+                                     "<textarea name='is' id='id' cols='60' rows='15'>%s</textarea><br>\r\n"
+                                     "<input type='submit' value='Programı Kaydet'>\r\n"
+                                     "</form>\r\n"
+                                     "</td></tr><br>\r\n"),
+                                usertoken.c_str(), programdata.c_str());
+
+                if (programerrorlog.length() < 1) {
+                  xilent.print(F("<td style='font-size:12px;vertical-align:top;'>Hata yok</td>\r\n"));
+                } else {
+                  xilent.printf_P(PSTR("<td scope='col' style='font-size:12px;vertical-align:top;'>Program Hatası: %s</td>\r\n"), programerrorlog.c_str());
+                }
+              }
+
+              xilent.print(F("</tr><br></table><br><br><br><br>\r\n"));
+            }
 
 
 
@@ -1780,7 +1832,7 @@ if (header.indexOf(F("/serveripayar")) > -1) {
             }
 
             if (pinayar.length() > 0) updateinput();
-            if (pinayar.length() > 0 && programdata.length() > 0 && psci==true) programrun();
+            if (pinayar.length() > 0 && programdata.length() > 0 && psci == true) programrun();
             if (pinayar.length() > 0) updateoutput();
             creator += "Ş";
 
@@ -1867,53 +1919,53 @@ if (header.indexOf(F("/serveripayar")) > -1) {
             xilent.printf_P(PSTR("<label style='font-size: 20px;'>%s</label> &emsp;&emsp;\r\n"), sonekPtr);
 
 
-// anasayfada Çalışma modu başı
-  // 🎯 SİZİN HARİKA FİKRİNİZ: Mod değiştirme isteği geldiyse işi yap ve header'ı ez!
-  if (header.indexOf(F("/umoddegis")) > -1) {
-    uzunMetrajVar = !uzunMetrajVar; // Durumu anında tersine çevir (true/false)
-    
-    // LittleFS kalıcı hafızaya umod durumunu kaydediyoruz
-    dosya.close();
-    dosya = LittleFS.open("/umod.txt", "w+");
-    if (dosya) {
-      dosya.print(uzunMetrajVar ? "1" : "0");
-      dosya.close();
-    }
-    
-    // 🚀 SİHİRLİ SATIR: Gelen header'ı ceket değiştirir gibi havada değiştiriyoruz!
-    // Kod aşağıya doğru akmaya devam edecek ve aşağıdaki 'if(header.indexOf("/pnayar")>-1)' 
-    // şartına tam uyum sağlayarak sayfayı anında yeni modla tazeleyecektir.
-    if(Menu==1) header = "GET /" + usertoken + "/pnayar HTTP/1.1";
-    if(Menu==0) header = "GET /" + usertoken + "/ HTTP/1.1";
-  }
+            // anasayfada Çalışma modu başı
+            // 🎯 SİZİN HARİKA FİKRİNİZ: Mod değiştirme isteği geldiyse işi yap ve header'ı ez!
+            if (header.indexOf(F("/umoddegis")) > -1) {
+              uzunMetrajVar = !uzunMetrajVar;  // Durumu anında tersine çevir (true/false)
+
+              // LittleFS kalıcı hafızaya umod durumunu kaydediyoruz
+              dosya.close();
+              dosya = LittleFS.open("/umod.txt", "w+");
+              if (dosya) {
+                dosya.print(uzunMetrajVar ? "1" : "0");
+                dosya.close();
+              }
+
+              // 🚀 SİHİRLİ SATIR: Gelen header'ı ceket değiştirir gibi havada değiştiriyoruz!
+              // Kod aşağıya doğru akmaya devam edecek ve aşağıdaki 'if(header.indexOf("/pnayar")>-1)'
+              // şartına tam uyum sağlayarak sayfayı anında yeni modla tazeleyecektir.
+              if (Menu == 1) header = "GET /" + usertoken + "/pnayar HTTP/1.1";
+              if (Menu == 0) header = "GET /" + usertoken + "/ HTTP/1.1";
+            }
 
 
 
 
-if (uzunMetrajVar) {
-  xilent.print(F("<style>\r\n"
-                 "  .btn-mod { padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }\r\n"
-                 "</style>\r\n"
-                 "<div style='background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);'>\r\n"
-                 "  <span style='font-weight: bold; font-size: 15px;'>Çalışma Modu: </span>"));
-}
-if (uzunMetrajVar) {
-  // onclick içindeki tırnak kaçırmalarına ve JavaScript sözdizimine dikkat:
-  xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #4CAF50;' "
-                       "onclick=\"window.location.href='http://%s/%s/umoddegis'\">🚀 UZUN METRAJ MODU (AKTİF)</button>"), 
-                  WiFi.localIP().toString().c_str(), usertoken.c_str());
-} else {
-  /*
+            if (uzunMetrajVar) {
+              xilent.print(F("<style>\r\n"
+                             "  .btn-mod { padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }\r\n"
+                             "</style>\r\n"
+                             "<div style='background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);'>\r\n"
+                             "  <span style='font-weight: bold; font-size: 15px;'>Çalışma Modu: </span>"));
+            }
+            if (uzunMetrajVar) {
+              // onclick içindeki tırnak kaçırmalarına ve JavaScript sözdizimine dikkat:
+              xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #4CAF50;' "
+                                   "onclick=\"window.location.href='http://%s/%s/umoddegis'\">🚀 UZUN METRAJ MODU (AKTİF)</button>"),
+                              WiFi.localIP().toString().c_str(), usertoken.c_str());
+            } else {
+              /*
   xilent.printf_P(PSTR("<button class='btn-mod' style='background-color: #555;' "
                        "onclick=\"window.location.href='http://%s/%s/umoddegis'\">📝 STANDART MOD (AKTİF)</button>"), 
                   WiFi.localIP().toString().c_str(), usertoken.c_str());
   */
-}
-// anasayfada Çalışma modu sonu
-if (uzunMetrajVar) {
-  xilent.print(F("  <p style='font-size: 12px; color: gray; margin: 5px 0 0 0;'>Modu değiştirmek için butona tıklayın. Sistem otomatik yenilenecektir.</p>\r\n"
-                 "</div>\r\n"));
-}
+            }
+            // anasayfada Çalışma modu sonu
+            if (uzunMetrajVar) {
+              xilent.print(F("  <p style='font-size: 12px; color: gray; margin: 5px 0 0 0;'>Modu değiştirmek için butona tıklayın. Sistem otomatik yenilenecektir.</p>\r\n"
+                             "</div>\r\n"));
+            }
 
 
 
@@ -2063,16 +2115,15 @@ if (uzunMetrajVar) {
                                            "</form>\r\n"),
                                       usertoken.c_str(), pinname[x].c_str(), pinlabel[x].c_str(), pinname[x].c_str(), PinState[x].c_str());
 
-                        if (servovar[x] && myservo[x] != NULL) 
-                        {
-                          int aciDeperi = constrain(PinState[x].toInt(), 0, 180); 
-                          
-                          // 🎯 Pointer nesnesi olduğu için artık '.' yerine '->' kullanıyoruz:
-                          myservo[x]->write(aciDeperi); 
-                          
-                          psco = true; 
-                          ePinState[x] = PinState[x]; 
-                        }
+                      if (servovar[x] && myservo[x] != NULL) {
+                        int aciDeperi = constrain(PinState[x].toInt(), 0, 180);
+
+                        // 🎯 Pointer nesnesi olduğu için artık '.' yerine '->' kullanıyoruz:
+                        myservo[x]->write(aciDeperi);
+
+                        psco = true;
+                        ePinState[x] = PinState[x];
+                      }
 
                       // Seri port logunu da printf_P ile optimize ederek Flash'a taşıdık
                       Serial.printf_P(PSTR("myservo[x].write(PinState[x].toInt()); :%d\n"), PinState[x].toInt());
