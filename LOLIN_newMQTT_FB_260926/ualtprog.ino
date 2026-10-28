@@ -65,43 +65,44 @@ void altDosyaYurut() {
       return; // CHZ satırını erittik, sonraki satıra geçmek için fonksiyondan çık
     }
 
-    // 🎯 3B. CHZ BLOĞU İÇİNDEKİ VERİLERİ BİRLEŞTİRME VE DÖNÜŞTÜRME MOTORU
+// 🎯 3B. CHZ BLOĞU İÇİNDEKİ VERİLERİ BİRLEŞTİRME VE DÖNÜŞTÜRME MOTORU
     if (chzBloguIcindeyiz) {
       if (altSatir.indexOf("]") > -1) {
-        // Blok bitti, sonundaki fazla boru '|' işaretini silip kapatıyoruz
         if (birlesikDefMetni.endsWith("|")) {
           birlesikDefMetni = birlesikDefMetni.substring(0, birlesikDefMetni.length() - 1);
         }
         birlesikDefMetni += "];";
         chzBloguIcindeyiz = false;
 
-        // Dosyadaki bir sonraki satıra bakıyoruz, eğer yeni bir CHZ bloğu başlamıyorsa 
-        // toplanan tüm tanımlamaları tek bir paket halinde Uno hattına fırlatıyoruz!
         int sonrakiByte = ualt_dosya.peek(); 
-        // Eğer sırada yeni bir CHZ bloğu yoksa birleşik ağ paketini TX et
         if (sonrakiByte != 'C') { 
           satirp = "TX>=" + birlesikDefMetni;
-          birlesikDefMetni = ""; // Bir sonraki senaryolar için temizle
-          
-          // Akışı bozmamak için normal satirislem fonksiyonuna pasla (Uno'ya gönderir)
+          birlesikDefMetni = ""; 
           satirsayisip = 999;
           ifsonuc = false;
           satirislem();
         }
       } else {
-        // Blok içindeki elemanları dönüştür: "STP SM:2,3;" -> "STP=SM:2,3|"
+        // Blok içindeki elemanları dönüştür: "AN POT1:A0" -> "AN=POT1:A0|"
         String icerik = altSatir;
         if (icerik.endsWith(";")) icerik = icerik.substring(0, icerik.length() - 1);
         
-        // İlk boşluğu bulup '=' yapalım (Örn: "STP SM:2,3" -> "STP=SM:2,3")
+        // 🚨 SİHİRLİ DOKUNUŞ: Satırın başındaki/sonundaki görünmez boşlukları temizliyoruz
+        icerik.trim(); 
+        
+        // İlk boşluğu bulup '=' yapalım
         int ilkBosluk = icerik.indexOf(" ");
         if (ilkBosluk > 0) {
           icerik = icerik.substring(0, ilkBosluk) + "=" + icerik.substring(ilkBosluk + 1);
         }
+        
+        // Varsa kelimeler arasındaki çift boşlukları veya kaymaları engellemek için 
+        // son oluşan metni de temizleyip ekliyoruz
+        icerik.trim(); 
         birlesikDefMetni += icerik + "|";
       }
       yield();
-      return; // Blok içi satırları yuttuk, normal işleme motoruna sokmuyoruz
+      return; 
     }
 
     // Etiket satırlarını (Örn: E1:) doğrudan pas geç

@@ -195,6 +195,15 @@ String utmrdeg[MAX_TIMERS];
 String yazi;
 
 
+#include <map>
+
+// --- 🎯 ÇOKLU ETİKET HAFIZA SÖZLÜKLERİ ---
+std::map<String, unsigned long> ana_program_etiketleri; // Ana programdaki (urunloop) tüm etiketlerin yerleri
+std::map<String, unsigned long> alt_program_etiketleri; // Alt programdaki (altDosyaYurut) tüm etiketlerin yerleri
+
+// RX ten gelen --- 📊 CANLI SENSÖR VE DEĞİŞKEN HAFIZA SÖZLÜĞÜ ---
+// Tüm sensör değerlerini (Örn: "POT1" -> 411.00) canlı olarak burada saklayacağız
+std::map<String, float> esp_canli_degiskenler;
 
 File dosya;
 File udos;
@@ -1859,11 +1868,14 @@ if(userstmp.length()<1) break;
 }
 */
 
-
+static uint32_t sayac = 0;
 
 String Karakterduzeltfunc(String gelent) {
   Serial.println(F("Karakterduzelte girdim"));
-  Serial.println(gelent);
+  //Serial.println(gelent);
+
+sayac++;
+Serial.printf("Karakterduzeltfunc Cagri:%lu\n", sayac);
 
   // 1. ADIM: Satır sonlarını en başta düzeltiyoruz
   gelent.replace(F("%0D%0A"), F("\n"));
@@ -1920,4 +1932,4 @@ String Karakterduzeltfunc(String gelent) {
   Serial.print(F("Düzeltme sonucu: "));
   Serial.println(gelent);
   return gelent;
-} 
+}

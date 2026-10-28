@@ -242,35 +242,36 @@ bool paranteziciislem(String parantezi) {
     programerrorlog += "if kiyaslama isareti uygun degil '==,>=,>,<,<=,!=' kullanin. Satir:" + String(satirsayisip) + "\n";
   }
 
+  sol.trim();
+  sag.trim();
 
   if (sol == "") { programerrorlog += "Kiyaslamada sol taraf bos! Satir:" + String(satirsayisip) + "\n"; }
   if (sag == "") { programerrorlog += "Kiyaslamada sag taraf bos! Satir:" + String(satirsayisip) + "\n"; }
   if (programerrorlog != "") return false;
 
   aktifpinno = -100;
-     // Serial.print("sol " + sol + "\n");
-  // 🎯 KRİTİK DÜZELTME: equalsIgnoreCase kullanarak harf uyuşmazlığı tamamen çözüldü
-  if (sol.equalsIgnoreCase("ACL")) {
+
+  // 🎯 1. ADIM: CANLI SENSÖR / DEĞİŞKEN SÖZLÜĞÜ KONTROLÜ (Yeni Eklenen Köprü)
+  // Eğer sol taraftaki isim (Örn: POT1) UNO'dan gelen canlı map içindeyse doğrudan değeri al
+  if (esp_canli_degiskenler.find(sol) != esp_canli_degiskenler.end()) {
+    solstate = String(esp_canli_degiskenler[sol]);
+    aktifpinno = -10; // "Tanımsız değil" kilidini açıyoruz
+  }
+  // 🎯 2. ADIM: EĞER SENSÖR DEĞİLSE, SİZİN MEVCUT ORİJİNAL KONTROLLERİNİZ ÇALIŞIR
+  else if (sol.equalsIgnoreCase("ACL")) {
     solstate = ACL;
   } else {
-
-
-
-
     bool tempvar = false;
     bool humvar = false;
     if (sol.indexOf("t") > 0) tempvar = true;
     if (sol.indexOf("h") > 0) humvar = true;
-
 
     if (tempvar == false && humvar == false) {
       String SOLL = sol;
       SOLL.toUpperCase();
 
       for (int pinbul = 0; pinbul < 10; pinbul++) {
-        //if(!standartprogram) Serial.println( String(pinbul) + " " + SOLL + " >< " + degis[pinbul] +  " degiskendegeri " + degdeg[pinbul]);
-
-        if (SOLL == degis[pinbul]) {  // Büyük/küçük harf fark etmeksizin eşleşir
+        if (SOLL == degis[pinbul]) {  
           solstate = degdeg[pinbul];
           aktifpinno = pinbul;
           break;
@@ -278,36 +279,28 @@ bool paranteziciislem(String parantezi) {
       }
 
       for (int pb = 11; pb < 21; pb++) {
-        //if(pb<14)Serial.println( String(pb) + " " + SOLL + " >< " + degis[pb] +  " degiskendegeri " + degdeg[pb]);
-
-        if (SOLL == degis[pb]) {  // Büyük/küçük harf fark etmeksizin eşleşir
+        if (SOLL == degis[pb]) {  
           solstate = degdeg[pb];
-          if(SOLL == "PROGNO")PROGNOX=solstate;
+          if(SOLL == "PROGNO") PROGNOX = solstate;
           aktifpinno = -10;
           break;
         }
       }
-
-
-
     } else {
       if (tempvar == true || humvar == true) sol = sol.substring(0, sol.length() - 1);
-      for (int pinbul = 0; pinbul <10; pinbul++) {
+      for (int pinbul = 0; pinbul < 10; pinbul++) {
         String SOLL = sol;
         SOLL.toUpperCase();
         if (SOLL == (degis[pinbul])) {
           if (pinsignaltype[pinbul].indexOf("DHT") > -1) {
             if (tempvar == true) {
               if (degdeg[pinbul].indexOf("t") > -1) solstate = degdeg[pinbul].substring(1, degdeg[pinbul].indexOf("h"));
-              else solstate = 200;
+              else solstate = "200";
             } else {
               if (degdeg[pinbul].indexOf("h") > -1) solstate = degdeg[pinbul].substring(degdeg[pinbul].indexOf("h") + 1, degdeg[pinbul].length());
-              else solstate = 200;
+              else solstate = "200";
             }
             aktifpinno = pinbul;
-
-            //Serial.println("SOLSTATE " + solstate);
-
             break;
           } else {
             programerrorlog += sol + " pininin, pinsignal type DHT değil. Satir No: " + String(satirsayisip) + " \n";
@@ -318,56 +311,46 @@ bool paranteziciislem(String parantezi) {
     }
   }
 
-String* aktifTmrIsim = standartprogram ? tmris : utmris;
-String* aktifTmrDegerDizi = standartprogram ? tmrdeg : utmrdeg; // Sizin orijinal diziniz
+  // --- ⏱️ SİZİN ORİJİNAL ZAMANLAYICI (TIMER) KONTROLÜNÜZ ---
+  String* aktifTmrIsim = standartprogram ? tmris : utmris;
+  String* aktifTmrDegerDizi = standartprogram ? tmrdeg : utmrdeg; 
 
-for (int ii = 0; ii < 11; ii++) {
-  if (sol == aktifTmrIsim[ii]) {
-    solstate = aktifTmrDegerDizi[ii];
-    aktifpinno = -10;
-
-    // 🎯 SİHİRLİ BAĞLANTI: 
-    // O an eşleşen zamanlayıcı String hücre adresini (&) kilit pointer'ımıza eşitliyoruz!
-    aktifTmrDeger = &aktifTmrDegerDizi[ii]; 
+  for (int ii = 0; ii < 11; ii++) {
+    if (sol == aktifTmrIsim[ii]) {
+      solstate = aktifTmrDegerDizi[ii];
+      aktifpinno = -10;
+      aktifTmrDeger = &aktifTmrDegerDizi[ii]; 
+    }
   }
-}
 
-
-
+  // Tanımsızlık hatası emniyet kemeri
   if (!sol.equalsIgnoreCase("ACL") && aktifpinno == -100) {
     programerrorlog += "if satır içi soldaki tanimli degil " + sol + " Satir:" + String(satirsayisip) + "\n";
     return false;
   }
 
-
-  // Matematiksel Kıyaslamalar
+  // --- 🧮 MATEMATİKSEL KIYASLAMALAR ---
   float solFloat = solstate.toFloat();
   float sagFloat = sag.toFloat();
 
-  if (op == 1) {  // ==
+  if (op == 1) {       // ==
     ifsonucu = (solFloat == sagFloat);
-  } else if (op == 2) {  // >=
+  } else if (op == 2) { // >=
     ifsonucu = (solFloat >= sagFloat);
-  } else if (op == 3) {  // >
+  } else if (op == 3) { // >
     ifsonucu = (solFloat > sagFloat);
-  } else if (op == 4) {  // <=
+  } else if (op == 4) { // <=
     ifsonucu = (solFloat <= sagFloat);
-  } else if (op == 5) {  // <
+  } else if (op == 5) { // <
     ifsonucu = (solFloat < sagFloat);
-  } else if (op == 6) {  // !=
+  } else if (op == 6) { // !=
     ifsonucu = (solFloat != sagFloat);
   }
 
-  /*
-  Serial.print(F(" Kiyaslanacak: "));
-  Serial.println(parantezi);
-  Serial.print("SOLFLOAT ");
-  Serial.print(solFloat);
-  Serial.print("    SAĞFLOAT ");
-  Serial.print(sagFloat);
-  Serial.print(F(" -> Sonuc: "));
-  Serial.println(ifsonucu ? F("TRUE") : F("FALSE"));
-*/
+  // Test takibi için seri port izleme logu
+  //Serial.printf("[uprog-if] Canli Kiyaslama -> Sol (%s): %.2f | Sag: %.2f -> Sonuc: %s\n", 
+  //              sol.c_str(), solFloat, sagFloat, ifsonucu ? "TRUE" : "FALSE");
+
   return ifsonucu;
 }
 
@@ -695,6 +678,7 @@ if (dsol == "TX>") {
     }
   } 
   else {
+    dsag = dsaganaliz(dsag);
     txsend(dsag);
     return;
   }
@@ -714,38 +698,87 @@ if (dsol == "TX>") {
     }
     }
 
+ // if (isAlpha(B.charAt(0))) {}
+/*
+Bu arada ileride aklına gelirse:
+
+C++
+char op = '+';
+
+yerine operatörü de tek karakter olarak tutup
+
+C++
+switch(op)
+{
+case '+':
+case '-':
+case '*':
+case '/':
+}
+
+yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
+*/
 
 // 🎯 DEĞİŞKENLERİ TUTAN VE MATEMATİKSEL İŞLEM YAPABİLEN SIFIR HATALI KISIM
     if (indis >= 10 && indis < 21)  
     {
+     
+
       if (dsol == degis[indis]) {
         
-        // ➕ ARTTIRMA İŞLEMİ DÜZELTMESİ (Örn: I=I@1;)
-        if (dsag.indexOf("@") > 0) {
-          String solDegisken = dsag.substring(0, dsag.indexOf("@"));
-          String artisMiktari = dsag.substring(dsag.indexOf("@") + 1);
-          solDegisken.trim(); artisMiktari.trim();
-          
-          if (solDegisken == degis[indis]) {
-            int mevcutSayi = degdeg[indis].toInt(); 
-            int artisSayisi = artisMiktari.toInt();
-            
-            // Matematiksel toplamayı yapıp String olarak hücreye yazıyoruz
-            degdeg[indis] = String(mevcutSayi + artisSayisi); 
+        // ➕ ARTTIRMA İŞLEMİ DÜZELTMESİ (Örn: I=I+1;)
+        if (dsag.indexOf("+") > 0) {
+          String solDegisken = dsag.substring(0, dsag.indexOf("+"));
+          String sagDegisken = dsag.substring(dsag.indexOf("+") + 1);
+          solDegisken.trim(); sagDegisken.trim();
+          if(isAlpha(solDegisken.charAt(0)))
+          {
+            for(int sl=0;sl<21;sl++)
+            {
+              if(degis[sl]==solDegisken){solDegisken=degdeg[sl]; break;}
+            }
           }
+
+          if(isAlpha(sagDegisken.charAt(0)))
+          {
+            for(int sl=0;sl<21;sl++)
+            {
+              if(degis[sl]==sagDegisken){sagDegisken=degdeg[sl]; break;}
+            }
+          }
+
+            float solsayi = atof(solDegisken.c_str()); 
+            float sagsayi = atof(sagDegisken.c_str());
+            // Matematiksel toplamayı yapıp String olarak hücreye yazıyoruz
+            degdeg[indis] = String(solsayi + sagsayi); 
+
         }
         // ➖ AZALTMA İŞLEMİ DÜZELTMESİ (Örn: I=I-1; için isterseniz '-' kalabilir veya onu da değiştirebilirsiniz)
         else if (dsag.indexOf("-") > 0) {
           String solDegisken = dsag.substring(0, dsag.indexOf("-"));
-          String azalisMiktari = dsag.substring(dsag.indexOf("-") + 1);
-          solDegisken.trim(); azalisMiktari.trim();
-          
-          if (solDegisken == degis[indis]) {
-            int mevcutSayi = degdeg[indis].toInt();
-            int azalisSayisi = azalisMiktari.toInt();
-            
-            degdeg[indis] = String(mevcutSayi - azalisSayisi);
+          String sagDegisken = dsag.substring(dsag.indexOf("-") + 1);
+          solDegisken.trim(); sagDegisken.trim();
+          if(isAlpha(solDegisken.charAt(0)))
+          {
+            for(int sl=0;sl<21;sl++)
+            {
+              if(degis[sl]==solDegisken){solDegisken=degdeg[sl]; break;}
+            }
           }
+
+          if(isAlpha(sagDegisken.charAt(0)))
+          {
+            for(int sl=0;sl<21;sl++)
+            {
+              if(degis[sl]==sagDegisken){sagDegisken=degdeg[sl]; break;}
+            }
+          }
+
+            float solsayi = atof(solDegisken.c_str()); 
+            float sagsayi = atof(sagDegisken.c_str());
+            // Matematiksel toplamayı yapıp String olarak hücreye yazıyoruz
+            degdeg[indis] = String(solsayi - sagsayi); 
+
         }
         // Standart Atama işlemi ise (Örn: I=0;) direkt yaz
         else {
@@ -768,6 +801,53 @@ if (dsol == "TX>") {
   }
 
 }
+
+
+
+String dsaganaliz(String dsag)
+{
+if(dsag.indexOf("@")>-1)
+{
+  String dsagtmp=dsag;
+  String newdsag="";
+  int baslangic=0;
+  for (int edicindon=0;edicindon<200;edicindon++)
+  {
+    int edindex = dsagtmp.indexOf("@");
+    newdsag = dsagtmp.substring(baslangic,edindex);
+    dsagtmp = dsagtmp.substring(edindex+1,dsagtmp.length());
+    String deis = "";
+    if(dsagtmp.indexOf(",")>-1)
+    {
+    String deis = dsagtmp.substring(0,dsagtmp.indexOf(","));
+    dsagtmp = dsagtmp.substring(dsagtmp.indexOf(","),dsagtmp.length());
+    Serial.print("DEĞİŞKEN İSMİ ");Serial.println(deis);
+    for (int j=0;j<21;j++)
+    {
+      if(degis[j]==deis)
+      {
+        newdsag+=degdeg[j]; break;
+      }
+    }
+    }
+      edindex = dsagtmp.indexOf("@");
+      if(edindex<0){
+        newdsag +=dsagtmp;
+        dsagtmp="";
+        dsag=newdsag;
+        newdsag="";
+        deis="";
+        break;
+      } 
+  }
+}
+return dsag;
+}
+
+
+
+
+
 
 // --- 1. BAĞIMSIZ ZAMAN EKSİLTME MOTORU ---
 void timerGeriSay() {

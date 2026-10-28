@@ -9,6 +9,64 @@ IF(ACL>0){D6=1;}
 //if(ACL>0 && ACL<4 && D3==0){ACL=0;}
 //aa
 
+uzun program 
+SETUP:
+RXTX;
+DEG PROGNO=1;
+DOSYA PR1;
+LOOP:
+IF(D1==1 && PROGNO==1){ 
+TX>=PR1;
+}
+IF(D1==1 && PROGNO==2){
+TX>=PR2;
+}
+
+alt program PR1
+// PR1 senaryo satirlari
+// 1. ADIM: CİHAZLARIN VE PİNLERİNİN OTOMATİK TANIMLANMASI 
+// (NETWORK SETUP)
+DEG I=0;
+
+CHZ UNO1[
+STP SM:2,3;
+SRV SR1:4;
+SRV SR2:5;
+PWM RLED:6;
+]
+
+CHZ UNO2[
+SRV SR0:2;
+SRV SR1:3;
+SRV SR2:4;
+PWM RLED:5;
+]
+
+// 2. ADIM: SENARYO BAŞLANGIÇ ETİKETİ (DÖNGÜ İÇİN)
+ZINCIR_BASLA:
+
+// Uno1 ve Uno2 üzerindeki step/servo motorlara hareket emirleri gönderiliyor
+TX>=UNO1:STEPM M1:01,02;
+W:5000;      // Lolin ve Wi-Fi kilitlenmeden 5 saniye asenkron bekler
+TX>=UNO2:SRV SR0:90;  // Uno2 üzerindeki Servo0'ı 90 dereceye alır
+W:3000;      // 3 saniye bekler
+TX>=UNO1:M1:L,100;
+W:5000;
+// GOTO motorumuz sayesinde en baştaki ZINCIR_BASLA: etiketine geri döner I<6 olduğu sürece
+IF(I<6){
+I=I+1;
+GOTO:ZINCIR_BASLA;
+}
+D1=0;
+
+
+I %3D 0 %3B  %0D%0A  I %3D I+1 %3B
+I  =  0  ;    \r\n   I =   I+1 %3B
+
+I %3D 0 %3B  %0D%0A  I+ %3D +I +%2B+ 1 %3B
+
+
+I %3D 0 %3B  %0D%0A   I+ %3D I %2B 1 %3B
 
 
 // menu ☰  PLL

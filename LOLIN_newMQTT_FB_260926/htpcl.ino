@@ -907,7 +907,7 @@ void htpcl(WiFiClient xilent) {
                 }
 
                 // Önce karakterleri çözüyoruz (URL Decode)
-                uprogramdatatm = Karakterduzeltfunc(uprogramdatatm);
+                //uprogramdatatm = Karakterduzeltfunc(uprogramdatatm);
 
                 // 🎯 ÇİFT ETKİLENMEYİ ÖNLEME: Eğer Karakterduzeltfunc sonrasına '&secilenani=' sızdıysa onu şimdi temizle
                 if (uprogramdatatm.indexOf("&secilenani=") > -1) {
@@ -1051,7 +1051,7 @@ if (uzunMetrajVar) {
 
 
 
-
+                sayac=0;
 
                 // 🎯 FİKRİNİZ: Form gönderirken o anki aktif alt senaryoyu linke parametre olarak ekliyoruz
                 xilent.printf_P(PSTR("<table><caption>UZUN METRAJ ŞOV GİRİŞİ (<span style='color:#e65100; font-weight:bold;'>%s</span>)</caption>\r\n"
@@ -1408,7 +1408,7 @@ if (header.indexOf(F("/serveripayar")) > -1) {
               String errstring = "";
               if (header.indexOf(F("?fburl=")) > -1) {
                 String hdrt = header;
-                header = Karakterduzeltfunc(hdrt);
+                //header = Karakterduzeltfunc(hdrt);
 
                 DATABASE_URL = header.substring(header.indexOf(F("?fburl=")) + 7, header.indexOf(F("&fbapi=")));
                 if (DATABASE_URL.indexOf(F(".")) > -2 && DATABASE_URL.indexOf(F(".")) < 2) {
