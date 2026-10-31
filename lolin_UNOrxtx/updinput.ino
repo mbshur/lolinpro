@@ -1,6 +1,6 @@
 // --- ⏱️ TERSİNE HABERLEŞME ZAMANLAYICI DEĞİŞKENLERİ ---
 unsigned long inputZamanHafizasi = 0;
-const unsigned long INPUT_PERIYODU = 500; // Sensörler kaç milisaniyede bir okunup ESP'ye yollansın? (Örn: 500ms)
+const unsigned long INPUT_PERIYODU = 5000; // Sensörler kaç milisaniyede bir okunup ESP'ye yollansın? (Örn: 500ms)
 
 // --- 🎯 SENSÖRLERİ OKUYUP ESP'YE FORMALİZE PAKET FIRLATAN MOTOR ---
 void updinput() {
@@ -35,5 +35,5 @@ void updinput() {
   inputPaketi += ";";
 
   // 🚀 OLUŞAN PAKETİ DONANIMSAL SERİ PORTTAN ESP (LOLIN) HATTINA FIRLAT!
-  Serial.println(inputPaketi); 
+  //Serial.println(inputPaketi); 
 }

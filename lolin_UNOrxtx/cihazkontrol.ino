@@ -1,19 +1,15 @@
-Servo servoNesneleri[MAX_MODUL];
-bool servoBaglandi[MAX_MODUL] = {false};
-// --- 🚨 ACİL DURDURMA PİN TANIMLAMALARI ---
+
 
 
 void CHZkontrol() {
   if (CHZadi == "") return;
 
   // 🚨 2. SENARYO (Gelişmiş): Canlı Dijital Giriş (DI) ve Akıllı Arıza Bildirimi
-  // Hafızaya alınmış tüm limit anahtarlarını/sensörleri tek tek yokla
   for (int i = 0; i < toplamDi; i++) {
     int anlikFizikselDurum = digitalRead(diPin[i]);
     
-    // Eğer pindeki canlı durum, dosyanın belirttiği "Normal Durum" değerine eşit değilse (Arıza var!)
+    // Eğer arıza/limit aşımı varsa
     if (anlikFizikselDurum != diNormalDurum[i]) {
-      // 🚀 ESP'ye akıllı hata paketi fırlatıyoruz! Format: Cihaz:ERR:AnahtarAdi=HatalıDurum
       Serial.println(CHZadi + ":ERR:" + diIsimleri[i] + "=" + String(anlikFizikselDurum));
       
       Serial.print(F("🛑 [ACİL STOP] "));
@@ -25,6 +21,7 @@ void CHZkontrol() {
       for (int m = 0; m < toplamStep; m++) {
         digitalWrite(stepPin1[m], LOW);
         digitalWrite(stepPin2[m], LOW);
+        stepKalanAdim[m] = 0; // 🚨 İŞTE TAM BURAYA EKLEYİN! (Arka plan adımlarını da sıfırlar)
       }
       
       // Tüm dijital çıkışları (Röleleri vb.) emniyet için kapat
@@ -54,58 +51,108 @@ void CHZkontrol() {
 
   bool cihazBulundu = false;
 
-  // --- [ST] STEP MOTOR KONTROLÜ (Mevcut kodunuz aynen kalıyor) ---
+  // --- [ST] STEP MOTOR KONTROLÜ (DİNAMİK HIZLI) ---
   for (int i = 0; i < toplamStep; i++) {
     if (stepIsimleri[i] == arananCihazAdi) {
       int pinStep = stepPin1[i]; int pinDir = stepPin2[i]; cihazBulundu = true;
-      int virgulIdx = parametreler.indexOf(',');
-      if (virgulIdx == -1) { Serial.println(CHZadi + ":ERR:PARAMETRE"); break; }
+      
+      // İlk virgülü bul (Yön ile Adım Sayısı arasındaki)
+      int ilkVirgulIdx = parametreler.indexOf(',');
+      if (ilkVirgulIdx == -1) { Serial.println(CHZadi + ":ERR:PARAMETRE"); break; }
 
-      String yonStr = parametreler.substring(0, virgulIdx);
-      String adimStr = parametreler.substring(virgulIdx + 1);
-      yonStr.trim(); adimStr.trim();
+      String yonStr = parametreler.substring(0, ilkVirgulIdx);
+      String kalanParametreler = parametreler.substring(ilkVirgulIdx + 1);
+      yonStr.trim(); kalanParametreler.trim();
 
-      if (yonStr == "01") digitalWrite(pinDir, HIGH); else digitalWrite(pinDir, LOW);
-      int adimSayisi = adimStr.toInt();
-
-      for(int x = 0; x < adimSayisi; x++) {
-        // 🚨 Hareket esnasında da dinamik DI kontrolü yapalım ki motor mekanizmayı kırmasın
-        for (int k = 0; k < toplamDi; k++) {
-          if (digitalRead(diPin[k]) != diNormalDurum[k]) {
-            Serial.println(CHZadi + ":ERR:" + diIsimleri[k] + "=" + String(digitalRead(diPin[k])));
-            digitalWrite(pinStep, LOW);
-            rxdata = "";
-            return;
-          }
-        }
-        digitalWrite(pinStep, HIGH); delayMicroseconds(500);
-        digitalWrite(pinStep, LOW);  delayMicroseconds(500);
+      // İkinci virgülü bul (Adım Sayısı ile Hız arasındaki)
+      int ikinciVirgulIdx = kalanParametreler.indexOf(',');
+      
+      String adimStr = "";
+      if (ikinciVirgulIdx != -1) {
+        // Eğer hız da gönderildiyse (Örn: 01,100,800)
+        adimStr = kalanParametreler.substring(0, ikinciVirgulIdx);
+        String hizStr = kalanParametreler.substring(ikinciVirgulIdx + 1);
+        adimStr.trim(); hizStr.trim();
+        
+        stepAdimGecikmesi[i] = hizStr.toInt(); // Bu motorun mikrosaniye hızını güncelle
+      } else {
+        // Hız gönderilmediyse eski sistem (Örn: 01,100), varsayılan hız (500us) kalır
+        adimStr = kalanParametreler;
+        adimStr.trim();
       }
-      Serial.print(F("✅ [ST] ")); Serial.print(arananCihazAdi); Serial.println(F(" adimlamayi tamamladi."));
+
+      // Yön pinini ayarla
+      if (yonStr == "01") digitalWrite(pinDir, HIGH); else digitalWrite(pinDir, LOW);
+      
+      // Arka plana değerleri teslim et
+      stepKalanAdim[i] = adimStr.toInt();
+      stepAktifPin[i] = pinStep;
+
+      Serial.println("⚙️ [ST] Motor: " + arananCihazAdi + " -> Adim: " + adimStr + " | Hiz: " + String(stepAdimGecikmesi[i]) + "us");
       break; 
     }
   }
 
-  // --- [SR] SERVO MOTOR KONTROLÜ (Mevcut kodunuz...) ---
+// --- [SR] SERVO MOTOR KONTROLÜ (GÜNCELLENDİ) ---
   if (!cihazBulundu) {
     for (int i = 0; i < toplamServo; i++) {
       if (servoIsimleri[i] == arananCihazAdi) {
-        int pinNumarasi = servoPin[i]; int aci = parametreler.toInt(); cihazBulundu = true;
-        if (!servoBaglandi[i]) { servoNesneleri[i].attach(pinNumarasi); servoBaglandi[i] = true; }
-        servoNesneleri[i].write(aci);
-        Serial.println("🎯 [SR] Servo: " + arananCihazAdi + " -> Aci: " + String(aci));
+        int pinNumarasi = servoPin[i]; 
+        cihazBulundu = true;
+        
+        int aci = 90;
+        // Virgül kontrolü (Örn: SR0:120,30 veya SR0:120)
+        int virgulIdx = parametreler.indexOf(',');
+        if (virgulIdx != -1) {
+          String aciStr = parametreler.substring(0, virgulIdx);
+          String hizStr = parametreler.substring(virgulIdx + 1);
+          aciStr.trim(); hizStr.trim();
+          aci = aciStr.toInt();
+          servoAdimGecikmesi[i] = hizStr.toInt(); // Özel hız atandı
+        } else {
+          aci = parametreler.toInt(); // Hız belirtilmediyse sadece açı al
+        }
+        
+        // Eğer bu servo sisteme İLK DEFA komut alıyorsa:
+        if (!servoBaglandi[i]) { 
+          servoNesneleri[i].attach(pinNumarasi); 
+          servoBaglandi[i] = true; 
+          servoAnlikAci[i] = aci; // Başlangıç pozisyonunu gelen ilk değer yap
+          servoNesneleri[i].write(aci); // İlk seferde direkt konuma gitsin
+        }
+        
+        // Sonraki hareketler için hedefi güncelle (Yumuşak hareket fonksiyonu bunu yürütecek)
+        servoHedefAci[i] = aci; 
+        
+        Serial.println("🎯 [SR] Servo: " + arananCihazAdi + " -> Hedef Aci: " + String(aci) + " | Hiz Gecikmesi: " + String(servoAdimGecikmesi[i]) + "ms");
         break;
       }
     }
   }
 
-  // --- [PW] PWM ÇIKIŞ KONTROLÜ (Mevcut kodunuz...) ---
+// --- [PW] PWM ÇIKIŞ KONTROLÜ (DİNAMİK HIZLI) ---
   if (!cihazBulundu) {
     for (int i = 0; i < toplamPwm; i++) {
       if (pwmIsimleri[i] == arananCihazAdi) {
-        int pinNumarasi = pwmPin[i]; int pwmDegeri = parametreler.toInt(); cihazBulundu = true;
-        analogWrite(pinNumarasi, pwmDegeri); 
-        Serial.println("🎯 [PW] PWM Cikisi: " + arananCihazAdi + " -> Deger: " + String(pwmDegeri));
+        cihazBulundu = true;
+        
+        int hedef = 0;
+        int virgulIdx = parametreler.indexOf(',');
+        if (virgulIdx != -1) {
+          // Eğer hız da gönderildiyse (Örn: RLED:255,20 -> 255 değerine her adımda 20ms bekleyerek git)
+          String degerStr = parametreler.substring(0, virgulIdx);
+          String hizStr = parametreler.substring(virgulIdx + 1);
+          degerStr.trim(); hizStr.trim();
+          
+          hedef = degerStr.toInt();
+          pwmAdimGecikmesi[i] = hizStr.toInt(); // Bu PWM çıkışının hızını güncelle
+        } else {
+          // Hız belirtilmediyse varsayılan hızı (5ms) koru
+          hedef = parametreler.toInt();
+        }
+        
+        pwmHedefDeger[i] = hedef;
+        Serial.println("🎯 [PW] PWM: " + arananCihazAdi + " -> Hedef: " + String(hedef) + " | Adim Gecikmesi: " + String(pwmAdimGecikmesi[i]) + "ms");
         break;
       }
     }
@@ -113,6 +160,7 @@ void CHZkontrol() {
 
   // --- 🎯 6B. ADIM: [DO] DİJİTAL ÇIKIŞ / RÖLE KONTROL MOTORU ---
   if (!cihazBulundu) {
+    Serial.println(arananCihazAdi);
     for (int i = 0; i < toplamDo; i++) {
       if (doIsimleri[i] == arananCihazAdi) {
         int pinNumarasi = doPin[i];
@@ -135,8 +183,96 @@ void CHZkontrol() {
   }
 
   if (!cihazBulundu) {
+    Serial.println("arananCihazAdi:"+arananCihazAdi);
+    Serial.println("parametreler:"+parametreler);
+    if (arananCihazAdi.indexOf("RZ")>-1)
+    {
+      raporzamanlayici=parametreler.toInt();
+      cihazBulundu=true;
+    }
+  }
+
+
+  if (!cihazBulundu) {
     Serial.println(CHZadi + ":ERR:KAYIP_CIHAZ");
   }
 
   rxdata = ""; 
+}
+
+
+void servoYumusakHareketYonetimi() {
+  unsigned long simdikiZaman = millis();
+
+  for (int i = 0; i < toplamServo; i++) {
+    if (!servoBaglandi[i]) continue; // Bağlı olmayan servoları atla
+
+    // Eğer anlık açı hedef açıya eşit değilse hareket zamanı gelmiş mi bak
+    if ((int)servoAnlikAci[i] != servoHedefAci[i]) {
+      if (simdikiZaman - servoSonGuncellemeZamani[i] >= (unsigned long)servoAdimGecikmesi[i]) {
+        servoSonGuncellemeZamani[i] = simdikiZaman;
+
+        if (servoAnlikAci[i] < servoHedefAci[i]) {
+          servoAnlikAci[i] += 1; // 1 derece yaklaş
+        } 
+        else if (servoAnlikAci[i] > servoHedefAci[i]) {
+          servoAnlikAci[i] -= 1; // 1 derece yaklaş
+        }
+
+        // Fiziksel servoya yeni açıyı gönder
+        servoNesneleri[i].write((int)servoAnlikAci[i]);
+        
+        // HAREKETİ GÖRMEK İÇİN GEÇİCİ LOG (Çalıştığından emin olunca bu satırı silebilirsiniz):
+        // Serial.println("Servo " + servoIsimleri[i] + " adim atiyor: " + String((int)servoAnlikAci[i]));
+      }
+    }
+  }
+}
+
+void stepArkaPlanYonetimi() {
+  unsigned long simdikiMikroSaniye = micros();
+
+  for (int i = 0; i < toplamStep; i++) {
+    if (stepKalanAdim[i] > 0) {
+      // Sabit 500 yerine, o motora özel tanımlanan gecikme süresini kontrol et
+      if (simdikiMikroSaniye - stepSonAdimZamani[i] >= stepAdimGecikmesi[i]) {
+        stepSonAdimZamani[i] = simdikiMikroSaniye;
+
+        bool pinDurumu = digitalRead(stepAktifPin[i]);
+        digitalWrite(stepAktifPin[i], !pinDurumu);
+
+        if (pinDurumu == HIGH) {
+          stepKalanAdim[i]--;
+          if (stepKalanAdim[i] == 0) {
+            Serial.println("✅ [ST] " + stepIsimleri[i] + " adimlamayi tamamladi.");
+          }
+        }
+      }
+    }
+  }
+}
+
+
+void pwmYumusakGecisYonetimi() {
+  unsigned long simdikiZaman = millis();
+
+  for (int i = 0; i < toplamPwm; i++) {
+    // Eğer anlık parlaklık hedeften farklıysa ve KENDİ adım süresi dolduysa değişimi yap
+    if ((int)pwmAnlikDeger[i] != pwmHedefDeger[i]) {
+      if (simdikiZaman - pwmSonGuncellemeZamani[i] >= (unsigned long)pwmAdimGecikmesi[i]) {
+        pwmSonGuncellemeZamani[i] = simdikiZaman;
+
+        if (pwmAnlikDeger[i] < pwmHedefDeger[i]) {
+          pwmAnlikDeger[i] += 1; // Daha pürüzsüz geçiş için her adımda 1 birim artır
+          if (pwmAnlikDeger[i] > pwmHedefDeger[i]) pwmAnlikDeger[i] = pwmHedefDeger[i];
+        } 
+        else if (pwmAnlikDeger[i] > pwmHedefDeger[i]) {
+          pwmAnlikDeger[i] -= 1; // Her adımda 1 birim azalt
+          if (pwmAnlikDeger[i] < pwmHedefDeger[i]) pwmAnlikDeger[i] = pwmHedefDeger[i];
+        }
+
+        analogWrite(pwmPin[i], (int)pwmAnlikDeger[i]);
+      }
+    }
+  }
 }

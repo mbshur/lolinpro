@@ -35,7 +35,10 @@ void CHZisimkontrol(String gelenVeri) {
       int pSonu = gelenVeri.indexOf("]");
       if (pBasi > -1 && pSonu > pBasi) {
         String icerikMetni = gelenVeri.substring(pBasi + 1, pSonu);
-        CHZtanimla(icerikMetni); 
+        CHZtanimla(icerikMetni);
+        txdata = gelenVeri.substring(gelenVeri.indexOf("DEF<"),pSonu);
+        if (txdata != "") Serial.println("txdata:" + txdata);
+        else { Serial.println("tx ile gönderilecek data yok"); }
       }
     }
     return;
@@ -48,10 +51,10 @@ void CHZisimkontrol(String gelenVeri) {
       int benimgelenveriSonum = gelenverikesi.indexOf(";");
       
       rxdata = gelenverikesi.substring(0, benimgelenveriSonum);
-      
+      //Serial.println("rxdata--" + rxdata);
       txdata = gelenVeri.substring(0, isimbasi) + gelenverikesi.substring(benimgelenveriSonum + 1);
       txdata.trim();
-      
+
       if (txdata != "") Serial.println("txdata:" + txdata);
       else { Serial.println("tx ile gönderilecek data yok"); }
     } 
