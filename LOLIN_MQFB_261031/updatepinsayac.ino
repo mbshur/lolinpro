@@ -60,11 +60,10 @@ void updateinput() {  //degisenler="";
           //Serial.println("DHTDONGUSU");
           dhtsayac = 5;
           //DHT
-          delay(30);
           t = DHTA[x]->readTemperature();  // boş iken  celcius // f = DHTA.readTemperature(true); fahrenayt
-          delay(30);
+          delay(10);
           h = DHTA[x]->readHumidity();
-          delay(30);
+          delay(10);
           //Serial.print("t: ") ;Serial.println(t);
           //Serial.print("h: ") ;Serial.println(h);
           // Check if any reads failed and exit early (to try again).

@@ -28,7 +28,7 @@ void altDosyaYurut() {
   // Güvenlik Kontrolü: Alt dosya açık değilse çık
   if (!ualt_dosya) {
     altDosyaCalisiyor = false;
-    Serial.println(F("[uprog-alt] HATA: Alt dosya hafizada bulunamadi!"));
+    //Serial.println(F("[uprog-alt] HATA: Alt dosya hafizada bulunamadi!"));
     return;
   }
 
@@ -138,12 +138,12 @@ void altDosyaYurut() {
         arananSatir.trim();
         
         if (arananSatir == (hedefEtiket + ":")) {
-          Serial.printf("[uprog-goto] '%s' etiketine basariyla atlandi.\n", hedefEtiket.c_str());
+          //Serial.printf("[uprog-goto] '%s' etiketine basariyla atlandi.\n", hedefEtiket.c_str());
           yield();
           return; 
         }
       }
-      Serial.printf("[uprog-goto] HATA: '%s' etiketi bulunamadi!\n", hedefEtiket.c_str());
+      //Serial.printf("[uprog-goto] HATA: '%s' etiketi bulunamadi!\n", hedefEtiket.c_str());
     }
 
     // Normal satır işleme hazırlığı
@@ -156,7 +156,7 @@ void altDosyaYurut() {
 
     // 🎯 6. SATIR İŞLENDİKTEN HEMEN SONRAKİ ANLIK FREN (Sızıntıyı Önleyen Sihirli Kısım)
     if (altProgramIptalBayragi == true || !altDosyaCalisiyor) {
-      Serial.println(F("[uprog-alt] ⚡ FREN: satirislem() sonrasi kesme fark edildi, sonraki satira gecilmiyor."));
+      //Serial.println(F("[uprog-alt] ⚡ FREN: satirislem() sonrasi kesme fark edildi, sonraki satira gecilmiyor."));
       yield();
       return; 
     }

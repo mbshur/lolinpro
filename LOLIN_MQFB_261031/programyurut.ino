@@ -137,7 +137,7 @@ void satirislem() {
   else if (satiruppercase.indexOf("MQC ") == 0) mqttcihaztanitimi();
   else if (satiruppercase.indexOf("IF") == 0) gotoif();
   else if (satiruppercase.indexOf("IFBET") == 0) gotoifbet();
-  else if (satiruppercase.indexOf("RXTX") == 0 && !rxtxvar) rxtxsetup();
+  else if (satiruppercase.indexOf("RXTX") == 0 && !rxtxvar) rxtxsetup(satiruppercase);
   else if (satiruppercase.indexOf("ACLTUT") == 0) ACLilanciyim = true;
   else if (satiruppercase.indexOf(";") > -1) {
     ifparantezdisi(satiruppercase, satirsayisip);

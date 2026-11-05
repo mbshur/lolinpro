@@ -121,7 +121,7 @@ void htpcl(WiFiClient xilent) {
           header += c;
         }
 
-        if(header.indexOf("%0A")>-1) header = Karakterduzeltfunc(header);
+
         hsay += 1;
         Serial.println(hsay);
         String Hosttmp = header.substring(header.indexOf("Host:") + 5, header.length());
@@ -138,6 +138,8 @@ void htpcl(WiFiClient xilent) {
             if (header.indexOf("favicon.ico") < 0) headerold = header;
           }
 
+        if(header.indexOf("%0A")>-1 || header.indexOf("%3B")>-1) header = Karakterduzeltfunc(header);
+        
           reConnectsayac = millis();
 
 

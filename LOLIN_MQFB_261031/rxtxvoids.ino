@@ -4,18 +4,39 @@
 
 SoftwareSerial unoSerial;
 
-void rxtxsetup() {
-  rxtxvar = true;
-  const int8_t ESP_RX_PIN = D0;  // Uno'nun TX'inden (direnç korumalı) gelen hat
-  const int8_t ESP_TX_PIN = D2;  // Uno'nun RX'ine giden hat
+void rxtxsetup(String rxtxdatas) {
+    Serial.print("RXTXDATAS: ");Serial.println(rxtxdatas);
+  if(rxtxdatas.indexOf("RXTX=")>-1) rxtxvar = true;
+  else return;
+  rxtxdatas=rxtxdatas.substring(rxtxdatas.indexOf("RXTX="),rxtxdatas.length());
+  rxtxdatas=rxtxdatas.substring(0,rxtxdatas.indexOf("\n"));
+  Serial.print("RXTXDATAS: ");Serial.println(rxtxdatas);
+
+     int ESP_RX_PIN = D0;  // Uno'nun TX'inden (direnç korumalı) gelen hat
+     int ESP_TX_PIN = D2;  // Uno'nun RX'ine giden hat
+     int BAUD_RATE = 38400;  
+
+  String rxpinStr = "";
+  String txpinStr = "";
+  String baudRStr = "";
+
+  if(rxtxdatas.indexOf(":")>-1 && rxtxdatas.indexOf(",") >-1){
+   rxpinStr = rxtxdatas.substring(0,rxtxdatas.indexOf(":"));
+   txpinStr = rxtxdatas.substring(rxtxdatas.indexOf(":")+1,rxtxdatas.indexOf(","));
+   baudRStr = rxtxdatas.substring(rxtxdatas.indexOf(",")+1,rxtxdatas.indexOf(";"));
+   ESP_RX_PIN = getGPIOPin(rxpinStr);
+   ESP_TX_PIN = getGPIOPin(txpinStr);
+   BAUD_RATE = baudRStr.toInt();  
+  }
+  
   //const uint32_t BAUD_RATE = 19200;
-  const uint32_t BAUD_RATE = 38400;
+  
   // Software Serial pin yapılandırması ve 19200 baud başlatılması
   // (RX, TX) parametreleri sırasıyla verilir
   // Yazılımsal portu sabit pinlerimiz ve 19200 baud ile başlatıyoruz
   unoSerial.begin(BAUD_RATE, SWSERIAL_8N1, ESP_RX_PIN, ESP_TX_PIN, false);
 
-  Serial.println(F("Sistem Hazır. D2(RX) ve D0(TX) üzerinden 57200 baud ile dinleniyor..."));
+  Serial.printf_P(PSTR("Sistem Hazır. %s(RX) ve %s(TX) üzerinden %s dinleniyor..."),rxpinStr.c_str(),txpinStr.c_str(),baudRStr.c_str());
 }
 
 void rxtxloop() {
@@ -100,6 +121,7 @@ void txsend(String txveri) {
   if (txveri.lastIndexOf(";") + 1 != txveri.length()) txveri += ";";
   Serial.println("txveri gönderildi. Veri:" + txveri);
   unoSerial.println(txveri);
+  delay(20);
 }
 
 

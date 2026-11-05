@@ -399,7 +399,7 @@ void dosyaOkupinayar() {
     }
     dosya.close();
 
-    if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) rxtxvar = true;
+    if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX") < 0) rxtxvar = true;
 
     strtmp = pinayar;
     Serial.println("dosyaokupinayar.");
@@ -523,13 +523,12 @@ void dosyaOkupinayar() {
                 }
 
                 // Eğer eski bir DHT nesnesi varsa hafızayı boşaltalım (re-init koruması)
-                if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") == 0) {
+                if (pinmode[x] == "INP" && pinsignaltype[x].indexOf("DHT") >-1) {
                   if (DHTA[x] != NULL) {
                     delete DHTA[x];
                     DHTA[x] = NULL;
                   }
                   // Eğer bu pin bir DHT sensörüyse nesneyi buracıkta yaratıyoruz:
-                  if (pinsignaltype[x].indexOf("DHT") == 0) {
                     uint8_t DHT_TYPE = DHT11;
                     if (pinsignaltype[x] == "DHT1") DHT_TYPE = DHT11;
                     else if (pinsignaltype[x] == "DHT2") DHT_TYPE = DHT12;
@@ -539,7 +538,7 @@ void dosyaOkupinayar() {
 
                     DHTA[x] = new DHT(getGPIOPin(pinname[x]), DHT_TYPE);
                     DHTA[x]->begin();
-                  }
+
                 }
               }
             }
@@ -580,7 +579,7 @@ void dosyaOkupinayar() {
 }
 
 void dosyaYazpinayar() {
-
+      pinayarerrorlog = "";
   reConnectsayac = millis();
 
   // HTML'den gelen pinayartmp verisini düzeltiyoruz
@@ -592,6 +591,28 @@ void dosyaYazpinayar() {
   int baslangicIdx = 0;
   int bitisIdx = 0;
   bool formatHatasiVar = false;
+
+  String rxtxdatas = "";
+  String rxpinStr = "ğşçğ";
+  String txpinStr = "ğşçğ";
+
+if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX") < 0) {
+  String rxtxdatas = programdata;
+  rxtxdatas=rxtxdatas.substring(rxtxdatas.indexOf("RXTX="),rxtxdatas.length());
+  rxtxdatas=rxtxdatas.substring(0,rxtxdatas.indexOf("\n"));
+  rxpinStr = rxtxdatas.substring(0,rxtxdatas.indexOf(":"));
+  txpinStr = rxtxdatas.substring(rxtxdatas.indexOf(":")+1,rxtxdatas.indexOf(","));
+}
+
+dosyaokuuprogram();
+if (uprogramdata.indexOf("RXTX") != -1 && uprogramdata.indexOf("//RXTX") < 0) {
+  String rxtxdatas = uprogramdata;
+  rxtxdatas=rxtxdatas.substring(rxtxdatas.indexOf("RXTX="),rxtxdatas.length());
+  rxtxdatas=rxtxdatas.substring(0,rxtxdatas.indexOf("\n"));
+  rxpinStr = rxtxdatas.substring(0,rxtxdatas.indexOf(":"));
+  txpinStr = rxtxdatas.substring(rxtxdatas.indexOf(":")+1,rxtxdatas.indexOf(","));
+}
+
 
   // 1. ADIM: Metni satır satır bölerek tek tek inceliyoruz
   while ((bitisIdx = pinayartmp.indexOf('\n', baslangicIdx)) != -1 || baslangicIdx < pinayartmp.length()) {
@@ -614,13 +635,21 @@ void dosyaYazpinayar() {
         formatHatasiVar = true;
         break;  // Bir satır bile bozuksa döngüden çık
       }
-      pinayarerrorlog = "";
+
 
       // 2. ADIM: Çakışma Kontrolü (Sadece bu geçerli satır için)
-      if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX;") < 0) {
+      if (programdata.indexOf("RXTX") != -1 && programdata.indexOf("//RXTX") < 0) {
         // Eğer satırda D6 veya D7 geçiyorsa ve başında zaten // yoksa engelle
-        if ((satir.indexOf("D0") != -1 || satir.indexOf("D2") != -1) && satir.indexOf("//") != 0) {
-          pinayarerrorlog = "Pinayar hatası: D0 veya D2 kullanılamaz! Program kısmında RXTX; tanımlı.";
+        if ((satir.indexOf(rxpinStr) != -1 || satir.indexOf(txpinStr) != -1) && satir.indexOf("//") != 0) {
+          pinayarerrorlog += "Pinayar hatası: "+ rxpinStr +" veya " + txpinStr + " kullanılamaz! Program kısmında RXTX; tanımlı.";
+          satir = "//" + satir;  // Tüm satırı güvenle yorum satırına çeviriyoruz
+        }
+      }
+
+      if (uprogramdata.indexOf("RXTX") != -1 && uprogramdata.indexOf("//RXTX") < 0) {
+        // Eğer satırda D6 veya D7 geçiyorsa ve başında zaten // yoksa engelle
+        if ((satir.indexOf(rxpinStr) != -1 || satir.indexOf(txpinStr) != -1) && satir.indexOf("//") != 0) {
+          pinayarerrorlog += "Pinayar hatası: "+ rxpinStr +" veya " + txpinStr + " kullanılamaz! Uzun Program kısmında RXTX; tanımlı.";
           satir = "//" + satir;  // Tüm satırı güvenle yorum satırına çeviriyoruz
         }
       }
@@ -635,7 +664,7 @@ void dosyaYazpinayar() {
 
   // 3. ADIM: Format Hatası Varsa Kaydetmeden Çık
   if (formatHatasiVar) {
-    pinayarerrorlog = "pinayar hatalı: Satırlardaki parametre sayısı eksik veya fazla!";
+    pinayarerrorlog += "pinayar hatalı: Satırlardaki parametre sayısı eksik veya fazla!";
     return;
   }
 
@@ -790,7 +819,7 @@ void setup2() {
       }
     }
 
-    if (rxtxvar) rxtxsetup();
+    if (rxtxvar) rxtxsetup(programdata);
   }
 }
 
