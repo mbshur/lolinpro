@@ -1727,7 +1727,7 @@ if (header.indexOf(F("/serveripayar")) > -1) {
 
 
 
-              if (header.indexOf("GET /A") > -1) {
+              if (header.indexOf("GET /A0") > -1) {
                 htpcldepindegisti = true;
                 if (header.indexOf("?pwm=") > -1) {
                   Headerparcala = Headerparcala.substring(Headerparcala.indexOf(" /A") + 2, Headerparcala.length());

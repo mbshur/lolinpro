@@ -1,20 +1,32 @@
-//
+
 void slaveRxvoid() {
-  // Donanımsal porta veri geldi mi?
-  if (Serial.available() > 0) {
-    // Satır sonu karakterine (\n) kadar oku
-    String gelenVeri = Serial.readStringUntil('\n');
-    gelenVeri.trim();
-    Serial.println(" gelen ham veri : " + gelenVeri);
-    if (gelenVeri.length() > 0) {
-      CHZisimkontrol(gelenVeri);
+  while (Serial.available() > 0) {
+    char c = Serial.read();
+
+    if (c == '\n') {
+      rxBuffer.trim();
+
+      //Serial.print(F(" gelen ham veri : ")); // F() makrosu eklendi
+      //Serial.println(rxBuffer);
+
+      if (rxBuffer.length() > 0) {
+        CHZisimkontrol(rxBuffer);  // Doğrudan rxBuffer'ı gönderiyoruz, ekstra String oluşturmuyoruz
+      }
+
+      rxBuffer = "";  // İşlem bitince hemen temizle
+    } else if (c != '\r') {
+      rxBuffer += c;
     }
   }
 }
 
-  //
-  void slaveTxvoid() {
+//
+void slaveTxvoid() {
+  if (txdata.length() > 0) {
+    Serial.println(txdata);
+    txdata = "";
   }
+}
 
 //
 // --- 🌐 HABERLEŞME VE ISI KONTROL MOTORU ---
@@ -28,40 +40,52 @@ void CHZisimkontrol(String gelenVeri) {
     if (isimbasi > -1 && isimsonu > -1) {
       CHZadi = gelenVeri.substring(isimbasi, isimsonu);
       CHZadi.trim();
-      Serial.println("ismim: " + CHZadi);
+      //Serial.println("ismim: " + CHZadi);
 
       // 🎯 PİNLERİ OLUŞTURMA KÖPRÜSÜ
       int pBasi = gelenVeri.indexOf("[");
       int pSonu = gelenVeri.indexOf("]");
       if (pBasi > -1 && pSonu > pBasi) {
         String icerikMetni = gelenVeri.substring(pBasi + 1, pSonu);
+        txdata="........";slaveTxvoid();
         CHZtanimla(icerikMetni);
-        txdata = gelenVeri.substring(gelenVeri.indexOf("DEF<"),pSonu);
-        if (txdata != "") Serial.println("txdata:" + txdata);
-        else { Serial.println("tx ile gönderilecek data yok"); }
+        txdata = gelenVeri.substring(gelenVeri.indexOf("DEF<"), pSonu);
+        if (txdata != "") {  //Serial.println("txdata:" + txdata);slaveTxvoid();
+        } else {             //Serial.println("tx ile gönderilecek data yok");
+        }
       }
     }
     return;
-  }
-  else { // cihaz adı zaten öğrenilmiş, komutları dinle
+  } else {
+    // cihaz adı zaten öğrenilmiş, fakat yine tanıımlama geldiyse kendine ait kısmı sil
+    if (gelenVeri.indexOf("DEF<" + CHZadi) > -1) {
+      int silbasi = gelenVeri.indexOf("DEF<" + CHZadi);
+      int silsonu = -1;
+      String gelenveritmp = gelenVeri.substring(silbasi + 4, gelenVeri.length());
+      if (gelenveritmp.indexOf("]") > -1) silsonu = gelenveritmp.indexOf("]");
+      gelenVeri = gelenVeri.substring(0, silbasi) + gelenVeri.substring(silsonu, gelenVeri.length());
+    }
+
+    // cihaz adı zaten öğrenilmiş, komutları dinle
     if (gelenVeri.indexOf(CHZadi + ":") > -1) {
       int isimbasi = gelenVeri.indexOf(CHZadi + ":");
       int veribasi = gelenVeri.indexOf(CHZadi + ":") + CHZadi.length() + 1;
       String gelenverikesi = gelenVeri.substring(veribasi, gelenVeri.length());
       int benimgelenveriSonum = gelenverikesi.indexOf(";");
-      
+
       rxdata = gelenverikesi.substring(0, benimgelenveriSonum);
-      //Serial.println("rxdata--" + rxdata);
+      ////Serial.println("rxdata--" + rxdata);
       txdata = gelenVeri.substring(0, isimbasi) + gelenverikesi.substring(benimgelenveriSonum + 1);
       txdata.trim();
 
-      if (txdata != "") Serial.println("txdata:" + txdata);
-      else { Serial.println("tx ile gönderilecek data yok"); }
-    } 
-    else {
+      if (txdata != "") {  //Serial.println("txdata:" + txdata);
+      } else {             //Serial.println("tx ile gönderilecek data yok");
+      }
+    } else {
       txdata = gelenVeri;
-      if (txdata != "") Serial.println("txdata:" + txdata);
-      else { Serial.println("tx ile gönderilecek data yok"); }
+      if (txdata != "") {  //Serial.println("txdata:" + txdata);
+      } else {             //Serial.println("tx ile gönderilecek data yok");
+      }
     }
   }
 }

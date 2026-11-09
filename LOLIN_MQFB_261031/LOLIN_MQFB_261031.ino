@@ -173,8 +173,8 @@ String Program;
 
 // PROGRAM İÇİN ////////////////////////
 String satirp;
-String degis[20];
-String degdeg[20];
+String degis[30];
+String degdeg[30];
 String tmris[MAX_TIMERS];
 String tmrdeg[MAX_TIMERS];
 // 0-10  PİN     11-20 degisken
@@ -219,6 +219,7 @@ String slavespinayar[10];
 String slavestx[10];
 String slavesrx[10];
 int aktifcihazno=-1;
+bool slaveden_cevap_bekleniyor=false;
 
 // Global Değişkenler (Lolin'in en tepesinde tanımlı olmalı)
 bool chzBloguIcindeyiz = false;
@@ -1524,8 +1525,8 @@ void loop() {
   //harcananzaman = millis();
 
   MDNS.update();  // mDNS sorgularini guncellemek icindir
-
-
+   if (rxtxvar) rxtxloop();
+   else serin();
 
   xilent = httpserver.available();
   if (xilent && fbisleniyor == false) {
@@ -1534,7 +1535,7 @@ void loop() {
     if (habp == 1) timereski = millis() + 10;
     if (habp == 0) timereski = millis() + 10;
 
-    if (rxtxvar) rxtxloop();
+ 
 
     htpcl(xilent);
     if (htpcldepindegisti == true) {
@@ -1542,7 +1543,7 @@ void loop() {
     }
   }
 
-  serin();
+
 
   /*
   if (millis() - harcananzaman > (test * 200)) {

@@ -50,7 +50,7 @@ void programrun() {
     */
   }
   /*
-  for (int i = 11; i < 21; i++) {
+  for (int i = 11; i < 31; i++) {
     degdeg[i] = "";
     degis[i] = "";
   }
@@ -169,7 +169,7 @@ void timertanitimi() {
 
 void degiskentanitimi() {
   Serial.println("degisken tanımına gelen satirp:" + satirp);
-  for (int ii = 11; ii < 21; ii++) {
+  for (int ii = 11; ii < 31; ii++) {
     if (satirp.indexOf("=") > 0) {
       if (degis[ii] == "" || degis[ii] == "null" || degis[ii] == satirp.substring(4, satirp.indexOf("="))) {
         String degisdegdeg = satirp;
@@ -279,7 +279,7 @@ bool paranteziciislem(String parantezi) {
         }
       }
 
-      for (int pb = 11; pb < 21; pb++) {
+      for (int pb = 11; pb < 31; pb++) {
         if (SOLL == degis[pb]) {
           solstate = degdeg[pb];
           if (SOLL == "PROGNO") PROGNOX = solstate;
@@ -383,7 +383,7 @@ void gotoifbet()
       float ilkdegertest;
       float ucuncudegertest;
 
-      for (int bk = 0; bk < 21; bk++) {
+      for (int bk = 0; bk < 31; bk++) {
         if (ilkdeger == degis[bk]) {
           ilkdegertest = atof(degdeg[bk].c_str());
           dgbul=true;
@@ -393,7 +393,7 @@ void gotoifbet()
       if(dgbul==false)ilkdegertest=atof(ilkdeger.c_str());
       dgbul=false;
 
-      for (int bk = 0; bk < 21; bk++) {
+      for (int bk = 0; bk < 31; bk++) {
         if (ucuncudeger == degis[bk]) {
           ucuncudegertest = atof(degdeg[bk].c_str());
           dgbul=true;
@@ -756,7 +756,7 @@ void yap(String yapilacakis, int islemno) {
   }
 
 
-  for (int indis = 0; indis < 21; indis++)  // her islem için döngü
+  for (int indis = 0; indis < 31; indis++)  // her islem için döngü
   {
 
     if (indis >= 0 && indis < 10) {
@@ -816,7 +816,7 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
           sagDegisken.trim();
 
           if (solDegisken.length() > 0 && isAlpha(solDegisken.charAt(0))) {
-            for (int sl = 0; sl < 21; sl++) {
+            for (int sl = 0; sl < 31; sl++) {
               if (degis[sl] == solDegisken) {
                 solDegisken = degdeg[sl];
                 break;
@@ -825,7 +825,7 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
           }
 
           if (sagDegisken.length() > 0 && isAlpha(sagDegisken.charAt(0))) {
-            for (int sa = 0; sa < 21; sa++) {
+            for (int sa = 0; sa < 31; sa++) {
               if (degis[sa] == sagDegisken) {
                 sagDegisken = degdeg[sa];
                 break;
@@ -915,7 +915,7 @@ String dsaganaliz(String dsag) {
         dsagtmp = dsagtmp.substring(dsagtmp.indexOf(","), dsagtmp.length());
         Serial.print("DEĞİŞKEN İSMİ ");
         Serial.println(deis);
-        for (int j = 0; j < 21; j++) {
+        for (int j = 0; j < 31; j++) {
           if (degis[j] == deis) {
             newdsag += degdeg[j];
             break;
@@ -983,14 +983,14 @@ String sagsolicimatislem(String sosa) {
   String solN = sosa.substring(0, sosa.indexOf(oprt));
   String sagN = sosa.substring(sosa.indexOf(oprt) + 1, sosa.length());
 
-  for (int d = 0; d < 21; d++) {
+  for (int d = 0; d < 31; d++) {
     if (solN == degis[d]) {
       solN = degdeg[d];
       break;
     }
   }
 
-  for (int d = 0; d < 21; d++) {
+  for (int d = 0; d < 31; d++) {
     if (sagN == degis[d]) {
       sagN = degdeg[d];
       break;

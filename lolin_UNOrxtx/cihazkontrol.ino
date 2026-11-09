@@ -10,12 +10,12 @@ void CHZkontrol() {
     
     // Eğer arıza/limit aşımı varsa
     if (anlikFizikselDurum != diNormalDurum[i]) {
-      Serial.println(CHZadi + ":ERR:" + diIsimleri[i] + "=" + String(anlikFizikselDurum));
+      //Serial.println(CHZadi + ":ERR:" + diIsimleri[i] + "=" + String(anlikFizikselDurum));
       
-      Serial.print(F("🛑 [ACİL STOP] "));
-      Serial.print(diIsimleri[i]);
-      Serial.print(F(" hatti normal durumundan sapti! Canli Değer: "));
-      Serial.println(anlikFizikselDurum);
+      //Serial.print(F("🛑 [ACİL STOP] "));
+      //Serial.print(diIsimleri[i]);
+      //Serial.print(F(" hatti normal durumundan sapti! Canli Değer: "));
+      //Serial.println(anlikFizikselDurum);
 
       // Güvenlik koruması: Tüm step motorları anında durdur
       for (int m = 0; m < toplamStep; m++) {
@@ -38,9 +38,9 @@ void CHZkontrol() {
   if (rxdata == "") return;
   rxdata.trim();
 
-  int ikiNoktaIdx = rxdata.indexOf(':');
+  int ikiNoktaIdx = rxdata.indexOf('=');
   if (ikiNoktaIdx == -1) {
-    Serial.println(CHZadi + ":ERR:PROTOKOL");
+    //Serial.println(CHZadi + ":ERR:PROTOKOL");
     rxdata = ""; 
     return;
   }
@@ -58,7 +58,8 @@ void CHZkontrol() {
       
       // İlk virgülü bul (Yön ile Adım Sayısı arasındaki)
       int ilkVirgulIdx = parametreler.indexOf(',');
-      if (ilkVirgulIdx == -1) { Serial.println(CHZadi + ":ERR:PARAMETRE"); break; }
+      if (ilkVirgulIdx == -1) { //Serial.println(CHZadi + ":ERR:PARAMETRE"); 
+      break; }
 
       String yonStr = parametreler.substring(0, ilkVirgulIdx);
       String kalanParametreler = parametreler.substring(ilkVirgulIdx + 1);
@@ -88,7 +89,7 @@ void CHZkontrol() {
       stepKalanAdim[i] = adimStr.toInt();
       stepAktifPin[i] = pinStep;
 
-      Serial.println("⚙️ [ST] Motor: " + arananCihazAdi + " -> Adim: " + adimStr + " | Hiz: " + String(stepAdimGecikmesi[i]) + "us");
+      //Serial.println("⚙️ [ST] Motor: " + arananCihazAdi + " -> Adim: " + adimStr + " | Hiz: " + String(stepAdimGecikmesi[i]) + "us");
       break; 
     }
   }
@@ -124,7 +125,7 @@ void CHZkontrol() {
         // Sonraki hareketler için hedefi güncelle (Yumuşak hareket fonksiyonu bunu yürütecek)
         servoHedefAci[i] = aci; 
         
-        Serial.println("🎯 [SR] Servo: " + arananCihazAdi + " -> Hedef Aci: " + String(aci) + " | Hiz Gecikmesi: " + String(servoAdimGecikmesi[i]) + "ms");
+        //Serial.println("🎯 [SR] Servo: " + arananCihazAdi + " -> Hedef Aci: " + String(aci) + " | Hiz Gecikmesi: " + String(servoAdimGecikmesi[i]) + "ms");
         break;
       }
     }
@@ -152,7 +153,7 @@ void CHZkontrol() {
         }
         
         pwmHedefDeger[i] = hedef;
-        Serial.println("🎯 [PW] PWM: " + arananCihazAdi + " -> Hedef: " + String(hedef) + " | Adim Gecikmesi: " + String(pwmAdimGecikmesi[i]) + "ms");
+        //Serial.println("🎯 [PW] PWM: " + arananCihazAdi + " -> Hedef: " + String(hedef) + " | Adim Gecikmesi: " + String(pwmAdimGecikmesi[i]) + "ms");
         break;
       }
     }
@@ -160,7 +161,7 @@ void CHZkontrol() {
 
   // --- 🎯 6B. ADIM: [DO] DİJİTAL ÇIKIŞ / RÖLE KONTROL MOTORU ---
   if (!cihazBulundu) {
-    Serial.println(arananCihazAdi);
+    //Serial.println(arananCihazAdi);
     for (int i = 0; i < toplamDo; i++) {
       if (doIsimleri[i] == arananCihazAdi) {
         int pinNumarasi = doPin[i];
@@ -173,28 +174,29 @@ void CHZkontrol() {
           digitalWrite(pinNumarasi, LOW);  // Röleyi bırak/Kapat
         }
         
-        Serial.print(F("🎯 [DO] Dijital Cikis: "));
-        Serial.print(arananCihazAdi);
-        Serial.print(F(" -> Durum: "));
-        Serial.println(cikisDurumu == 1 ? F("HIGH (ACIK)") : F("LOW (KAPALI)"));
+        //Serial.print(F("🎯 [DO] Dijital Cikis: "));
+        //Serial.print(arananCihazAdi);
+        //Serial.print(F(" -> Durum: "));
+        //Serial.println(cikisDurumu == 1 ? F("HIGH (ACIK)") : F("LOW (KAPALI)"));
         break;
       }
     }
   }
 
   if (!cihazBulundu) {
-    Serial.println("arananCihazAdi:"+arananCihazAdi);
-    Serial.println("parametreler:"+parametreler);
+    //Serial.println("arananCihazAdi:"+arananCihazAdi);
+    //Serial.println("parametreler:"+parametreler);
     if (arananCihazAdi.indexOf("RZ")>-1)
     {
       raporzamanlayici=parametreler.toInt();
+      Serial.print("<ESP>ZR=OK\r\n");
       cihazBulundu=true;
     }
   }
 
 
   if (!cihazBulundu) {
-    Serial.println(CHZadi + ":ERR:KAYIP_CIHAZ");
+    //Serial.println(CHZadi + ":ERR:KAYIP_CIHAZ");
   }
 
   rxdata = ""; 
@@ -205,25 +207,24 @@ void servoYumusakHareketYonetimi() {
   unsigned long simdikiZaman = millis();
 
   for (int i = 0; i < toplamServo; i++) {
-    if (!servoBaglandi[i]) continue; // Bağlı olmayan servoları atla
+    if (!servoBaglandi[i]) continue; 
 
-    // Eğer anlık açı hedef açıya eşit değilse hareket zamanı gelmiş mi bak
     if ((int)servoAnlikAci[i] != servoHedefAci[i]) {
       if (simdikiZaman - servoSonGuncellemeZamani[i] >= (unsigned long)servoAdimGecikmesi[i]) {
         servoSonGuncellemeZamani[i] = simdikiZaman;
 
         if (servoAnlikAci[i] < servoHedefAci[i]) {
-          servoAnlikAci[i] += 1; // 1 derece yaklaş
+          servoAnlikAci[i] += 1; 
         } 
         else if (servoAnlikAci[i] > servoHedefAci[i]) {
-          servoAnlikAci[i] -= 1; // 1 derece yaklaş
+          servoAnlikAci[i] -= 1; 
         }
 
-        // Fiziksel servoya yeni açıyı gönder
-        servoNesneleri[i].write((int)servoAnlikAci[i]);
-        
-        // HAREKETİ GÖRMEK İÇİN GEÇİCİ LOG (Çalıştığından emin olunca bu satırı silebilirsiniz):
-        // Serial.println("Servo " + servoIsimleri[i] + " adim atiyor: " + String((int)servoAnlikAci[i]));
+        // --- 🛠️ YENİ KÜTÜPHANE UYUMLAMA SATIRI ---
+        // 0-180 derece arası değeri, servonun anlıcağı 750-2250 mikrosaniyeye dönüştürüyoruz
+        int mikroSaniye = map((int)servoAnlikAci[i], 0, 180, 750, 2250);
+        servoNesneleri[i].write(mikroSaniye); 
+        // ----------------------------------------
       }
     }
   }
@@ -244,7 +245,9 @@ void stepArkaPlanYonetimi() {
         if (pinDurumu == HIGH) {
           stepKalanAdim[i]--;
           if (stepKalanAdim[i] == 0) {
-            Serial.println("✅ [ST] " + stepIsimleri[i] + " adimlamayi tamamladi.");
+            //Serial.print(F("✅ [ST] "));
+            //Serial.print(stepIsimleri[i]);
+            //Serial.println(F(" adimlamayi tamamladi."));
           }
         }
       }

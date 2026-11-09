@@ -35,9 +35,9 @@ void CHZtanimla(String icerikMetni) {
           pinMode(stepPin2[toplamStep], OUTPUT);
           
           // 🧠 F() Makrosu ile RAM koruması sağlandı
-          Serial.print(F("⚙️ [Tanim] Step Motor: ")); Serial.print(modulAdi);
-          Serial.print(F(" -> Pin: ")); Serial.print(stepPin1[toplamStep]);
-          Serial.print(F(",")); Serial.println(stepPin2[toplamStep]);
+          //Serial.print(F("⚙️ [Tanim] Step Motor: ")); //Serial.print(modulAdi);
+          //Serial.print(F(" -> Pin: ")); //Serial.print(stepPin1[toplamStep]);
+          //Serial.print(F(",")); //Serial.println(stepPin2[toplamStep]);
           toplamStep++;
         }
       }
@@ -51,8 +51,8 @@ void CHZtanimla(String icerikMetni) {
         servoAnlikAci[toplamServo] = 90;
         servoAdimGecikmesi[toplamServo] = 15; 
 
-        Serial.print(F("⚙️ [Tanim] Servo Motor: ")); Serial.print(modulAdi);
-        Serial.print(F(" -> Pin: ")); Serial.println(servoPin[toplamServo]);
+        //Serial.print(F("⚙️ [Tanim] Servo Motor: ")); //Serial.print(modulAdi);
+        //Serial.print(F(" -> Pin: ")); //Serial.println(servoPin[toplamServo]);
         toplamServo++;
       }
       // 🎯 3. PWM ÇIKIŞ AYRIŞTIRMA (PW)
@@ -61,8 +61,8 @@ void CHZtanimla(String icerikMetni) {
         pwmPin[toplamPwm] = pinlerStr.toInt();
         pinMode(pwmPin[toplamPwm], OUTPUT);
         
-        Serial.print(F("⚙️ [Tanim] PWM Cikis: ")); Serial.print(modulAdi);
-        Serial.print(F(" -> Pin: ")); Serial.println(pwmPin[toplamPwm]);
+        //Serial.print(F("⚙️ [Tanim] PWM Cikis: ")); //Serial.print(modulAdi);
+        //Serial.print(F(" -> Pin: ")); //Serial.println(pwmPin[toplamPwm]);
         toplamPwm++;
       }
       // 🎯 4. ANALOG GİRİŞ AYRIŞTIRMA (AN)
@@ -80,8 +80,8 @@ void CHZtanimla(String icerikMetni) {
         
         pinMode(analogPin[toplamAnalog], INPUT);
         
-        Serial.print(F("⚙️ [Tanim] Analog Giris: ")); Serial.print(modulAdi);
-        Serial.print(F(" -> Pin MCU: ")); Serial.println(analogPin[toplamAnalog]);
+        //Serial.print(F("⚙️ [Tanim] Analog Giris: ")); //Serial.print(modulAdi);
+        //Serial.print(F(" -> Pin MCU: ")); //Serial.println(analogPin[toplamAnalog]);
         toplamAnalog++;
       }
       // 🎯 5. DİJİTAL GİRİŞ AYRIŞTIRMA (DI)
@@ -98,9 +98,9 @@ void CHZtanimla(String icerikMetni) {
         }
         
         pinMode(diPin[toplamDi], INPUT); 
-        Serial.print(F("⚙️ [Tanim] Dijital Giris: ")); Serial.print(modulAdi);
-        Serial.print(F(" -> Pin: ")); Serial.print(diPin[toplamDi]);
-        Serial.print(F(" (Normal: ")); Serial.print(diNormalDurum[toplamDi]); Serial.println(F(")"));
+        //Serial.print(F("⚙️ [Tanim] Dijital Giris: ")); //Serial.print(modulAdi);
+        //Serial.print(F(" -> Pin: ")); //Serial.print(diPin[toplamDi]);
+        //Serial.print(F(" (Normal: ")); //Serial.print(diNormalDurum[toplamDi]); //Serial.println(F(")"));
         toplamDi++;
       }
       // 🎯 6. DİJİTAL ÇIKIŞ AYRIŞTIRMA (DO)
@@ -111,8 +111,8 @@ void CHZtanimla(String icerikMetni) {
         pinMode(doPin[toplamDo], OUTPUT); 
         digitalWrite(doPin[toplamDo], LOW); 
         
-        Serial.print(F("⚙️ [Tanim] Dijital Cikis: ~")); Serial.print(doIsimleri[toplamDo]);
-        Serial.print(F("~ -> Pin: ")); Serial.println(doPin[toplamDo]);
+        //Serial.print(F("⚙️ [Tanim] Dijital Cikis: ~")); //Serial.print(doIsimleri[toplamDo]);
+        //Serial.print(F("~ -> Pin: ")); //Serial.println(doPin[toplamDo]);
         toplamDo++;
       }
     }

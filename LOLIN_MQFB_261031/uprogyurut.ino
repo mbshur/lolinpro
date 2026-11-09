@@ -9,7 +9,8 @@ bool loopBasladi = false;       // LOOP: etiketinin geçilip geçilmediğini fon
 
 unsigned long uprog_bekleme_pozisyonu = 0; // 🎯 Kaldığımız dosya konumunu tutacak yeni hafıza
 
-// --- 1. UZUN METRAJ İLK KURULUM TARAMASI (SETUP:) ---
+
+
 // --- 1. UZUN METRAJ İLK KURULUM TARAMASI (SETUP:) ---
 void runsetup() {
   Serial.println(F("[uprog] runsetup() basladi..."));
@@ -70,6 +71,8 @@ void urunloop() {
 
   // Eğer bir alt senaryo tetiklendiyse, ana dosyayı okumayı durdur ve alt dosyayı koştur
   if (altDosyaCalisiyor) {
+      
+  if(slaveden_cevap_bekleniyor)return;
     altDosyaYurut();
     return; 
   }

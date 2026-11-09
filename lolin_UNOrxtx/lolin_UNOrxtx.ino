@@ -1,4 +1,8 @@
-#include <Servo.h> // Servo nesnelerini dinamik eklemek için standart kütüphane
+//#include <AltSoftSerial.h>
+//AltSoftSerial Serial2; // RX sabit Pin 8, TX sabit Pin 9 olur.
+
+
+#include <ServoTimer2Plus.h> // Yeni kütüphanemiz
 
 
 // --- ⚙️ DİNAMİK PİN TANIMLAMA SÖZLÜKLERİ (UNO RAM DOSTU SABİTLER) ---
@@ -21,7 +25,7 @@ unsigned long stepAdimGecikmesi[MAX_MODUL] = {500}; // Varsayılan: 500us
 String servoIsimleri[MAX_MODUL];  // Servoların isimlerini (Örn: SR0) tutan dizi
 int servoPin[MAX_MODUL];          // Servoların bağlı olduğu pin numaralarını tutan dizi
 // (Önceki adımda eklediğimiz diğer değişkenler de burada durmalı:)
-Servo servoNesneleri[MAX_MODUL];
+ServoTimer2Plus servoNesneleri[MAX_MODUL]; // Nesne dizisini güncelledik
 bool servoBaglandi[MAX_MODUL] = {false};
 
 
@@ -74,14 +78,18 @@ String CHZadi ="";
 
 String rxdata="";
 String txdata="";
+// --- 💬 HABERLEŞME ARABELLEĞİ ---
+String rxBuffer = ""; // ESP'den gelen karakterleri beklemeden toplamak için
 
 int raporzamanlayici;
 unsigned long raporsayaci;
 void setup() {
   // Donanımsal seri port 19200 baud hızında başlatılıyor (Halkadaki tek hız)
   //Serial.begin(19200);   
-  Serial.begin(38400);  
+  Serial.begin(38400);
+  Serial.println("Hello");  
   pinMode(ledPin, OUTPUT);
+  //Serial2.begin(38400); // ESP hızı (ESP kodunda da 9600 olduğundan emin olun!)
 
 }
 
