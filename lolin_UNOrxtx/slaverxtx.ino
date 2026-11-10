@@ -1,5 +1,6 @@
 
 void slaveRxvoid() {
+  rxBuffer.reserve(100);
   while (Serial.available() > 0) {
     char c = Serial.read();
 
@@ -23,7 +24,7 @@ void slaveRxvoid() {
 //
 void slaveTxvoid() {
   if (txdata.length() > 0) {
-    Serial.println(txdata);
+    Serial.print("txdata:"); Serial.println(txdata);
     txdata = "";
   }
 }
@@ -49,7 +50,7 @@ void CHZisimkontrol(String gelenVeri) {
         String icerikMetni = gelenVeri.substring(pBasi + 1, pSonu);
         txdata="........";slaveTxvoid();
         CHZtanimla(icerikMetni);
-        txdata = gelenVeri.substring(gelenVeri.indexOf("DEF<"), pSonu);
+        //txdata = gelenVeri.substring(gelenVeri.indexOf("DEF<"), pSonu);
         if (txdata != "") {  //Serial.println("txdata:" + txdata);slaveTxvoid();
         } else {             //Serial.println("tx ile gönderilecek data yok");
         }
@@ -59,11 +60,14 @@ void CHZisimkontrol(String gelenVeri) {
   } else {
     // cihaz adı zaten öğrenilmiş, fakat yine tanıımlama geldiyse kendine ait kısmı sil
     if (gelenVeri.indexOf("DEF<" + CHZadi) > -1) {
+      gelenVeri=""; return;
+/*
       int silbasi = gelenVeri.indexOf("DEF<" + CHZadi);
-      int silsonu = -1;
       String gelenveritmp = gelenVeri.substring(silbasi + 4, gelenVeri.length());
+      int silsonu = -1;
       if (gelenveritmp.indexOf("]") > -1) silsonu = gelenveritmp.indexOf("]");
       gelenVeri = gelenVeri.substring(0, silbasi) + gelenVeri.substring(silsonu, gelenVeri.length());
+*/
     }
 
     // cihaz adı zaten öğrenilmiş, komutları dinle

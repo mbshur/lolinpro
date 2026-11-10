@@ -86,8 +86,8 @@ unsigned long raporsayaci;
 void setup() {
   // Donanımsal seri port 19200 baud hızında başlatılıyor (Halkadaki tek hız)
   //Serial.begin(19200);   
-  Serial.begin(38400);
-  Serial.println("Hello");  
+  Serial.begin(19200);
+
   pinMode(ledPin, OUTPUT);
   //Serial2.begin(38400); // ESP hızı (ESP kodunda da 9600 olduğundan emin olun!)
 
@@ -97,7 +97,6 @@ void loop() {
 
   // 🎯 Her döngüde sensörleri asenkron olarak kontrol et ve zamanı gelince ESP'ye bas!
   updinput();
-
   // Sizin mevcut haberleşme ve kontrol motorlarınız aynen çalışmaya devam eder
   slaveRxvoid();
   CHZkontrol();

@@ -729,31 +729,7 @@ void yap(String yapilacakis, int islemno) {
   }
 
 
-  if (dsol == "RUN" || dsol == "TX>") {
-    String bilesen_ani = dsag;
-    bilesen_ani.trim();
 
-    String altSenaryoYolu = "/_" + bilesen_ani + ".txt";
-
-    if (LittleFS.exists(altSenaryoYolu)) {
-      Serial.printf("[uprog-tetik] Alt senaryo bulundu: %s. Baslatiliyor...\n", bilesen_ani.c_str());
-
-      if (ualt_dosya) ualt_dosya.close();
-      ualt_dosya = LittleFS.open(altSenaryoYolu, "r");
-      if (ualt_dosya) {
-        altDosyaCalisiyor = true;
-        aktifAltDosyaAdi = bilesen_ani;
-
-        // 🎯 SİHİRLİ DOKUNUŞ: Ana dosyanın while döngüsünü anında kır!
-        // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır.
-        return;
-      }
-    } else {
-      dsag = dsaganaliz(dsag);
-      txsend(dsag);
-      return;
-    }
-  }
 
 
   for (int indis = 0; indis < 31; indis++)  // her islem için döngü
@@ -892,6 +868,43 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
 
     // 0-10  PİN     11-20 degisken
   }
+
+
+
+
+
+
+  if (dsol == "RUN" || dsol == "TX>") {
+    String bilesen_ani = dsag;
+    bilesen_ani.trim();
+
+    String altSenaryoYolu = "/_" + bilesen_ani + ".txt";
+
+    if (LittleFS.exists(altSenaryoYolu)) {
+      Serial.printf("[uprog-tetik] Alt senaryo bulundu: %s. Baslatiliyor...\n", bilesen_ani.c_str());
+
+      if (ualt_dosya) ualt_dosya.close();
+      ualt_dosya = LittleFS.open(altSenaryoYolu, "r");
+      if (ualt_dosya) {
+        altDosyaCalisiyor = true;
+        aktifAltDosyaAdi = bilesen_ani;
+
+        // 🎯 SİHİRLİ DOKUNUŞ: Ana dosyanın while döngüsünü anında kır!
+        // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır.
+        return;
+      }
+    } else {
+      dsag = dsaganaliz(dsag);
+      txsend(dsag);
+      return;
+    }
+  }
+
+
+
+
+
+
 
   if (aktifpinno == -100) {
     programerrorlog += "tanimli olmayan değişken var: " + dsol + " Satir:" + String(satirsayisip) + "\n";

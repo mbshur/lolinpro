@@ -1525,8 +1525,10 @@ void loop() {
   //harcananzaman = millis();
 
   MDNS.update();  // mDNS sorgularini guncellemek icindir
-   if (rxtxvar) rxtxloop();
-   else serin();
+   //if (rxtxvar) 
+   rxtxloop();
+   //else 
+   //serin();
 
   xilent = httpserver.available();
   if (xilent && fbisleniyor == false) {

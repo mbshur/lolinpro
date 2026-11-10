@@ -1,7 +1,5 @@
 #include <SoftwareSerial.h>
 
-
-
 SoftwareSerial unoSerial;
 
 void rxtxsetup(String rxtxdatas) {
@@ -9,14 +7,16 @@ void rxtxsetup(String rxtxdatas) {
   Serial.println(rxtxdatas);
   if (rxtxdatas.indexOf("RXTX=") > -1) rxtxvar = true;
   else return;
-  rxtxdatas = rxtxdatas.substring(rxtxdatas.indexOf("RXTX="), rxtxdatas.length());
-  rxtxdatas = rxtxdatas.substring(0, rxtxdatas.indexOf("\n"));
+rxtxdatas = rxtxdatas.substring(rxtxdatas.indexOf("RXTX=") + 5);
+  int pos = rxtxdatas.indexOf('\n');
+  if (pos > -1) rxtxdatas = rxtxdatas.substring(0, pos);
+
   Serial.print("RXTXDATAS: ");
   Serial.println(rxtxdatas);
 
   int ESP_RX_PIN = D0;  // Uno'nun TX'inden (direnç korumalı) gelen hat
   int ESP_TX_PIN = D2;  // Uno'nun RX'ine giden hat
-  int BAUD_RATE = 38400;  // Haberleşme frekansı
+  int BAUD_RATE = 19200;  // Haberleşme frekansı
 
   String rxpinStr = "";
   String txpinStr = "";
@@ -31,6 +31,11 @@ void rxtxsetup(String rxtxdatas) {
     BAUD_RATE = baudRStr.toInt();
   }
 
+Serial.printf("RXSTR=[%s]\n", rxpinStr.c_str());
+Serial.printf("TXSTR=[%s]\n", txpinStr.c_str());
+
+Serial.printf("RXPIN=%d\n", ESP_RX_PIN);
+Serial.printf("TXPIN=%d\n", ESP_TX_PIN);
 
   // Software Serial pin yapılandırması ve 19200 baud başlatılması
   // (RX, TX) parametreleri sırasıyla verilir
@@ -43,9 +48,13 @@ void rxtxsetup(String rxtxdatas) {
 void rxtxloop() {
   if (unoSerial.available()) {
     String gelenHat = unoSerial.readStringUntil('\n');
+    
     gelenHat.trim();
     Serial.print(F("<unodangelen> "));
     Serial.println(gelenHat);
+    
+
+    
     // 1. Önce sensör paketlerini emen motorumuz (:AN:)
     if (gelenHat.indexOf(":AN:") > -1) {
       espSensorPaketiIsle(gelenHat);
@@ -142,7 +151,6 @@ void txsend(String txveri) {
   if (txveri.lastIndexOf(";") + 1 != txveri.length()) txveri += ";";
   Serial.println("txveri gönderildi. Veri:" + txveri);
   unoSerial.println(txveri);
-  delay(20);
 }
 
 
@@ -194,3 +202,26 @@ void espSensorPaketiIsle(String gelenHatVerisi) {
     }
   }
 }
+
+
+/*
+
+    String gelenHat="";
+  while (unoSerial.available() > 0) {
+    char c = unoSerial.read();
+    if (c == '\n') {
+      rxBuffer.trim();
+      gelenHat = rxBuffer;
+      rxBuffer = "";  // İşlem bitince hemen temizle
+    } else if (c != '\r') {
+      rxBuffer += c;
+    }
+  }
+
+
+
+  //if (unoSerial.available()) {
+    if (gelenHat.length()>0) {
+    // unoSerial.readStringUntil('\n');
+    rxBuffer="";
+    */
