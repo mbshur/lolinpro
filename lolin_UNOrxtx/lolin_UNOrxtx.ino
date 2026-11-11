@@ -10,7 +10,6 @@
 
 
 String raporlanacakcihazismi;
-String raporstr;
 
 
 // 1. STEP MOTOR HAFIZASI (Örn: STP=SM:2,3;)
@@ -59,12 +58,18 @@ int pwmAdimGecikmesi[MAX_MODUL] = {5}; // Varsayılan: Her adımda 5ms bekleme
 
 // 4. ANALOG GİRİŞ HAFIZASI (Örn: ANG=POT1:A0;)
 String analogIsimleri[MAX_MODUL];
+bool analogRapor[MAX_MODUL];
+int analogPinDeg[MAX_MODUL];
+int analogPinEdeg[MAX_MODUL];
 int analogPin[MAX_MODUL]; // A0, A1 gibi pinler arka planda tam sayıdır (14, 15 vb.)
 int toplamAnalog = 0;
 
 // 5. DİJİTAL GİRİŞ HAFIZASI (Örn: DI=SW1:7,0)
 String diIsimleri[MAX_MODUL];
+bool diRapor[MAX_MODUL];
 int diPin[MAX_MODUL];
+int diPinDeg[MAX_MODUL];
+int diPinEdeg[MAX_MODUL];
 int diNormalDurum[MAX_MODUL]; // Anahtarın arıza olmayan, normal hali (0 veya 1)
 int toplamDi = 0;
 

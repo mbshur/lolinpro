@@ -73,9 +73,6 @@ void CHZtanimla(String icerikMetni) {
         if (pinlerStr.indexOf('A') > -1) {
           int aNo = pinlerStr.substring(pinlerStr.indexOf('A') + 1).toInt();
           analogPin[toplamAnalog] = A0 + aNo; 
-        } else {
-          int aNo = pinlerStr.toInt();
-          analogPin[toplamAnalog] = A0 + aNo;
         }
         
         pinMode(analogPin[toplamAnalog], INPUT);
@@ -84,17 +81,17 @@ void CHZtanimla(String icerikMetni) {
         //Serial.print(F(" -> Pin MCU: ")); //Serial.println(analogPin[toplamAnalog]);
         toplamAnalog++;
       }
+      
       // 🎯 5. DİJİTAL GİRİŞ AYRIŞTIRMA (DI)
       else if (modulTipi == "DI" && toplamDi < MAX_MODUL) {
         diIsimleri[toplamDi] = modulAdi; 
-        
-        int virgulIdx = pinlerStr.indexOf(',');
-        if (virgulIdx > -1) {
-          diPin[toplamDi] = pinlerStr.substring(0, virgulIdx).toInt(); 
-          diNormalDurum[toplamDi] = pinlerStr.substring(virgulIdx + 1).toInt(); 
-        } else {
+
+        if (pinlerStr.indexOf('A') > -1) {
+          int aNo = pinlerStr.substring(pinlerStr.indexOf('A') + 1).toInt();
+          diPin[toplamAnalog] = A0 + aNo; 
+        } else 
+        {
           diPin[toplamDi] = pinlerStr.toInt();
-          diNormalDurum[toplamDi] = 0; 
         }
         
         pinMode(diPin[toplamDi], INPUT); 
@@ -103,6 +100,7 @@ void CHZtanimla(String icerikMetni) {
         //Serial.print(F(" (Normal: ")); //Serial.print(diNormalDurum[toplamDi]); //Serial.println(F(")"));
         toplamDi++;
       }
+
       // 🎯 6. DİJİTAL ÇIKIŞ AYRIŞTIRMA (DO)
       else if (modulTipi == "DO" && toplamDo < MAX_MODUL) {
         doIsimleri[toplamDo] = modulAdi; 
