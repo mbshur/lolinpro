@@ -1,6 +1,5 @@
 
 
-
 void CHZkontrol() {
   if (CHZadi == "") return;
 
@@ -38,18 +37,21 @@ void CHZkontrol() {
   if (rxdata == "") return;
   rxdata.trim();
 
-  int ikiNoktaIdx = rxdata.indexOf('=');
-  if (ikiNoktaIdx == -1) {
+  int EsittirIdx = rxdata.indexOf('=');
+  if (EsittirIdx == -1) {
     //Serial.println(CHZadi + ":ERR:PROTOKOL");
     rxdata = ""; 
     return;
   }
 
-  String arananCihazAdi = rxdata.substring(0, ikiNoktaIdx);      
-  String parametreler = rxdata.substring(ikiNoktaIdx + 1);  
+  String arananCihazAdi = rxdata.substring(0, EsittirIdx);      
+  String parametreler = rxdata.substring(EsittirIdx + 1);  
   arananCihazAdi.trim(); parametreler.trim();
 
   bool cihazBulundu = false;
+
+
+
 
   // --- [ST] STEP MOTOR KONTROLÜ (DİNAMİK HIZLI) ---
   for (int i = 0; i < toplamStep; i++) {
@@ -184,21 +186,25 @@ void CHZkontrol() {
   }
 
   if (!cihazBulundu) {
-    //Serial.println("arananCihazAdi:"+arananCihazAdi);
-    //Serial.println("parametreler:"+parametreler);
+    Serial.println("arananCihazAdi:"+arananCihazAdi);
+    Serial.println("parametreler:"+parametreler);
     if (arananCihazAdi.indexOf("RZ")>-1)
     {
-      raporzamanlayici=parametreler.toInt();
-      Serial.print("<ESP>ZR=OK\r\n");
+      if(parametreler.indexOf("?")>-1){
+      raporlanacakcihazismi=parametreler.substring(0,parametreler.indexOf("?"));
+      raporzamanlayici=(parametreler.substring(parametreler.indexOf("?")+1)).toInt();
+      } else raporzamanlayici=parametreler.toInt();
+
+      
       cihazBulundu=true;
     }
   }
 
 
+
   if (!cihazBulundu) {
     //Serial.println(CHZadi + ":ERR:KAYIP_CIHAZ");
   }
-
   rxdata = ""; 
 }
 

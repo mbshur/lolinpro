@@ -259,7 +259,14 @@ bool paranteziciislem(String parantezi) {
     aktifpinno = -10;  // "Tanımsız değil" kilidini açıyoruz
   }
   // 🎯 2. ADIM: EĞER SENSÖR DEĞİLSE, SİZİN MEVCUT ORİJİNAL KONTROLLERİNİZ ÇALIŞIR
-  else if (sol.equalsIgnoreCase("ACL")) {
+  else if (sol.indexOf("RXG:") > -1) {
+    if (rxgelenchzismi != "") {
+      if (sol.indexOf("RXG:" + rxgelenchzismi) > -1) {
+        solstate = rxgelenpindeger;
+        aktifpinno = -10; 
+      }
+    }
+  } else if (sol.equalsIgnoreCase("ACL")) {
     solstate = ACL;
   } else {
     bool tempvar = false;
@@ -356,74 +363,85 @@ bool paranteziciislem(String parantezi) {
 }
 
 
-void gotoifbet()
-{
-    String sat = satirp;
+void gotoifbet() {
+  String sat = satirp;
   if (sat.indexOf("(") < 1) { programerrorlog += "if ten sonra ( işareti olmalı. Satır:" + (String)satirsayisip + "\n"; }
   if (sat.indexOf(")") < 1) { programerrorlog += "if te ) kapatılmamış." + (String)satirsayisip + "\n"; }
   if (programerrorlog != "") return;
   String parantezici = sat.substring(sat.indexOf("(") + 1, sat.indexOf(")"));
   parantezici.replace(" ", "");
 
-  String paici="";
+  String paici = "";
 
-  if(parantezici.indexOf(",")>-1){
-  int virgulyeri=parantezici.indexOf(",");
-  if(virgulyeri<0) {programerrorlog += "ifbet yazılım hatası IFBET(....., ? DEGER2, DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n"; satirp="";return;}
-  String ilkdeger= parantezici.substring(0,virgulyeri);
-  parantezici = parantezici.substring(virgulyeri+1,parantezici.length());
-  virgulyeri=parantezici.indexOf(",");
-  if(virgulyeri<0) {programerrorlog += "ifbet yazılım hatası IFBET(....., .....? DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n"; satirp="";return;}
-  String ikincideger= parantezici.substring(0,virgulyeri);
-  parantezici = parantezici.substring(virgulyeri+1,parantezici.length());
-  if(parantezici.length()<1){programerrorlog += "ifbet yazılım hatası IFBET(....., ....., DEGER3) DEGER3 bulunamadı. Satır:" + (String)satirsayisip + "\n"; satirp="";return;}
-  String ucuncudeger= parantezici.substring(0,parantezici.length());
+  if (parantezici.indexOf(",") > -1) {
+    int virgulyeri = parantezici.indexOf(",");
+    if (virgulyeri < 0) {
+      programerrorlog += "ifbet yazılım hatası IFBET(....., ? DEGER2, DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n";
+      satirp = "";
+      return;
+    }
+    String ilkdeger = parantezici.substring(0, virgulyeri);
+    parantezici = parantezici.substring(virgulyeri + 1, parantezici.length());
+    virgulyeri = parantezici.indexOf(",");
+    if (virgulyeri < 0) {
+      programerrorlog += "ifbet yazılım hatası IFBET(....., .....? DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n";
+      satirp = "";
+      return;
+    }
+    String ikincideger = parantezici.substring(0, virgulyeri);
+    parantezici = parantezici.substring(virgulyeri + 1, parantezici.length());
+    if (parantezici.length() < 1) {
+      programerrorlog += "ifbet yazılım hatası IFBET(....., ....., DEGER3) DEGER3 bulunamadı. Satır:" + (String)satirsayisip + "\n";
+      satirp = "";
+      return;
+    }
+    String ucuncudeger = parantezici.substring(0, parantezici.length());
 
-      bool dgbul=false;
-      float ilkdegertest;
-      float ucuncudegertest;
+    bool dgbul = false;
+    float ilkdegertest;
+    float ucuncudegertest;
 
-      for (int bk = 0; bk < 31; bk++) {
-        if (ilkdeger == degis[bk]) {
-          ilkdegertest = atof(degdeg[bk].c_str());
-          dgbul=true;
-          break;
-        }
+    for (int bk = 0; bk < 31; bk++) {
+      if (ilkdeger == degis[bk]) {
+        ilkdegertest = atof(degdeg[bk].c_str());
+        dgbul = true;
+        break;
       }
-      if(dgbul==false)ilkdegertest=atof(ilkdeger.c_str());
-      dgbul=false;
+    }
+    if (dgbul == false) ilkdegertest = atof(ilkdeger.c_str());
+    dgbul = false;
 
-      for (int bk = 0; bk < 31; bk++) {
-        if (ucuncudeger == degis[bk]) {
-          ucuncudegertest = atof(degdeg[bk].c_str());
-          dgbul=true;
-          break;
-        }
+    for (int bk = 0; bk < 31; bk++) {
+      if (ucuncudeger == degis[bk]) {
+        ucuncudegertest = atof(degdeg[bk].c_str());
+        dgbul = true;
+        break;
       }
-      if(dgbul==false)ucuncudegertest=atof(ilkdeger.c_str());
+    }
+    if (dgbul == false) ucuncudegertest = atof(ilkdeger.c_str());
 
-      if(ilkdegertest <= ucuncudegertest)
-      {
-        //4,6,7
-        // between arasında demek 1. sayı küçükse 3 sayıdan normal yazılım o yüzden arasında if bloğu oluşturulacak
-        paici = ilkdeger + "<" + ikincideger + "&&" + ikincideger + "<" + ucuncudeger; 
-      }
-      else
-      {
-        //7,9,2
-        // haricinde demek 1. sayı büyük 3. sayı küçük yazılmışsa sıralama test olduğundan haricinde diye bakılacak
-        paici = ikincideger + "<" + ilkdeger + "||" + ucuncudeger + "<" + ikincideger; 
-
-      }
+    if (ilkdegertest <= ucuncudegertest) {
+      //4,6,7
+      // between arasında demek 1. sayı küçükse 3 sayıdan normal yazılım o yüzden arasında if bloğu oluşturulacak
+      paici = ilkdeger + "<" + ikincideger + "&&" + ikincideger + "<" + ucuncudeger;
+    } else {
+      //7,9,2
+      // haricinde demek 1. sayı büyük 3. sayı küçük yazılmışsa sıralama test olduğundan haricinde diye bakılacak
+      paici = ikincideger + "<" + ilkdeger + "||" + ucuncudeger + "<" + ikincideger;
+    }
 
 
-  }else {programerrorlog += "ifbet yazılım hatası IFBET( DEGER1, DEGER2, DEGER3) şeklinde olmalı. Satır:" + (String)satirsayisip + "\n";satirp=""; return;}
+  } else {
+    programerrorlog += "ifbet yazılım hatası IFBET( DEGER1, DEGER2, DEGER3) şeklinde olmalı. Satır:" + (String)satirsayisip + "\n";
+    satirp = "";
+    return;
+  }
 
 
 
 
-  satirp = "IF(" + paici +")" + satirp.substring(satirp.indexOf(")")+1,satirp.length()) ;
- gotoif(); 
+  satirp = "IF(" + paici + ")" + satirp.substring(satirp.indexOf(")") + 1, satirp.length());
+  gotoif();
 }
 
 

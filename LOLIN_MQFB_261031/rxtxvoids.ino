@@ -61,13 +61,13 @@ void rxtxloop() {
     }
 
     // 🎯 2. ADIM: AKILLI ARIZA / ACİL STOP TEŞHİS MOTORU (:ERR:)
-    if (gelenHat.indexOf(":ERR:") > -1) {
+    if (gelenHat.indexOf(":ERR=") > -1) {
       // Gelen paketi parçala. Örn: "UNO1:ERR:SW1=1;"
       // Önce sonundaki ";" işaretini temizleyelim
       if (gelenHat.endsWith(";")) gelenHat = gelenHat.substring(0, gelenHat.length() - 1);
 
       int ilkIkiNokta = gelenHat.indexOf(':');
-      int ikinciIkiNokta = gelenHat.indexOf(":ERR:");
+      int ikinciIkiNokta = gelenHat.indexOf(":ERR=");
 
       if (ilkIkiNokta > 0 && ikinciIkiNokta > ilkIkiNokta) {
         String cihaz = gelenHat.substring(0, ilkIkiNokta);            // Örn: "UNO1"
@@ -98,15 +98,23 @@ void rxtxloop() {
     }
 
     // 3. Adım: gelen kodları çözüyoruz.
-    if (gelenHat.indexOf("<ESP>") > -1) {
-      if (gelenHat.indexOf(":") > 0 && gelenHat.indexOf(":AN=") == -1 && gelenHat.indexOf(":ERR=") == -1) {
-        
-        String cihaz = gelenHat.substring(cihaz.indexOf("<ESP>") + 5, gelenHat.indexOf(":"));
-        String durum = gelenHat.substring(gelenHat.indexOf(":") + 1);
+    if (gelenHat.indexOf("<ESP!>") > -1 || gelenHat.indexOf("<" + esphostname + "!>") > -1) {
+
+        if(gelenHat.indexOf("<" + esphostname + "!>") > -1) gelenHat.replace("<" + esphostname + "!>" ,"<ESP!>");
+        String cihaz = gelenHat.substring(gelenHat.indexOf("!>") + 2, gelenHat.indexOf(":"));
+        Serial.print(" chz: ");Serial.print(cihaz);
+        String durum = gelenHat.substring(gelenHat.indexOf(":") + 1, gelenHat.length());
+        rxgelenpinismi = gelenHat.substring(gelenHat.indexOf("=") + 1,gelenHat.indexOf("?"));
+        Serial.print(" rxgelenpinismi: ");Serial.print(rxgelenpinismi);
+        rxgelenpindeger = gelenHat.substring(gelenHat.indexOf("?") + 1,gelenHat.length());
+        Serial.print(" rxgelenpindeger: ");Serial.println(rxgelenpindeger);
+        if(rxgelenpindeger.indexOf(";")>-1)rxgelenpindeger.replace(";","");
         cihaz.trim();
         cihaz.toUpperCase();
         durum.trim();
-
+        rxgelenpinismi.trim();
+        rxgelenpindeger.trim();
+        Serial.print("rxgelenpindeger:");Serial.println(rxgelenpindeger);
         for (int s = 0; s < 10; s++) {
           if (slaves[s] == cihaz) {
              slavesrx[s] = gelenHat;
@@ -129,7 +137,6 @@ void rxtxloop() {
 
           }
         }
-      }
     }
   }
 }
@@ -145,6 +152,9 @@ void txsend(String txveri) {
       slavestx[tv] = gidenverikesi.substring(0, benimgidenveriSonum);
       //Serial.print("slaveno:");Serial.print(tv);Serial.print(" slaveismi:");Serial.print(slaves[tv]);
       //Serial.print(" slavetx:");Serial.println(slavestx[tv]);
+
+      if(txv.indexOf("RZ=")>-1)rxgelenchzismi=slaves[tv];
+
     }
   }
   txv = "";

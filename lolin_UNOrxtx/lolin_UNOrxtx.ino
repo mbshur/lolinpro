@@ -8,6 +8,11 @@
 // --- ⚙️ DİNAMİK PİN TANIMLAMA SÖZLÜKLERİ (UNO RAM DOSTU SABİTLER) ---
 #define MAX_MODUL 5 // Her modül tipinden en fazla kaç tane tanımlanabilir
 
+
+String raporlanacakcihazismi;
+String raporstr;
+
+
 // 1. STEP MOTOR HAFIZASI (Örn: STP=SM:2,3;)
 String stepIsimleri[MAX_MODUL];
 int stepPin1[MAX_MODUL];

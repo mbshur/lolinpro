@@ -1478,8 +1478,9 @@ WiFiClient xilent;
 bool htpcldepindegisti = false;
 int test = 1;
 
-
-
+String rxgelenchzismi;
+String rxgelenpinismi;
+String rxgelenpindeger;
 
 void loop() {
   //Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
@@ -1828,7 +1829,7 @@ void pinuygula() {
 void vrkontrol() {
 
   for (int vr = 0; vr < 6; vr++) {
-    if (VRP[vr].length() > 0) {
+    if (VRP[vr].length() > 2) {
       Serial.println("VR" + (String)vr + ": " + VRP[vr]);
       if (VRP[vr].indexOf("BUZ>") == 0) {
         notalar = VRP[vr].substring(VRP[vr].indexOf(":") + 1, VRP[vr].length());

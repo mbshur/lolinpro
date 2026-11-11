@@ -24,7 +24,7 @@ void slaveRxvoid() {
 //
 void slaveTxvoid() {
   if (txdata.length() > 0) {
-    Serial.print("txdata:"); Serial.println(txdata);
+    Serial.println(txdata);
     txdata = "";
   }
 }
