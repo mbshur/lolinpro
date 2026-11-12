@@ -8,7 +8,7 @@ unsigned long uprogw=0;
 bool loopBasladi = false;       // LOOP: etiketinin geçilip geçilmediğini fonksiyonlar arası hafızada tutar
 
 unsigned long uprog_bekleme_pozisyonu = 0; // 🎯 Kaldığımız dosya konumunu tutacak yeni hafıza
-
+unsigned long uprog_bekleme_pozisyonuydk=0;
 
 
 // --- 1. UZUN METRAJ İLK KURULUM TARAMASI (SETUP:) ---
@@ -142,7 +142,7 @@ void urunloop() {
       // readStringUntil satırı okuduğu için dosya imleci şu an tam olarak
       // bir alt satırın (TX>=PR2;) BAŞINDA bekliyor. Bu konumu hafızaya kaydediyoruz!
       uprog_bekleme_pozisyonu = udos.position(); 
-      
+      uprog_bekleme_pozisyonuydk=uprog_bekleme_pozisyonu;
       Serial.print(F("[uprog-wait] ⏱️ Gecikme tetiklendi: "));
       Serial.print(sureStr);
       Serial.println(F(" ms boyunca dosya okuma donduruldu..."));
@@ -203,6 +203,6 @@ void uzunmetraj() {
   }
 
   if (stg == 2) {
-    urunloop(); 
+    if(!waiting)urunloop(); 
   }
 }

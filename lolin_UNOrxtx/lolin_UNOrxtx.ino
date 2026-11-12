@@ -35,7 +35,7 @@ bool servoBaglandi[MAX_MODUL] = {false};
 
 
 int servoHedefAci[MAX_MODUL] = {90};
-float servoAnlikAci[MAX_MODUL] = {90};
+int servoAnlikAci[MAX_MODUL] = {90};
 unsigned long servoSonGuncellemeZamani[MAX_MODUL] = {0};
 int servoAdimGecikmesi[MAX_MODUL] = {15}; 
 const float SERVO_ADIM_HIZI = 1.0;
@@ -105,10 +105,13 @@ void setup() {
 
 void loop() {
 
-  // 🎯 Her döngüde sensörleri asenkron olarak kontrol et ve zamanı gelince ESP'ye bas!
-  updinput();
+  
   // Sizin mevcut haberleşme ve kontrol motorlarınız aynen çalışmaya devam eder
   slaveRxvoid();
+
+// 🎯 Her döngüde sensörleri asenkron olarak kontrol et ve zamanı gelince ESP'ye bas!
+  updinput();
+
   CHZkontrol();
   if(raporzamanlayici>0)raporzamanlayicivoid();
   slaveTxvoid();

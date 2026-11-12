@@ -48,7 +48,8 @@ void CHZisimkontrol(String gelenVeri) {
       int pSonu = gelenVeri.indexOf("]");
       if (pBasi > -1 && pSonu > pBasi) {
         String icerikMetni = gelenVeri.substring(pBasi + 1, pSonu);
-        txdata="........";slaveTxvoid();
+        txdata = "........";
+        slaveTxvoid();
         CHZtanimla(icerikMetni);
         //txdata = gelenVeri.substring(gelenVeri.indexOf("DEF<"), pSonu);
         if (txdata != "") {  //Serial.println("txdata:" + txdata);slaveTxvoid();
@@ -60,14 +61,41 @@ void CHZisimkontrol(String gelenVeri) {
   } else {
     // cihaz adı zaten öğrenilmiş, fakat yine tanıımlama geldiyse kendine ait kısmı sil
     if (gelenVeri.indexOf("DEF<" + CHZadi) > -1) {
-      gelenVeri=""; return;
-/*
+      gelenVeri = "";
+      return;
+      /*
       int silbasi = gelenVeri.indexOf("DEF<" + CHZadi);
       String gelenveritmp = gelenVeri.substring(silbasi + 4, gelenVeri.length());
       int silsonu = -1;
       if (gelenveritmp.indexOf("]") > -1) silsonu = gelenveritmp.indexOf("]");
       gelenVeri = gelenVeri.substring(0, silbasi) + gelenVeri.substring(silsonu, gelenVeri.length());
 */
+    }
+
+    if (gelenVeri.indexOf("DURX") > -1) {
+      // Güvenlik koruması: Tüm step motorları anında durdur
+      for (int m = 0; m < toplamStep; m++) {
+        digitalWrite(stepPin1[m], LOW);
+        digitalWrite(stepPin2[m], LOW);
+        stepKalanAdim[m] = 0;  // 🚨 İŞTE TAM BURAYA EKLEYİN! (Arka plan adımlarını da sıfırlar)
+      }
+
+      // Tüm dijital çıkışları (Röleleri vb.) emniyet için kapat
+      for (int r = 0; r < toplamDo; r++) {
+        digitalWrite(doPin[r], LOW);
+      }
+
+      for (int r = 0; r < toplamServo; r++) {
+        if (!servoBaglandi[r]) continue;
+        servoHedefAci[r] = servoAnlikAci[r];
+        servoNesneleri[r].detach();  // PWM sinyalini keser, motor boşa çıkar
+        servoBaglandi[r] = false;    // Tekrar çalıştırırken attach() yapmanız gerekir
+      }
+
+      for (int r = 0; r < MAX_MODUL; r++){
+        analogRapor[r]=false;
+        diRapor[r]=false;
+      }
     }
 
     // cihaz adı zaten öğrenilmiş, komutları dinle

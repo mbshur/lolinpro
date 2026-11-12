@@ -28,16 +28,6 @@
 void CHZkontrol() {
   if (CHZadi == "") return;
 
-  // 🚨 2. SENARYO (Gelişmiş): Canlı Dijital Giriş (DI) ve Akıllı Arıza Bildirimi
-  for (int i = 0; i < toplamDi; i++) {
-      diPinDeg[i] = digitalRead(diPin[i]);
-    }
-  
-  for (int i = 0; i < toplamAnalog; i++) {
-      analogPinDeg[i] = analogRead(analogPin[i]);
-    }
-  
-
 
   // 🎯 rxdata içinde işlenecek geçerli bir komut var mı?
   if (rxdata == "") return;
@@ -201,7 +191,7 @@ void CHZkontrol() {
   }
 
   if (!cihazBulundu) {
-    Serial.println("arananCihazAdi:" + arananCihazAdi);
+    Serial.println("aranankomut:" + arananCihazAdi);
     Serial.println("parametreler:" + parametreler);
     if (arananCihazAdi.indexOf("RZ") > -1) {
       if (parametreler.indexOf("?") > -1) {
@@ -211,27 +201,26 @@ void CHZkontrol() {
         else raporzamanlayici = 0;
 
 
-      } 
-      else raporzamanlayici = parametreler.toInt();
-
-
-
-      for (int i = 0; i < toplamAnalog; i++) {
-        if (raporlanacakcihazismi == analogIsimleri[i]) {
-          analogRapor[i] = true;
-          analogPinEdeg[i] = analogPin[i];
-        }
+      } else {
+        raporlanacakcihazismi = "";
+        raporzamanlayici = parametreler.toInt();
       }
 
 
-
-      for (int i = 0; i < toplamDi; i++) {
-        if (raporlanacakcihazismi == diIsimleri[i]) {
-          diRapor[i] = true;
-          diPinEdeg[i] = diPinEdeg[i];
+      if (raporlanacakcihazismi != "") {
+        for (int i = 0; i < toplamAnalog; i++) {
+          if (raporlanacakcihazismi == analogIsimleri[i]) {
+            analogRapor[i] = true;
+            analogPinEdeg[i] = analogPin[i];
+          }
+        }
+        for (int i = 0; i < toplamDi; i++) {
+          if (raporlanacakcihazismi == diIsimleri[i]) {
+            diRapor[i] = true;
+            diPinEdeg[i] = diPinEdeg[i];
+          }
         }
       }
-
       cihazBulundu = true;
     }
   }
@@ -251,7 +240,7 @@ void servoYumusakHareketYonetimi() {
   for (int i = 0; i < toplamServo; i++) {
     if (!servoBaglandi[i]) continue;
 
-    if ((int)servoAnlikAci[i] != servoHedefAci[i]) {
+    if (servoAnlikAci[i] != servoHedefAci[i]) {
       if (simdikiZaman - servoSonGuncellemeZamani[i] >= (unsigned long)servoAdimGecikmesi[i]) {
         servoSonGuncellemeZamani[i] = simdikiZaman;
 
@@ -263,7 +252,7 @@ void servoYumusakHareketYonetimi() {
 
         // --- 🛠️ YENİ KÜTÜPHANE UYUMLAMA SATIRI ---
         // 0-180 derece arası değeri, servonun anlıcağı 750-2250 mikrosaniyeye dönüştürüyoruz
-        int mikroSaniye = map((int)servoAnlikAci[i], 0, 180, 750, 2250);
+        int mikroSaniye = map(servoAnlikAci[i], 0, 180, 750, 2250);
         servoNesneleri[i].write(mikroSaniye);
         // ----------------------------------------
       }

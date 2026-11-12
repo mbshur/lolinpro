@@ -1,6 +1,7 @@
 unsigned long milis100;
 int degisecekno = -100;
 
+
 int satirsayisip;
 
 bool ifkiyas[5];
@@ -87,6 +88,21 @@ void programrun() {
 
     satirp = ptm.substring(0, ptm.indexOf("\n"));
 
+// LOOP: a gelindiyse daha önce setup olmuş demektir.
+    if(setupisOk==true)
+    {
+      if(ptm.indexOf("LOOP:")>-1){
+      ptm=ptm.substring(ptm.indexOf("LOOP:\n")+6,ptm.length());
+      satirp = ptm.substring(0, ptm.indexOf("\n"));
+      }
+    }
+
+      if(satirp.indexOf("LOOP:")>-1)
+      {
+        setupisOk=true;
+        return;
+      }
+
     satirislem();
 
     if (ptm.indexOf("\n") > -1) ptm = ptm.substring(ptm.indexOf("\n") + 1, ptm.length());
@@ -123,15 +139,11 @@ void satirislem() {
   String satiruppercase = satirp;
   satiruppercase.toUpperCase();
 
-
-
-  //Serial.println(satiruppercase);
-  // if için ///////////////////////////////////////////
-
-  if (satiruppercase.indexOf("//") == 0) return;
   //Serial.println("SATIRIM:" + satiruppercase);
 
-  //if (satiruppercase.indexOf("FBC ") == 0) firebasecihaztanitimi();  firebase için
+  if (satiruppercase.indexOf("//") == 0) return;
+
+
   if (satiruppercase.indexOf("TMR ") == 0) timertanitimi();
   else if (satiruppercase.indexOf("DEG ") == 0) degiskentanitimi();
   else if (satiruppercase.indexOf("MQC ") == 0) mqttcihaztanitimi();
@@ -536,7 +548,7 @@ void gotoif() {
 
 
   if (ifsonuc == true) {
-    ifparantezdisi(satiruppercase, satirsayisip);
+    if(satiruppercase.indexOf("){")>-1 || satiruppercase.indexOf(";"))ifparantezdisi(satiruppercase, satirsayisip);
   } else if (standartprogram == true) {
     if (satiruppercase.indexOf("{") > -1) {
       susluparantezsayisi += 1;
@@ -587,7 +599,8 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
 
   if (yapilacaklar.indexOf("{") > -1) {
     //Serial.print("ptm:");Serial.println(ptm);
-    yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.indexOf("}"));
+    if (yapilacaklar.indexOf("}") > -1)yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.indexOf("}"));
+    else yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.length());
     //  Serial.print("yapilacaklar:");
     //  Serial.println(yapilacaklar);
     yapilacaklar.replace("\n", "");
@@ -690,7 +703,7 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
     }
   } else {
     if (yapilacaklar.length() > 3) {
-      programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş.\n";
+      programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş." + yapilacaklar + "\n";
       return;
     }
   }
@@ -720,7 +733,14 @@ void yap(String yapilacakis, int islemno) {
     }
   }
 
-
+  dsol.replace(" ","");
+  dsag.replace(" ","");
+  if(dsol=="BEKLE")
+  {
+    if(dsag=="1") waiting=true;
+    if(dsag=="0") waiting=false;
+    return;
+  }
 
   if (dsol == "ACL") {
     ACL = dsag;
@@ -888,10 +908,6 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
   }
 
 
-
-
-
-
   if (dsol == "RUN" || dsol == "TX>") {
     String bilesen_ani = dsag;
     bilesen_ani.trim();
@@ -908,7 +924,8 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
         aktifAltDosyaAdi = bilesen_ani;
 
         // 🎯 SİHİRLİ DOKUNUŞ: Ana dosyanın while döngüsünü anında kır!
-        // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır.
+        // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır. /_PR1.txt
+        
         return;
       }
     } else {

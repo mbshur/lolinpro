@@ -207,5 +207,9 @@ void ualtprogdur() {
   altProgramIptalBayragi = false; // 🎯 Sihirli dokunuş: İptal bayrağını bir sonraki sefer için indirdik!
 
   Serial.println(F("[uprog-alt] 🛑 KESME: ualtprogdur() cagrildi, alt program imha edildi."));
+
+  txdata="DURX";
+  txsend(txdata);
+
   yield();
 }

@@ -245,8 +245,8 @@ bool fben;
 String fberror = "";
 
 
-
-
+bool setupisOk=false;
+bool waiting=false;
 
 String htServerip;
 
@@ -746,6 +746,8 @@ void setup2() {
 
   dosyaOkupinayar();
   dosyaokuuprogram();
+
+  setupisOk=false;
 
   if (pinayar.length() > 3) {
     dosyaOkuprogram();
