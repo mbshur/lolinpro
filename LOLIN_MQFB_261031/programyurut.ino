@@ -76,7 +76,7 @@ void programrun() {
   progmsg = "";
 
   programerrorlog = "";
-  ptm = programdata;
+  ptm = programdata+" \n";
 
 
   for (int q = 1; q < 200; q++) {
@@ -84,7 +84,7 @@ void programrun() {
     if (ptm.length() < 3) break;
     String spacesil = ptm;
     spacesil.trim();
-    if (spacesil.indexOf("\n") > 0 && spacesil.indexOf("\n") < 2) break;
+    if (spacesil.indexOf("\n") < 0) break;
 
     satirp = ptm.substring(0, ptm.indexOf("\n"));
 
@@ -92,7 +92,7 @@ void programrun() {
     if(setupisOk==true)
     {
       if(ptm.indexOf("LOOP:")>-1){
-      ptm=ptm.substring(ptm.indexOf("LOOP:\n")+6,ptm.length());
+      ptm=ptm.substring(ptm.indexOf("LOOP:")+5,ptm.length());
       satirp = ptm.substring(0, ptm.indexOf("\n"));
       }
     }
@@ -138,9 +138,9 @@ void programrun() {
 void satirislem() {
   String satiruppercase = satirp;
   satiruppercase.toUpperCase();
-
+  satiruppercase.trim();
   //Serial.println("SATIRIM:" + satiruppercase);
-
+  if (satiruppercase.indexOf("\n") == 0)return;
   if (satiruppercase.indexOf("//") == 0) return;
 
 
@@ -548,7 +548,8 @@ void gotoif() {
 
 
   if (ifsonuc == true) {
-    if(satiruppercase.indexOf("){")>-1 || satiruppercase.indexOf(";"))ifparantezdisi(satiruppercase, satirsayisip);
+    ifparantezdisi(satiruppercase, satirsayisip);
+    return;
   } else if (standartprogram == true) {
     if (satiruppercase.indexOf("{") > -1) {
       susluparantezsayisi += 1;
@@ -597,17 +598,21 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
   satiruppercase.toUpperCase();
   yapilacaklar = satiruppercase;
 
+  yapilacaklar.replace("\n", "");
+  String susmu=yapilacaklar;
+  susmu.replace(" ", "");
+  //Serial.print("susmu:");Serial.println(susmu);
+  if (susmu=="{")return;
+  if (susmu=="}")return;
   if (yapilacaklar.indexOf("{") > -1) {
     //Serial.print("ptm:");Serial.println(ptm);
     if (yapilacaklar.indexOf("}") > -1)yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.indexOf("}"));
     else yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.length());
     //  Serial.print("yapilacaklar:");
     //  Serial.println(yapilacaklar);
-    yapilacaklar.replace("\n", "");
   }
 
 
-  // boşlukları sil
   if (yapilacaklar.indexOf(";") > -1) {
 
 
@@ -695,13 +700,14 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
         delay(50);
       } else {
         yapilacakis.replace(" ", "");
-        if (yapilacakis.indexOf("}") != 0) yap(yapilacakis, yapilacaklarislemsayisi);
+        if (yapilacakis.indexOf("}") != 0 || yapilacakis.indexOf(";")>-1) yap(yapilacakis, yapilacaklarislemsayisi);
       }
 
       yapilacaklar = yapilacaklar.substring(yapilacaklar.indexOf(";") + 1, yapilacaklar.length());
       if (yapilacaklar.length() < 1) { break; }
     }
   } else {
+    if(yapilacaklar.lastIndexOf(")")+1 == yapilacaklar.length())return;
     if (yapilacaklar.length() > 3) {
       programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş." + yapilacaklar + "\n";
       return;

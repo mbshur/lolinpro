@@ -1009,47 +1009,7 @@ void htpcl(WiFiClient xilent) {
                 }
 
 
-                // fnames başı
-// 🎯 FNAMES BAŞI (Optimize Edilmiş Kararlı Sürüm)
-if (uzunMetrajVar) {
-  // Web arayüzünün HTML başlığını gönderiyoruz
-  xilent.print(F("<style>\r\n"
-                 "  .lbl-mod { padding: 5px 10px; background: #F0F0F0; color: #333; border-radius: 4px; "
-                 "             display: inline-block; margin: 3px; font-size: 13px; font-weight: bold; }\r\n"
-                 "</style>\r\n"
-                 "<div style='background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);'>\r\n"
-                 "  <span style='font-weight: bold; font-size: 15px;'>Flashta Kayıtlı Alt Programlar: </span><br><br>\r\n"
-                 "  <div style='margin-top: 5px;'>"));
 
-  Dir dir = LittleFS.openDir("/");
-  int bulunanDosyaSayisi = 0;
-
-  while (dir.next()) {
-    String dosyaAdi = dir.fileName();
-    
-    // 🎯 Sadece başı "_" ile başlayan alt program senaryolarını yakala (Örn: _PR1.txt)
-    if (dosyaAdi.indexOf("_") == 0 && dosyaAdi.indexOf(".") > -1) {
-      // Başındaki "_"yi ve sonundaki ".txt" uzantısını temizleyip saf ismi alıyoruz
-      String temizIsim = dosyaAdi.substring(1, dosyaAdi.indexOf("."));
-      temizIsim.toUpperCase(); // Hepsini büyük harf yapalım şık dursun
-
-      // RAM'i şişirmeden, bulduğumuz her dosyayı anında şık birer kutucuk olarak web arayüzüne basıyoruz
-      xilent.printf_P(PSTR("<span class='lbl-mod'>%s</span> "), temizIsim.c_str());
-      bulunanDosyaSayisi++;
-    }
-  }
-
-  if (bulunanDosyaSayisi == 0) {
-    xilent.print(F("<span style='color:gray; font-style:italic;'>Kayıtlı alt program bulunamadı.</span>"));
-  }
-
-  // HTML kutusunu kapatıyoruz
-  xilent.print(F("  </div>\r\n"
-                 "  <p style='font-size: 12px; color: gray; margin: 10px 0 0 0;'>Dosya olarak tanımlanmasa da Flashta kayıtlı olan tüm alt programlar.</p>\r\n"
-                 "</div>\r\n"));
-}
-// 🎯 FNAMES SONU
-                // fnames
 
 
 
@@ -1124,7 +1084,52 @@ if (uzunMetrajVar) {
                 }
               }
 
-              xilent.print(F("</tr><br></table><br><br><br><br>\r\n"));
+              xilent.print(F("</tr><br></table><br>\r\n"));
+
+
+                // fnames başı
+// 🎯 FNAMES BAŞI (Optimize Edilmiş Kararlı Sürüm)
+if (uzunMetrajVar) {
+  // Web arayüzünün HTML başlığını gönderiyoruz
+  xilent.print(F("<style>\r\n"
+                 "  .lbl-mod { padding: 5px 10px; background: #F0F0F0; color: #333; border-radius: 4px; "
+                 "             display: inline-block; margin: 3px; font-size: 13px; font-weight: bold; }\r\n"
+                 "</style>\r\n"
+                 "<div style='background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.05);'>\r\n"
+                 "  <span style='font-weight: bold; font-size: 15px;'>Flashta Kayıtlı Alt Programlar: </span><br><br>\r\n"
+                 "  <div style='margin-top: 5px;'>"));
+
+  Dir dir = LittleFS.openDir("/");
+  int bulunanDosyaSayisi = 0;
+
+  while (dir.next()) {
+    String dosyaAdi = dir.fileName();
+    
+    // 🎯 Sadece başı "_" ile başlayan alt program senaryolarını yakala (Örn: _PR1.txt)
+    if (dosyaAdi.indexOf("_") == 0 && dosyaAdi.indexOf(".") > -1) {
+      // Başındaki "_"yi ve sonundaki ".txt" uzantısını temizleyip saf ismi alıyoruz
+      String temizIsim = dosyaAdi.substring(1, dosyaAdi.indexOf("."));
+      temizIsim.toUpperCase(); // Hepsini büyük harf yapalım şık dursun
+
+      // RAM'i şişirmeden, bulduğumuz her dosyayı anında şık birer kutucuk olarak web arayüzüne basıyoruz
+      xilent.printf_P(PSTR("<span class='lbl-mod'>%s</span> "), temizIsim.c_str());
+      bulunanDosyaSayisi++;
+    }
+  }
+
+  if (bulunanDosyaSayisi == 0) {
+    xilent.print(F("<span style='color:gray; font-style:italic;'>Kayıtlı alt program bulunamadı.</span>"));
+  }
+
+  // HTML kutusunu kapatıyoruz
+  xilent.print(F("  </div>\r\n"
+                 "  <p style='font-size: 12px; color: gray; margin: 10px 0 0 0;'>Dosya olarak tanımlanmasa da Flashta kayıtlı olan tüm alt programlar.</p>\r\n"
+                 "</div>\r\n"));
+}
+// 🎯 FNAMES SONU
+                // fnames
+
+
             }
 
 
@@ -1574,7 +1579,7 @@ if (header.indexOf(F("/serveripayar")) > -1) {
 
             // Clear the header variable
             // Telif bilgisi, MAC adresi ve tablo kapanış etiketlerini tek bir şablonla Flash'tan basıyoruz
-            xilent.printf_P(PSTR("coded by %s. ESP kontrol (v4\r\n"
+            xilent.printf_P(PSTR("<br><br><br>coded by %s. ESP kontrol (v4\r\n"
                                  "<label style='font-size:1px;'>%s</label>04.01.2026)<br><br>\r\n"
                                  "</td></table></td></tr></table>\r\n"),
                             creator.c_str(),
