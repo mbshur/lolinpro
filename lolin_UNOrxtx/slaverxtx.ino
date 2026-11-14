@@ -8,9 +8,10 @@ void slaveRxvoid() {
       rxBuffer.trim();
 
       //Serial.print(F(" gelen ham veri : ")); // F() makrosu eklendi
-      //Serial.println(rxBuffer);
+      //Serial.println(rxBuffer);      
 
       if (rxBuffer.length() > 0) {
+        //Serial.println(rxBuffer);
         CHZisimkontrol(rxBuffer);  // Doğrudan rxBuffer'ı gönderiyoruz, ekstra String oluşturmuyoruz
       }
 
@@ -72,7 +73,12 @@ void CHZisimkontrol(String gelenVeri) {
 */
     }
 
-    if (gelenVeri.indexOf("DURX") > -1) {
+      if(gelenVeri.indexOf("WA!T")>-1){waiting=true;return;}
+      if(gelenVeri.indexOf("go!ng")>-1){waiting=false;return;}
+
+
+
+    if (gelenVeri.indexOf("DUR!X") > -1) {
       // Güvenlik koruması: Tüm step motorları anında durdur
       for (int m = 0; m < toplamStep; m++) {
         digitalWrite(stepPin1[m], LOW);
@@ -107,7 +113,7 @@ void CHZisimkontrol(String gelenVeri) {
 
       rxdata = gelenverikesi.substring(0, benimgelenveriSonum);
       ////Serial.println("rxdata--" + rxdata);
-      txdata = gelenVeri.substring(0, isimbasi) + gelenverikesi.substring(benimgelenveriSonum + 1);
+      txdata = gelenVeri.substring(0, isimbasi) + gelenverikesi.substring(benimgelenveriSonum + 1,gelenVeri.length());
       txdata.trim();
 
       if (txdata != "") {  //Serial.println("txdata:" + txdata);

@@ -17,6 +17,10 @@
 #include "Melody.h"
 
 
+#include <SoftwareSerial.h>
+
+SoftwareSerial unoSerial;
+
 WiFiClient mqttnet;
 MQTTClient mqttclient;
 String MQTTip = "";
@@ -173,8 +177,8 @@ String Program;
 
 // PROGRAM İÇİN ////////////////////////
 String satirp;
-String degis[30];
-String degdeg[30];
+String degis[31];
+String degdeg[31];
 String tmris[MAX_TIMERS];
 String tmrdeg[MAX_TIMERS];
 // 0-10  PİN     11-20 degisken
@@ -1480,9 +1484,9 @@ WiFiClient xilent;
 bool htpcldepindegisti = false;
 int test = 1;
 
-String rxgelenchzismi;
-String rxgelenpinismi;
-String rxgelenpindeger;
+//String rxgelenchzismi;
+//String rxgelenpinismi;
+//String rxgelenpindeger;
 
 void loop() {
   //Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
@@ -1531,7 +1535,7 @@ void loop() {
    //if (rxtxvar) 
    rxtxloop();
    //else 
-   //serin();
+   serin();
 
   xilent = httpserver.available();
   if (xilent && fbisleniyor == false) {

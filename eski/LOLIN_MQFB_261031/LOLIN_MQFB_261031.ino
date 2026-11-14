@@ -17,6 +17,10 @@
 #include "Melody.h"
 
 
+#include <SoftwareSerial.h>
+
+SoftwareSerial unoSerial;
+
 WiFiClient mqttnet;
 MQTTClient mqttclient;
 String MQTTip = "";
@@ -173,8 +177,8 @@ String Program;
 
 // PROGRAM İÇİN ////////////////////////
 String satirp;
-String degis[20];
-String degdeg[20];
+String degis[30];
+String degdeg[30];
 String tmris[MAX_TIMERS];
 String tmrdeg[MAX_TIMERS];
 // 0-10  PİN     11-20 degisken
@@ -219,6 +223,7 @@ String slavespinayar[10];
 String slavestx[10];
 String slavesrx[10];
 int aktifcihazno=-1;
+bool slaveden_cevap_bekleniyor=false;
 
 // Global Değişkenler (Lolin'in en tepesinde tanımlı olmalı)
 bool chzBloguIcindeyiz = false;
@@ -244,8 +249,8 @@ bool fben;
 String fberror = "";
 
 
-
-
+bool setupisOk=false;
+bool waiting=false;
 
 String htServerip;
 
@@ -745,6 +750,8 @@ void setup2() {
 
   dosyaOkupinayar();
   dosyaokuuprogram();
+
+  setupisOk=false;
 
   if (pinayar.length() > 3) {
     dosyaOkuprogram();
@@ -1477,8 +1484,9 @@ WiFiClient xilent;
 bool htpcldepindegisti = false;
 int test = 1;
 
-
-
+String rxgelenchzismi;
+String rxgelenpinismi;
+String rxgelenpindeger;
 
 void loop() {
   //Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
@@ -1524,8 +1532,10 @@ void loop() {
   //harcananzaman = millis();
 
   MDNS.update();  // mDNS sorgularini guncellemek icindir
-
-
+   //if (rxtxvar) 
+   rxtxloop();
+   //else 
+   //serin();
 
   xilent = httpserver.available();
   if (xilent && fbisleniyor == false) {
@@ -1534,7 +1544,7 @@ void loop() {
     if (habp == 1) timereski = millis() + 10;
     if (habp == 0) timereski = millis() + 10;
 
-    if (rxtxvar) rxtxloop();
+ 
 
     htpcl(xilent);
     if (htpcldepindegisti == true) {
@@ -1542,7 +1552,7 @@ void loop() {
     }
   }
 
-  serin();
+
 
   /*
   if (millis() - harcananzaman > (test * 200)) {
@@ -1825,7 +1835,7 @@ void pinuygula() {
 void vrkontrol() {
 
   for (int vr = 0; vr < 6; vr++) {
-    if (VRP[vr].length() > 0) {
+    if (VRP[vr].length() > 2) {
       Serial.println("VR" + (String)vr + ": " + VRP[vr]);
       if (VRP[vr].indexOf("BUZ>") == 0) {
         notalar = VRP[vr].substring(VRP[vr].indexOf(":") + 1, VRP[vr].length());

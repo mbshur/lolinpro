@@ -1,6 +1,7 @@
 unsigned long milis100;
 int degisecekno = -100;
 
+
 int satirsayisip;
 
 bool ifkiyas[5];
@@ -50,7 +51,7 @@ void programrun() {
     */
   }
   /*
-  for (int i = 11; i < 21; i++) {
+  for (int i = 11; i < 31; i++) {
     degdeg[i] = "";
     degis[i] = "";
   }
@@ -75,7 +76,7 @@ void programrun() {
   progmsg = "";
 
   programerrorlog = "";
-  ptm = programdata;
+  ptm = programdata+" \n";
 
 
   for (int q = 1; q < 200; q++) {
@@ -83,9 +84,24 @@ void programrun() {
     if (ptm.length() < 3) break;
     String spacesil = ptm;
     spacesil.trim();
-    if (spacesil.indexOf("\n") > 0 && spacesil.indexOf("\n") < 2) break;
+    if (spacesil.indexOf("\n") < 0) break;
 
     satirp = ptm.substring(0, ptm.indexOf("\n"));
+
+// LOOP: a gelindiyse daha önce setup olmuş demektir.
+    if(setupisOk==true)
+    {
+      if(ptm.indexOf("LOOP:")>-1){
+      ptm=ptm.substring(ptm.indexOf("LOOP:")+5,ptm.length());
+      satirp = ptm.substring(0, ptm.indexOf("\n"));
+      }
+    }
+
+      if(satirp.indexOf("LOOP:")>-1)
+      {
+        setupisOk=true;
+        return;
+      }
 
     satirislem();
 
@@ -122,16 +138,12 @@ void programrun() {
 void satirislem() {
   String satiruppercase = satirp;
   satiruppercase.toUpperCase();
-
-
-
-  //Serial.println(satiruppercase);
-  // if için ///////////////////////////////////////////
-
-  if (satiruppercase.indexOf("//") == 0) return;
+  satiruppercase.trim();
   //Serial.println("SATIRIM:" + satiruppercase);
+  if (satiruppercase.indexOf("\n") == 0)return;
+  if (satiruppercase.indexOf("//") == 0) return;
 
-  //if (satiruppercase.indexOf("FBC ") == 0) firebasecihaztanitimi();  firebase için
+
   if (satiruppercase.indexOf("TMR ") == 0) timertanitimi();
   else if (satiruppercase.indexOf("DEG ") == 0) degiskentanitimi();
   else if (satiruppercase.indexOf("MQC ") == 0) mqttcihaztanitimi();
@@ -169,7 +181,7 @@ void timertanitimi() {
 
 void degiskentanitimi() {
   Serial.println("degisken tanımına gelen satirp:" + satirp);
-  for (int ii = 11; ii < 21; ii++) {
+  for (int ii = 11; ii < 31; ii++) {
     if (satirp.indexOf("=") > 0) {
       if (degis[ii] == "" || degis[ii] == "null" || degis[ii] == satirp.substring(4, satirp.indexOf("="))) {
         String degisdegdeg = satirp;
@@ -259,7 +271,14 @@ bool paranteziciislem(String parantezi) {
     aktifpinno = -10;  // "Tanımsız değil" kilidini açıyoruz
   }
   // 🎯 2. ADIM: EĞER SENSÖR DEĞİLSE, SİZİN MEVCUT ORİJİNAL KONTROLLERİNİZ ÇALIŞIR
-  else if (sol.equalsIgnoreCase("ACL")) {
+  else if (sol.indexOf("RXG:") > -1) {
+    if (rxgelenchzismi != "") {
+      if (sol.indexOf("RXG:" + rxgelenchzismi) > -1) {
+        solstate = rxgelenpindeger;
+        aktifpinno = -10; 
+      }
+    }
+  } else if (sol.equalsIgnoreCase("ACL")) {
     solstate = ACL;
   } else {
     bool tempvar = false;
@@ -279,7 +298,7 @@ bool paranteziciislem(String parantezi) {
         }
       }
 
-      for (int pb = 11; pb < 21; pb++) {
+      for (int pb = 11; pb < 31; pb++) {
         if (SOLL == degis[pb]) {
           solstate = degdeg[pb];
           if (SOLL == "PROGNO") PROGNOX = solstate;
@@ -356,74 +375,85 @@ bool paranteziciislem(String parantezi) {
 }
 
 
-void gotoifbet()
-{
-    String sat = satirp;
+void gotoifbet() {
+  String sat = satirp;
   if (sat.indexOf("(") < 1) { programerrorlog += "if ten sonra ( işareti olmalı. Satır:" + (String)satirsayisip + "\n"; }
   if (sat.indexOf(")") < 1) { programerrorlog += "if te ) kapatılmamış." + (String)satirsayisip + "\n"; }
   if (programerrorlog != "") return;
   String parantezici = sat.substring(sat.indexOf("(") + 1, sat.indexOf(")"));
   parantezici.replace(" ", "");
 
-  String paici="";
+  String paici = "";
 
-  if(parantezici.indexOf(",")>-1){
-  int virgulyeri=parantezici.indexOf(",");
-  if(virgulyeri<0) {programerrorlog += "ifbet yazılım hatası IFBET(....., ? DEGER2, DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n"; satirp="";return;}
-  String ilkdeger= parantezici.substring(0,virgulyeri);
-  parantezici = parantezici.substring(virgulyeri+1,parantezici.length());
-  virgulyeri=parantezici.indexOf(",");
-  if(virgulyeri<0) {programerrorlog += "ifbet yazılım hatası IFBET(....., .....? DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n"; satirp="";return;}
-  String ikincideger= parantezici.substring(0,virgulyeri);
-  parantezici = parantezici.substring(virgulyeri+1,parantezici.length());
-  if(parantezici.length()<1){programerrorlog += "ifbet yazılım hatası IFBET(....., ....., DEGER3) DEGER3 bulunamadı. Satır:" + (String)satirsayisip + "\n"; satirp="";return;}
-  String ucuncudeger= parantezici.substring(0,parantezici.length());
+  if (parantezici.indexOf(",") > -1) {
+    int virgulyeri = parantezici.indexOf(",");
+    if (virgulyeri < 0) {
+      programerrorlog += "ifbet yazılım hatası IFBET(....., ? DEGER2, DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n";
+      satirp = "";
+      return;
+    }
+    String ilkdeger = parantezici.substring(0, virgulyeri);
+    parantezici = parantezici.substring(virgulyeri + 1, parantezici.length());
+    virgulyeri = parantezici.indexOf(",");
+    if (virgulyeri < 0) {
+      programerrorlog += "ifbet yazılım hatası IFBET(....., .....? DEGER3) virgul bulunamadı. Satır:" + (String)satirsayisip + "\n";
+      satirp = "";
+      return;
+    }
+    String ikincideger = parantezici.substring(0, virgulyeri);
+    parantezici = parantezici.substring(virgulyeri + 1, parantezici.length());
+    if (parantezici.length() < 1) {
+      programerrorlog += "ifbet yazılım hatası IFBET(....., ....., DEGER3) DEGER3 bulunamadı. Satır:" + (String)satirsayisip + "\n";
+      satirp = "";
+      return;
+    }
+    String ucuncudeger = parantezici.substring(0, parantezici.length());
 
-      bool dgbul=false;
-      float ilkdegertest;
-      float ucuncudegertest;
+    bool dgbul = false;
+    float ilkdegertest;
+    float ucuncudegertest;
 
-      for (int bk = 0; bk < 21; bk++) {
-        if (ilkdeger == degis[bk]) {
-          ilkdegertest = atof(degdeg[bk].c_str());
-          dgbul=true;
-          break;
-        }
+    for (int bk = 0; bk < 31; bk++) {
+      if (ilkdeger == degis[bk]) {
+        ilkdegertest = atof(degdeg[bk].c_str());
+        dgbul = true;
+        break;
       }
-      if(dgbul==false)ilkdegertest=atof(ilkdeger.c_str());
-      dgbul=false;
+    }
+    if (dgbul == false) ilkdegertest = atof(ilkdeger.c_str());
+    dgbul = false;
 
-      for (int bk = 0; bk < 21; bk++) {
-        if (ucuncudeger == degis[bk]) {
-          ucuncudegertest = atof(degdeg[bk].c_str());
-          dgbul=true;
-          break;
-        }
+    for (int bk = 0; bk < 31; bk++) {
+      if (ucuncudeger == degis[bk]) {
+        ucuncudegertest = atof(degdeg[bk].c_str());
+        dgbul = true;
+        break;
       }
-      if(dgbul==false)ucuncudegertest=atof(ilkdeger.c_str());
+    }
+    if (dgbul == false) ucuncudegertest = atof(ilkdeger.c_str());
 
-      if(ilkdegertest <= ucuncudegertest)
-      {
-        //4,6,7
-        // between arasında demek 1. sayı küçükse 3 sayıdan normal yazılım o yüzden arasında if bloğu oluşturulacak
-        paici = ilkdeger + "<" + ikincideger + "&&" + ikincideger + "<" + ucuncudeger; 
-      }
-      else
-      {
-        //7,9,2
-        // haricinde demek 1. sayı büyük 3. sayı küçük yazılmışsa sıralama test olduğundan haricinde diye bakılacak
-        paici = ikincideger + "<" + ilkdeger + "||" + ucuncudeger + "<" + ikincideger; 
-
-      }
+    if (ilkdegertest <= ucuncudegertest) {
+      //4,6,7
+      // between arasında demek 1. sayı küçükse 3 sayıdan normal yazılım o yüzden arasında if bloğu oluşturulacak
+      paici = ilkdeger + "<" + ikincideger + "&&" + ikincideger + "<" + ucuncudeger;
+    } else {
+      //7,9,2
+      // haricinde demek 1. sayı büyük 3. sayı küçük yazılmışsa sıralama test olduğundan haricinde diye bakılacak
+      paici = ikincideger + "<" + ilkdeger + "||" + ucuncudeger + "<" + ikincideger;
+    }
 
 
-  }else {programerrorlog += "ifbet yazılım hatası IFBET( DEGER1, DEGER2, DEGER3) şeklinde olmalı. Satır:" + (String)satirsayisip + "\n";satirp=""; return;}
+  } else {
+    programerrorlog += "ifbet yazılım hatası IFBET( DEGER1, DEGER2, DEGER3) şeklinde olmalı. Satır:" + (String)satirsayisip + "\n";
+    satirp = "";
+    return;
+  }
 
 
 
 
-  satirp = "IF(" + paici +")" + satirp.substring(satirp.indexOf(")")+1,satirp.length()) ;
- gotoif(); 
+  satirp = "IF(" + paici + ")" + satirp.substring(satirp.indexOf(")") + 1, satirp.length());
+  gotoif();
 }
 
 
@@ -519,6 +549,7 @@ void gotoif() {
 
   if (ifsonuc == true) {
     ifparantezdisi(satiruppercase, satirsayisip);
+    return;
   } else if (standartprogram == true) {
     if (satiruppercase.indexOf("{") > -1) {
       susluparantezsayisi += 1;
@@ -567,16 +598,21 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
   satiruppercase.toUpperCase();
   yapilacaklar = satiruppercase;
 
+  yapilacaklar.replace("\n", "");
+  String susmu=yapilacaklar;
+  susmu.replace(" ", "");
+  //Serial.print("susmu:");Serial.println(susmu);
+  if (susmu=="{")return;
+  if (susmu=="}")return;
   if (yapilacaklar.indexOf("{") > -1) {
     //Serial.print("ptm:");Serial.println(ptm);
-    yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.indexOf("}"));
+    if (yapilacaklar.indexOf("}") > -1)yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.indexOf("}"));
+    else yapilacaklar = yapilacaklar.substring(ptm.indexOf("{") + 1, yapilacaklar.length());
     //  Serial.print("yapilacaklar:");
     //  Serial.println(yapilacaklar);
-    yapilacaklar.replace("\n", "");
   }
 
 
-  // boşlukları sil
   if (yapilacaklar.indexOf(";") > -1) {
 
 
@@ -664,15 +700,16 @@ void ifparantezdisi(String satiruppercase, int satirsayisip) {
         delay(50);
       } else {
         yapilacakis.replace(" ", "");
-        if (yapilacakis.indexOf("}") != 0) yap(yapilacakis, yapilacaklarislemsayisi);
+        if (yapilacakis.indexOf("}") != 0 || yapilacakis.indexOf(";")>-1) yap(yapilacakis, yapilacaklarislemsayisi);
       }
 
       yapilacaklar = yapilacaklar.substring(yapilacaklar.indexOf(";") + 1, yapilacaklar.length());
       if (yapilacaklar.length() < 1) { break; }
     }
   } else {
+    if(yapilacaklar.lastIndexOf(")")+1 == yapilacaklar.length())return;
     if (yapilacaklar.length() > 3) {
-      programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş.\n";
+      programerrorlog += (String)satirsayisip + ". satırda / satır sonunda ';' unutulmuş." + yapilacaklar + "\n";
       return;
     }
   }
@@ -702,7 +739,21 @@ void yap(String yapilacakis, int islemno) {
     }
   }
 
+  dsol.replace(" ","");
+  dsag.replace(" ","");
+  if(dsol=="BEKLE")
+  {
+    if(dsag=="1" && waiting==false) {
+      waiting=true;
+      unoSerial.println("WA!T");
+    }
 
+    if(dsag=="0" && waiting==true){
+      waiting=false;
+      unoSerial.println("go!ng");
+    }
+    return;
+  }
 
   if (dsol == "ACL") {
     ACL = dsag;
@@ -729,34 +780,10 @@ void yap(String yapilacakis, int islemno) {
   }
 
 
-  if (dsol == "RUN" || dsol == "TX>") {
-    String bilesen_ani = dsag;
-    bilesen_ani.trim();
-
-    String altSenaryoYolu = "/_" + bilesen_ani + ".txt";
-
-    if (LittleFS.exists(altSenaryoYolu)) {
-      Serial.printf("[uprog-tetik] Alt senaryo bulundu: %s. Baslatiliyor...\n", bilesen_ani.c_str());
-
-      if (ualt_dosya) ualt_dosya.close();
-      ualt_dosya = LittleFS.open(altSenaryoYolu, "r");
-      if (ualt_dosya) {
-        altDosyaCalisiyor = true;
-        aktifAltDosyaAdi = bilesen_ani;
-
-        // 🎯 SİHİRLİ DOKUNUŞ: Ana dosyanın while döngüsünü anında kır!
-        // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır.
-        return;
-      }
-    } else {
-      dsag = dsaganaliz(dsag);
-      txsend(dsag);
-      return;
-    }
-  }
 
 
-  for (int indis = 0; indis < 21; indis++)  // her islem için döngü
+
+  for (int indis = 0; indis < 31; indis++)  // her islem için döngü
   {
 
     if (indis >= 0 && indis < 10) {
@@ -816,7 +843,7 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
           sagDegisken.trim();
 
           if (solDegisken.length() > 0 && isAlpha(solDegisken.charAt(0))) {
-            for (int sl = 0; sl < 21; sl++) {
+            for (int sl = 0; sl < 31; sl++) {
               if (degis[sl] == solDegisken) {
                 solDegisken = degdeg[sl];
                 break;
@@ -825,7 +852,7 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
           }
 
           if (sagDegisken.length() > 0 && isAlpha(sagDegisken.charAt(0))) {
-            for (int sa = 0; sa < 21; sa++) {
+            for (int sa = 0; sa < 31; sa++) {
               if (degis[sa] == sagDegisken) {
                 sagDegisken = degdeg[sa];
                 break;
@@ -893,6 +920,40 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
     // 0-10  PİN     11-20 degisken
   }
 
+
+  if (dsol == "RUN" || dsol == "TX>") {
+    String bilesen_ani = dsag;
+    bilesen_ani.trim();
+
+    String altSenaryoYolu = "/_" + bilesen_ani + ".txt";
+
+    if (LittleFS.exists(altSenaryoYolu)) {
+      Serial.printf("[uprog-tetik] Alt senaryo bulundu: %s. Baslatiliyor...\n", bilesen_ani.c_str());
+
+      if (ualt_dosya) ualt_dosya.close();
+      ualt_dosya = LittleFS.open(altSenaryoYolu, "r");
+      if (ualt_dosya) {
+        altDosyaCalisiyor = true;
+        aktifAltDosyaAdi = bilesen_ani;
+
+        // 🎯 SİHİRLİ DOKUNUŞ: Ana dosyanın while döngüsünü anında kır!
+        // Böylece kod uprogram.txt okumayı bırakıp hemen alt dosyaya dallanacaktır. /_PR1.txt
+        
+        return;
+      }
+    } else {
+      dsag = dsaganaliz(dsag);
+      txsend(dsag);
+      return;
+    }
+  }
+
+
+
+
+
+
+
   if (aktifpinno == -100) {
     programerrorlog += "tanimli olmayan değişken var: " + dsol + " Satir:" + String(satirsayisip) + "\n";
   }
@@ -915,7 +976,7 @@ String dsaganaliz(String dsag) {
         dsagtmp = dsagtmp.substring(dsagtmp.indexOf(","), dsagtmp.length());
         Serial.print("DEĞİŞKEN İSMİ ");
         Serial.println(deis);
-        for (int j = 0; j < 21; j++) {
+        for (int j = 0; j < 31; j++) {
           if (degis[j] == deis) {
             newdsag += degdeg[j];
             break;
@@ -983,14 +1044,14 @@ String sagsolicimatislem(String sosa) {
   String solN = sosa.substring(0, sosa.indexOf(oprt));
   String sagN = sosa.substring(sosa.indexOf(oprt) + 1, sosa.length());
 
-  for (int d = 0; d < 21; d++) {
+  for (int d = 0; d < 31; d++) {
     if (solN == degis[d]) {
       solN = degdeg[d];
       break;
     }
   }
 
-  for (int d = 0; d < 21; d++) {
+  for (int d = 0; d < 31; d++) {
     if (sagN == degis[d]) {
       sagN = degdeg[d];
       break;

@@ -251,6 +251,8 @@ void servoYumusakHareketYonetimi() {
         }
 
         // --- 🛠️ YENİ KÜTÜPHANE UYUMLAMA SATIRI ---
+        // Fabrika verileri 700 - 2300 mikrosaniye aralığı 0-180 derece.
+        // limitleri değil 700 -- (750 ------------- 2250) ---- 2300 kulanacağız.
         // 0-180 derece arası değeri, servonun anlıcağı 750-2250 mikrosaniyeye dönüştürüyoruz
         int mikroSaniye = map(servoAnlikAci[i], 0, 180, 750, 2250);
         servoNesneleri[i].write(mikroSaniye);

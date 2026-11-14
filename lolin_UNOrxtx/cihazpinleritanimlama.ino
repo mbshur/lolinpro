@@ -47,6 +47,7 @@ void CHZtanimla(String icerikMetni) {
         servoPin[toplamServo] = pinlerStr.toInt();
         
         servoBaglandi[toplamServo] = false;
+        pinMode(servoPin[toplamServo], INPUT);
         servoHedefAci[toplamServo] = 90;
         servoAnlikAci[toplamServo] = 90;
         servoAdimGecikmesi[toplamServo] = 15; 

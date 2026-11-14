@@ -264,21 +264,8 @@ bool paranteziciislem(String parantezi) {
 
   aktifpinno = -100;
 
-  // 🎯 1. ADIM: CANLI SENSÖR / DEĞİŞKEN SÖZLÜĞÜ KONTROLÜ (Yeni Eklenen Köprü)
-  // Eğer sol taraftaki isim (Örn: POT1) UNO'dan gelen canlı map içindeyse doğrudan değeri al
-  if (esp_canli_degiskenler.find(sol) != esp_canli_degiskenler.end()) {
-    solstate = String(esp_canli_degiskenler[sol]);
-    aktifpinno = -10;  // "Tanımsız değil" kilidini açıyoruz
-  }
-  // 🎯 2. ADIM: EĞER SENSÖR DEĞİLSE, SİZİN MEVCUT ORİJİNAL KONTROLLERİNİZ ÇALIŞIR
-  else if (sol.indexOf("RXG:") > -1) {
-    if (rxgelenchzismi != "") {
-      if (sol.indexOf("RXG:" + rxgelenchzismi) > -1) {
-        solstate = rxgelenpindeger;
-        aktifpinno = -10; 
-      }
-    }
-  } else if (sol.equalsIgnoreCase("ACL")) {
+
+  if (sol.equalsIgnoreCase("ACL")) {
     solstate = ACL;
   } else {
     bool tempvar = false;
@@ -743,8 +730,15 @@ void yap(String yapilacakis, int islemno) {
   dsag.replace(" ","");
   if(dsol=="BEKLE")
   {
-    if(dsag=="1") waiting=true;
-    if(dsag=="0") waiting=false;
+    if(dsag=="1" && waiting==false) {
+      waiting=true;
+      unoSerial.println("WA!T");
+    }
+
+    if(dsag=="0" && waiting==true){
+      waiting=false;
+      unoSerial.println("go!ng");
+    }
     return;
   }
 
@@ -811,7 +805,7 @@ yaparsan çarpma ve bölmeyi eklemek de 5 dakika sürer.
 */
 
     // 🎯 DEĞİŞKENLERİ TUTAN VE MATEMATİKSEL İŞLEM YAPABİLEN SIFIR HATALI KISIM
-    if (indis >= 10 && indis < 21) {
+    if (indis >= 10 && indis < 31) {
 
 
       if (dsol == degis[indis]) {

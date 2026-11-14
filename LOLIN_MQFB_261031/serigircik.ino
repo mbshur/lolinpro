@@ -4,7 +4,12 @@ void serin() {
     String sergel = Serial.readStringUntil('\n');
     Serial.println(sergel);
 
-
+    if(sergel == "DG")
+    {
+      for(int i=1;i<31;i++){
+        Serial.print(i);Serial.print(" " + degis[i]+"\n");
+      }
+    }
 
     // ssid ve pass kısmı başladı ///////////////////////////////////////////////////
 

@@ -208,7 +208,7 @@ void ualtprogdur() {
 
   Serial.println(F("[uprog-alt] 🛑 KESME: ualtprogdur() cagrildi, alt program imha edildi."));
 
-  txdata="DURX";
+  txdata="DUR!X";
   txsend(txdata);
 
   yield();

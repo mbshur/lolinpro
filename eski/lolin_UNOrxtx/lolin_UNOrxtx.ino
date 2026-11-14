@@ -1,8 +1,16 @@
-#include <Servo.h> // Servo nesnelerini dinamik eklemek için standart kütüphane
+//#include <AltSoftSerial.h>
+//AltSoftSerial Serial2; // RX sabit Pin 8, TX sabit Pin 9 olur.
+
+
+#include <ServoTimer2Plus.h> // Yeni kütüphanemiz
 
 
 // --- ⚙️ DİNAMİK PİN TANIMLAMA SÖZLÜKLERİ (UNO RAM DOSTU SABİTLER) ---
 #define MAX_MODUL 5 // Her modül tipinden en fazla kaç tane tanımlanabilir
+
+
+String raporlanacakcihazismi;
+
 
 // 1. STEP MOTOR HAFIZASI (Örn: STP=SM:2,3;)
 String stepIsimleri[MAX_MODUL];
@@ -21,13 +29,13 @@ unsigned long stepAdimGecikmesi[MAX_MODUL] = {500}; // Varsayılan: 500us
 String servoIsimleri[MAX_MODUL];  // Servoların isimlerini (Örn: SR0) tutan dizi
 int servoPin[MAX_MODUL];          // Servoların bağlı olduğu pin numaralarını tutan dizi
 // (Önceki adımda eklediğimiz diğer değişkenler de burada durmalı:)
-Servo servoNesneleri[MAX_MODUL];
+ServoTimer2Plus servoNesneleri[MAX_MODUL]; // Nesne dizisini güncelledik
 bool servoBaglandi[MAX_MODUL] = {false};
 
 
 
 int servoHedefAci[MAX_MODUL] = {90};
-float servoAnlikAci[MAX_MODUL] = {90};
+int servoAnlikAci[MAX_MODUL] = {90};
 unsigned long servoSonGuncellemeZamani[MAX_MODUL] = {0};
 int servoAdimGecikmesi[MAX_MODUL] = {15}; 
 const float SERVO_ADIM_HIZI = 1.0;
@@ -50,12 +58,18 @@ int pwmAdimGecikmesi[MAX_MODUL] = {5}; // Varsayılan: Her adımda 5ms bekleme
 
 // 4. ANALOG GİRİŞ HAFIZASI (Örn: ANG=POT1:A0;)
 String analogIsimleri[MAX_MODUL];
+bool analogRapor[MAX_MODUL];
+int analogPinDeg[MAX_MODUL];
+int analogPinEdeg[MAX_MODUL];
 int analogPin[MAX_MODUL]; // A0, A1 gibi pinler arka planda tam sayıdır (14, 15 vb.)
 int toplamAnalog = 0;
 
 // 5. DİJİTAL GİRİŞ HAFIZASI (Örn: DI=SW1:7,0)
 String diIsimleri[MAX_MODUL];
+bool diRapor[MAX_MODUL];
 int diPin[MAX_MODUL];
+int diPinDeg[MAX_MODUL];
+int diPinEdeg[MAX_MODUL];
 int diNormalDurum[MAX_MODUL]; // Anahtarın arıza olmayan, normal hali (0 veya 1)
 int toplamDi = 0;
 
@@ -74,24 +88,30 @@ String CHZadi ="";
 
 String rxdata="";
 String txdata="";
+// --- 💬 HABERLEŞME ARABELLEĞİ ---
+String rxBuffer = ""; // ESP'den gelen karakterleri beklemeden toplamak için
 
 int raporzamanlayici;
 unsigned long raporsayaci;
 void setup() {
   // Donanımsal seri port 19200 baud hızında başlatılıyor (Halkadaki tek hız)
   //Serial.begin(19200);   
-  Serial.begin(38400);  
+  Serial.begin(19200);
+
   pinMode(ledPin, OUTPUT);
+  //Serial2.begin(38400); // ESP hızı (ESP kodunda da 9600 olduğundan emin olun!)
 
 }
 
 void loop() {
 
-  // 🎯 Her döngüde sensörleri asenkron olarak kontrol et ve zamanı gelince ESP'ye bas!
-  updinput();
-
+  
   // Sizin mevcut haberleşme ve kontrol motorlarınız aynen çalışmaya devam eder
   slaveRxvoid();
+
+// 🎯 Her döngüde sensörleri asenkron olarak kontrol et ve zamanı gelince ESP'ye bas!
+  updinput();
+
   CHZkontrol();
   if(raporzamanlayici>0)raporzamanlayicivoid();
   slaveTxvoid();

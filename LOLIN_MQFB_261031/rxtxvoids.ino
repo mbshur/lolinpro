@@ -1,21 +1,19 @@
-#include <SoftwareSerial.h>
 
-SoftwareSerial unoSerial;
 
 void rxtxsetup(String rxtxdatas) {
   Serial.print("RXTXDATAS: ");
   Serial.println(rxtxdatas);
   if (rxtxdatas.indexOf("RXTX=") > -1) rxtxvar = true;
   else return;
-rxtxdatas = rxtxdatas.substring(rxtxdatas.indexOf("RXTX=") + 5);
+  rxtxdatas = rxtxdatas.substring(rxtxdatas.indexOf("RXTX=") + 5);
   int pos = rxtxdatas.indexOf('\n');
   if (pos > -1) rxtxdatas = rxtxdatas.substring(0, pos);
 
   Serial.print("RXTXDATAS: ");
   Serial.println(rxtxdatas);
 
-  int ESP_RX_PIN = D0;  // Uno'nun TX'inden (direnç korumalı) gelen hat
-  int ESP_TX_PIN = D2;  // Uno'nun RX'ine giden hat
+  int ESP_RX_PIN = D0;    // Uno'nun TX'inden (direnç korumalı) gelen hat
+  int ESP_TX_PIN = D2;    // Uno'nun RX'ine giden hat
   int BAUD_RATE = 19200;  // Haberleşme frekansı
 
   String rxpinStr = "";
@@ -31,11 +29,11 @@ rxtxdatas = rxtxdatas.substring(rxtxdatas.indexOf("RXTX=") + 5);
     BAUD_RATE = baudRStr.toInt();
   }
 
-Serial.printf("RXSTR=[%s]\n", rxpinStr.c_str());
-Serial.printf("TXSTR=[%s]\n", txpinStr.c_str());
+  Serial.printf("RXSTR=[%s]\n", rxpinStr.c_str());
+  Serial.printf("TXSTR=[%s]\n", txpinStr.c_str());
 
-Serial.printf("RXPIN=%d\n", ESP_RX_PIN);
-Serial.printf("TXPIN=%d\n", ESP_TX_PIN);
+  Serial.printf("RXPIN=%d\n", ESP_RX_PIN);
+  Serial.printf("TXPIN=%d\n", ESP_TX_PIN);
 
   // Software Serial pin yapılandırması ve 19200 baud başlatılması
   // (RX, TX) parametreleri sırasıyla verilir
@@ -48,17 +46,13 @@ Serial.printf("TXPIN=%d\n", ESP_TX_PIN);
 void rxtxloop() {
   if (unoSerial.available()) {
     String gelenHat = unoSerial.readStringUntil('\n');
-    
+
     gelenHat.trim();
     Serial.print(F("<unodangelen> "));
     Serial.println(gelenHat);
-    
 
-    
-    // 1. Önce sensör paketlerini emen motorumuz (:AN:)
-    if (gelenHat.indexOf(":AN:") > -1) {
-      espSensorPaketiIsle(gelenHat);
-    }
+
+
 
     // 🎯 2. ADIM: AKILLI ARIZA / ACİL STOP TEŞHİS MOTORU (:ERR:)
     if (gelenHat.indexOf(":ERR=") > -1) {
@@ -86,6 +80,8 @@ void rxtxloop() {
           if (slaves[s] == cihaz) {
             Serial.printf("--> Gönderilen Son Emir: %s\n", slavestx[s].c_str());
             slavesrx[s] = gelenHat;  // Durumu hafızaya da yedekle (Web arayüzü için)
+
+
             break;
           }
         }
@@ -98,45 +94,48 @@ void rxtxloop() {
     }
 
     // 3. Adım: gelen kodları çözüyoruz.
-    if (gelenHat.indexOf("<ESP!>") > -1 || gelenHat.indexOf("<" + esphostname + "!>") > -1) {
+    if (gelenHat.indexOf("E!>") > -1 || gelenHat.indexOf("<" + esphostname + "!>") > -1) {
 
-        if(gelenHat.indexOf("<" + esphostname + "!>") > -1) gelenHat.replace("<" + esphostname + "!>" ,"<ESP!>");
-        String cihaz = gelenHat.substring(gelenHat.indexOf("!>") + 2, gelenHat.indexOf(":"));
-        Serial.print(" chz: ");Serial.print(cihaz);
-        String durum = gelenHat.substring(gelenHat.indexOf(":") + 1, gelenHat.length());
-        rxgelenpinismi = gelenHat.substring(gelenHat.indexOf("=") + 1,gelenHat.indexOf("?"));
-        Serial.print(" rxgelenpinismi: ");Serial.print(rxgelenpinismi);
-        rxgelenpindeger = gelenHat.substring(gelenHat.indexOf("?") + 1,gelenHat.length());
-        Serial.print(" rxgelenpindeger: ");Serial.println(rxgelenpindeger);
-        if(rxgelenpindeger.indexOf(";")>-1)rxgelenpindeger.replace(";","");
-        cihaz.trim();
-        cihaz.toUpperCase();
-        durum.trim();
-        rxgelenpinismi.trim();
-        rxgelenpindeger.trim();
-        Serial.print("rxgelenpindeger:");Serial.println(rxgelenpindeger);
-        for (int s = 0; s < 10; s++) {
-          if (slaves[s] == cihaz) {
-             slavesrx[s] = gelenHat;
+      if (gelenHat.indexOf("<" + esphostname + "!>") > -1) gelenHat.replace("<" + esphostname + "!>", "E!>");
+      String cihaz = gelenHat.substring(gelenHat.indexOf("!>") + 2, gelenHat.indexOf("?"));
+      //Serial.print(" chz: ");
+      //Serial.print(cihaz);
+      String durum = gelenHat.substring(gelenHat.indexOf("=") + 1, gelenHat.length());
+      String rxgelenpinismi = gelenHat.substring(gelenHat.indexOf("?") + 1, gelenHat.indexOf("="));
+      //Serial.print(" rxgelenpinismi: ");
+      //Serial.print(rxgelenpinismi);
+      String rxgelenpindeger = gelenHat.substring(gelenHat.indexOf("=") + 1, gelenHat.length());
+      //Serial.print(" rxgelenpindeger: ");
+      //Serial.println(rxgelenpindeger);
+      if (rxgelenpindeger.indexOf(";") > -1) rxgelenpindeger.replace(";", "");
+      cihaz.trim();
+      cihaz.toUpperCase();
 
-            if (durum.equalsIgnoreCase("ERR")) {
-              Serial.printf("[SİSTEM TEŞHİS] %s Cihazı Çöktü! Son Emir: %s\n", cihaz.c_str(), slavestx[s].c_str());
-              ualtprogdur();
-              break;
-            }
-            if (slavestx[s].indexOf("?") > -1) {
-              if (durum.indexOf(slavestx[s] + "OK") > -1)
-                slavestx[s].replace("?", "_");
-              slavesrx[s] = slavestx[s];
-              slaveden_cevap_bekleniyor = false;  // beklemeyi bırak işe devam.
-              break;
-            }
-            // diğer işlemler için bir alt programa daha gönderebilirim.
+      rxgelenpinismi.trim();
+      rxgelenpindeger.trim();
+      //Serial.print("rxgelenpindeger:");
+      //Serial.println(rxgelenpindeger);
 
+        String rXdegiskenAdi = cihaz + rxgelenpinismi;
+        //Serial.print("rXdegiskenAdi:");
+        //Serial.println(rXdegiskenAdi);
+        for (int i=11;i<31;i++){
+          if (degis[i] == rXdegiskenAdi) {
+        //Serial.print("degis[i]:");
+        //Serial.println(degis[i]);
+        //Serial.println(i);
+            degdeg[i] = rxgelenpindeger;
+            break;
+          }
+          if (degis[i] == "") {
 
-
+           // Serial.print("değişken adı bulunamadı:<");
+           // Serial.print(rXdegiskenAdi);Serial.println(">");
+           // Serial.println(i);
+            break;
           }
         }
+
     }
   }
 }
@@ -149,68 +148,31 @@ void txsend(String txveri) {
       int slaveveribasi = txv.indexOf(slaves[tv] + ":") + slaves[tv].length() + 1;
       String gidenverikesi = txv.substring(slaveveribasi, txv.length());
       int benimgidenveriSonum = gidenverikesi.indexOf(";");
-      slavestx[tv] = gidenverikesi.substring(0, benimgidenveriSonum);
+      //slavestx[tv] = gidenverikesi.substring(0, benimgidenveriSonum);
       //Serial.print("slaveno:");Serial.print(tv);Serial.print(" slaveismi:");Serial.print(slaves[tv]);
       //Serial.print(" slavetx:");Serial.println(slavestx[tv]);
 
-      if(txv.indexOf("RZ=")>-1)rxgelenchzismi=slaves[tv];
-
+      if (txv.indexOf("RZ=") > -1 && txv.indexOf("?") > -1) {
+        String TXdegiskenAdi = slaves[tv] + txv.substring(txv.indexOf("=")+1,txv.indexOf("?"));
+       
+        for (int i=11;i<31;i++){
+          if (degis[i] == TXdegiskenAdi) {
+            break;
+          }
+          if (degis[i] == "") {
+            degis[i] = TXdegiskenAdi;
+            // Serial.print(i); Serial.print(" - TXdegiskenAdi:<");Serial.print(TXdegiskenAdi);Serial.println(">");
+            TXdegiskenAdi="";
+            break;
+          }
+        }
+      }
     }
   }
   txv = "";
   if (txveri.lastIndexOf(";") + 1 != txveri.length()) txveri += ";";
   Serial.println("txveri gönderildi. Veri:" + txveri);
   unoSerial.println(txveri);
-}
-
-
-
-void espSensorPaketiIsle(String gelenHatVerisi) {
-  // Örnek Girdi: "UNO1:AN:POT1=411|SENS2=1023;"
-  gelenHatVerisi.trim();
-
-  // Sonundaki noktalı virgülü temizle
-  if (gelenHatVerisi.endsWith(";")) {
-    gelenHatVerisi = gelenHatVerisi.substring(0, gelenHatVerisi.length() - 1);
-  }
-
-  int anIdx = gelenHatVerisi.indexOf(":AN:");
-  if (anIdx == -1) return;  // Eğer analog bildirim paketi değilse çık
-
-  // ":AN:" kısmından sonrasını ayıkla (Örn: "POT1=411|SENS2=1023")
-  String icerik = gelenHatVerisi.substring(anIdx + 4);
-  icerik.trim();
-
-  int baslangic = 0;
-  while (baslangic < icerik.length()) {
-    int sonrakiBoru = icerik.indexOf('|', baslangic);
-    if (sonrakiBoru == -1) sonrakiBoru = icerik.length();
-
-    // Tek bir sensör hücresini ayıkla (Örn: "POT1=411")
-    String hücre = icerik.substring(baslangic, sonrakiBoru);
-    hücre.trim();
-    baslangic = sonrakiBoru + 1;
-
-    if (hücre == "") continue;
-
-    int esitIdx = hücre.indexOf('=');
-    if (esitIdx > -1) {
-      String sensörAdi = hücre.substring(0, esitIdx);
-      String sensörDegerStr = hücre.substring(esitIdx + 1);
-      sensörAdi.trim();
-      sensörDegerStr.trim();
-
-      if (sensörAdi != "") {
-        float deger = sensörDegerStr.toFloat();  // Gelen değeri sayıya çevir
-
-        // 🎯 SİHİRLİ DOKUNUŞ: Değişkeni canlı sözlüğe yaz/güncelle!
-        esp_canli_degiskenler[sensörAdi] = deger;
-
-        // İsteğe bağlı: Değişimleri takip etmek için log basabilirsiniz
-        Serial.printf("[ESP-Hafiza] 📈 Değişken Güncellendi -> %s = %.2f\n", sensörAdi.c_str(), deger);
-      }
-    }
-  }
 }
 
 
