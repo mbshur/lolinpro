@@ -94,9 +94,12 @@ void rxtxloop() {
     }
 
     // 3. Adım: gelen kodları çözüyoruz.
-    if (gelenHat.indexOf("E!>") > -1 || gelenHat.indexOf("<" + esphostname + "!>") > -1) {
+    if (gelenHat.indexOf("E!>") > -1) {
 
-      if (gelenHat.indexOf("<" + esphostname + "!>") > -1) gelenHat.replace("<" + esphostname + "!>", "E!>");
+      // kendine geldiyse ayrı bir iş yapılacak.......
+      //if (gelenHat.indexOf("<" + esphostname + "!>") > -1) gelenHat.replace("<" + esphostname + "!>", "E!>");
+      // .............................................
+
       String cihaz = gelenHat.substring(gelenHat.indexOf("!>") + 2, gelenHat.indexOf("?"));
       //Serial.print(" chz: ");
       //Serial.print(cihaz);
