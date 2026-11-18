@@ -32,7 +32,7 @@ String MQTTip = "";
 //String USER_EMAIL2 = "";  //"gmail.com"
 
 /* 2. Define the API Key */
-//String API_KEY = "";  // "AIzaSyDTMhGs_ISD4WKmJrCxw35rqv-bo34ZdYI";
+String API_KEY = "";  // "AIzaSyDTMhGs_ISD4WKmJrCxw35rqv-bo34ZdYI";
 
 /* 3. Define the RTDB URL */
 String DATABASE_URL = "https://kev1-e3fbe-default-rtdb.firebaseio.com/";  // "https://esp-v4-default-rtdb.firebaseio.com"; //<databaseName>.firebaseio.com or <databaseName>.<region>.firebasedatabase.app
@@ -43,8 +43,8 @@ String DATABASE_URL = "https://kev1-e3fbe-default-rtdb.firebaseio.com/";  // "ht
 //String USER_EMAIL = "";     // "asadafag@gmail.com";
 //String USER_PASSWORD = "";  // "bebedede14";
 
-
-
+WiFiClientSecure fbClient;
+unsigned long fbtimer;
 
 bool fbisleniyor = false;
 String YOL = "";
@@ -94,6 +94,7 @@ bool rescanwifi = false;
 
 bool htpcldis = false;
 
+unsigned long beklehtpcl=millis();
 
 
 //bool aut[5]=false;
@@ -190,7 +191,7 @@ String tmrdeg[MAX_TIMERS];
 // Uzun metraj programı timer dizileri
 String utmris[MAX_TIMERS];
 String utmrdeg[MAX_TIMERS];
-
+unsigned long uzunMetrajtimer;
 ////////
 //DHT dht(DHTPIN, DHTTYPE);
 //DHT DHTA(D8, DHT11);
@@ -1537,9 +1538,15 @@ void loop() {
    //else 
    serin();
 
-  xilent = httpserver.available();
-  if (xilent && fbisleniyor == false) {
-    if (habp == 3) timereski = millis() + 4000;
+u_int8_t ekle;
+if(habp<2)ekle = 10;
+if(habp==2)ekle = 300;
+if(habp==3)ekle = 1500;
+if(beklehtpcl + ekle < millis())
+{
+    xilent = httpserver.available();
+    if (xilent && fbisleniyor == false) {
+    if (habp == 3) timereski = millis() + 400;
     if (habp == 2) timereski = millis() + 10;
     if (habp == 1) timereski = millis() + 10;
     if (habp == 0) timereski = millis() + 10;
@@ -1551,7 +1558,7 @@ void loop() {
       pinuygula();
     }
   }
-
+}
 
 
   /*
@@ -1702,8 +1709,8 @@ void loop() {
 
 
     if (uzunMetrajVar)
-      if (millis() - timereski > 50) {
-        timereski = millis();
+      if (millis() - uzunMetrajtimer > 50) {
+        uzunMetrajtimer = millis();
         uzunmetraj();
       }
     //if (millis() - harcananzaman > 100) Serial.println("update vr prog vaik uzadı: ms>" + (String)(millis() - harcananzaman));
@@ -1732,21 +1739,24 @@ void loop() {
     }
 
 
-    if (habp == 3) {
-      if (millis() - timereski >= 5000) {
-        timereski = millis();
-        //if(Menu == 0)if (fben!=0 && pinayar.length()>0)updatefbvirtual();
-        if (fben != 0 && pinayar.length() > 0 && ACL.toInt() != 9 && fbisleniyor == false) {
-          //updateinput();
-          //programrun();
-          //updateoutput();
-          mqttclient.unsubscribe("/" + YOL + "/#");
-          fbisleniyor = true;
-          fbsayacoku();
-          mqttclient.subscribe("/" + YOL + "/#");
-        }
-      }
+if (habp == 3) {
+  // Kontrol periyodunu duruma göre 10000 (10 sn) yapabilirsiniz, şimdilik 5000 bıraktım
+  if (millis() - fbtimer >= 5000) { 
+    fbtimer = millis();
+    
+    // Güvenlik ve durum kontrolleri
+    if (fben != 0 && pinayar.length() > 0 && ACL.toInt() != 9 && fbisleniyor == false) {
+      
+      // 🎯 BÜYÜK DEĞİŞİKLİK: MQTT unsubscribe/subscribe satırları TAMAMEN kaldırıldı!
+      // Bağlantıyı koparmadan doğrudan arka planda Firebase verisini çekiyoruz.
+      
+      fbisleniyor = true;
+      fbsayacoku(); 
+      // fbsayacoku() fonksiyonunun en sonunda zaten fbisleniyor = false; yapılıyor.
+      
     }
+  }
+}
   }
   // firebase enable yani açık ise üstteki işlemleri yap
 
@@ -1759,8 +1769,8 @@ void pinuygula() {
 
   if (programdata.length() > 4) programrun();
 
-  for (int x = 0; x < pinsayisi + 1; x++) {
-
+  // 🎯 HATA DÜZELTİLDİ: Sınır taşması engellendi (pinsayisi + 1 yerine pinsayisi)
+  for (int x = 0; x < pinsayisi; x++) {
 
     if (pinmode[x] == "OUT") {
       String pinstatesakla;
@@ -1769,69 +1779,54 @@ void pinuygula() {
         PinState[x] = acildeger[x];
       }
 
-      if (pinmode[x] == "OUT" && pinsignaltype[x] == "DIG") {
-        bool yildizli;
-        if (pinlabel[x].indexOf("*") + 1 == pinlabel[x].length()) yildizli = true;
-        else yildizli = false;
+      // --- DİJİTAL ÇIKIŞLAR (RÖLE / LAMBA) ---
+      if (pinsignaltype[x] == "DIG") {
+        bool yildizli = (pinlabel[x].indexOf("*") + 1 == pinlabel[x].length());
+        
         if (PinState[x] == "0.00" || PinState[x] == "0" || PinState[x] == "LOW" || PinState[x] == "OFF") {
-          if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), LOW);
+          if (!yildizli) digitalWrite(getGPIOPin(pinname[x]), LOW);
           else digitalWrite(getGPIOPin(pinname[x]), HIGH);
-          //Serial.println("yazdım::: " + pinname[x] + ":" + PinState[x]);
         }
 
         if (PinState[x] == "1.00" || PinState[x] == "1" || PinState[x] == "HIGH" || PinState[x] == "ON") {
-          if (yildizli == false) digitalWrite(getGPIOPin(pinname[x]), HIGH);
+          if (!yildizli) digitalWrite(getGPIOPin(pinname[x]), HIGH);
           else digitalWrite(getGPIOPin(pinname[x]), LOW);
-          //Serial.println("yazdım::: " + pinname[x] + ":" + PinState[x]);
         }
       }
 
-      if (pinmode[x] == "OUT" && pinsignaltype[x] == "SER") {
+      // --- SERVO MOTOR KONTROLÜ (Mükerrer kod temizlendi, tek çatıda toplandı) ---
+      if (pinsignaltype[x] == "SER") {
         if (servovar[x] && myservo[x] != NULL) {
-          // HANGİ DEĞERİN GELDİĞİNİ GÖRMEK İÇİN DEBUG LOGU EKLEYİN:
-          //Serial.printf_P(PSTR("[DEBUG] Servo tetiklendi! Gelen string: '%s'\n"), PinState[x].c_str());
-
           int aciDeperi = constrain(PinState[x].toInt(), 0, 180);
-
-          //Serial.printf_P(PSTR("[DEBUG] Motora yazilan aci: %d\n"), aciDeperi);
-
           myservo[x]->write(aciDeperi);
-
-          psco = true;
           ePinState[x] = PinState[x];
         }
       }
 
-
-      if (pinmode[x] == "OUT" && pinsignaltype[x] == "PWM") {
+      // --- PWM ÇIKIŞLARI ---
+      if (pinsignaltype[x] == "PWM") {
         int PWMdegerint = PinState[x].toInt();
         Outpwm(pinname[x], PWMdegerint);
       }
 
+      // --- DURUM DEĞİŞİM KONTROLLERİ VE GERİ BİLDİRİM ---
       if (ePinState[x] != PinState[x]) {
-        // 1. DURUM: SERVO MOTOR KONTROLÜ (Nesne Kontrollü Güvenli Sürüş)
-        // myservo[x] != NULL şartı sayesinde, nesne yaratılmadıysa asla koda girmez ve çökme yaşanmaz!
-        if (servovar[x] && myservo[x] != NULL) {
-          int aciDeperi = constrain(PinState[x].toInt(), 0, 180);
-
-          // 🎯 Pointer nesnesi olduğu için artık '.' yerine '->' kullanıyoruz:
-          myservo[x]->write(aciDeperi);
-
-          psco = true;
-          ePinState[x] = PinState[x];
-        }
-        // 2. DURUM: SENSÖR VE DİĞER SİNYAL TİPLERİ...
-        // ... (Geri kalan kodlarınız aynen devam ediyor) ...
-
+        // Durum değiştiğinde Firebase'e yazma bayrağını (psco) kaldırıyoruz
+        psco = true; 
+        
+        // Eğer eski durum yedeklemesi yapılıyorsa senkron et
         if (acildeyim[x] == true) {
           PinState[x] = pinstatesakla;
         }
+        
+        // Eski durumu güncel durumla eşitle
+        ePinState[x] = PinState[x];
       }
     }
   }
+  
   if (htpcldepindegisti == true) htpcldepindegisti = false;
 }
-
 void vrkontrol() {
 
   for (int vr = 0; vr < 6; vr++) {
@@ -1912,11 +1907,11 @@ if(userstmp.length()<1) break;
 static uint32_t sayac = 0;
 
 String Karakterduzeltfunc(String gelent) {
-  Serial.println(F("Karakterduzelte girdim"));
+//  Serial.println(F("Karakterduzelte girdim"));
   //Serial.println(gelent);
 
 sayac++;
-Serial.printf("Karakterduzeltfunc Cagri:%lu\n", sayac);
+//Serial.printf("Karakterduzeltfunc Cagri:%lu\n", sayac);
 
   // 1. ADIM: Satır sonlarını en başta düzeltiyoruz
   gelent.replace(F("%0D%0A"), F("\n"));

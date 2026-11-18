@@ -238,6 +238,7 @@ void updateoutput() {
           //pindurumrecyap=true;
           ePinState[x] = PinState[x];
           //degisenler += pinname[x] + ":" + PinState[x]+ "|" + pinlabel[x] + ",";
+          beklehtpcl=millis();
         }
       }
 

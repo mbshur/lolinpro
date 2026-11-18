@@ -391,7 +391,7 @@ void dosyaokufburl() {
   dosya = LittleFS.open("/fburl.txt", "r");
   if (dosya) {
     DATABASE_URL = dosya.readStringUntil('\n');
-    DATABASE_URL = DATABASE_URL.substring(0, DATABASE_URL.length() - 1);
+    DATABASE_URL.trim(); // Satır sonundaki gizli boşluk ve \r \n karakterlerini temizler
     dosya.close();
   }
 }
@@ -409,37 +409,36 @@ void dosyayazfburl() {
   }
 }
 
-/*
+
 void dosyaokufbapi()
 {
   dosya.close();
   dosya = LittleFS.open("/fbapi.txt", "r");
   if (dosya) {
-    // dosya başarı ile açıldı;
+    // dosya başarı ile açıldı
     API_KEY = dosya.readStringUntil('\n');
-    API_KEY = API_KEY.substring(0,API_KEY.length()-1);
+    API_KEY.trim(); // \r, \n veya görünmeyen boşlukları harf silmeden güvenle temizler
     dosya.close();
-    }
+  }
 }               
-
 
 void dosyayazfbapi()
 {
-                  reConnectsayac=0;
-                dosya.close();
-                LittleFS.remove("/fbapi.txt");
+  reConnectsayac = 0;
+  dosya.close();
+  LittleFS.remove("/fbapi.txt");
 
-                dosya = LittleFS.open("/fbapi.txt", "w+");
-                if (dosya) {
-                  dosya.println(API_KEY);
-                dosya.close();
-                }
-    //Serial.print("fbapi yazılıyo");Serial.println(fbapi);
-
+  dosya = LittleFS.open("/fbapi.txt", "w+");
+  if (dosya) {
+    dosya.println(API_KEY);
+    dosya.close();
+    dosyaokufbapi(); // Yazılan güncel veriyi hemen değişkene yükle
+  }
+  //Serial.print("fbapi yazılıyo: "); Serial.println(API_KEY);
 }
 
 
-
+/*
 void dosyaokufbusername()
 {
                 dosya.close();
@@ -465,8 +464,9 @@ void dosyayazfbusername()
                   dosyaokufburl();
                 }
 }
+*/
 
-
+/*
 void dosyaokufbuserpass()
 {
                 dosya.close();

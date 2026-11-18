@@ -2,55 +2,57 @@
 
 // 1. NOKTA ATIŞI VERİ GÜNCELLEME (PUT) FONKSİYONU
 void firebasePutData(const char* url, String stringVeri) {
-  fbisleniyor=true;
-  WiFiClientSecure client;
-  client.setInsecure(); // RAM dostu SSL ayarı
+  fbisleniyor = true;
+  
+  // Fonksiyon içindeki eski client satırını sildik, global fbClient'ı yapılandırıyoruz
+  fbClient.setInsecure(); 
+  fbClient.setBufferSizes(512, 512); 
 
   HTTPClient http;
-  http.begin(client, url);
-  http.addHeader("Content-Type", "application/json");
-
-  // Veriyi Firebase formatına uygun hale getirmek için çift tırnak içine alıyoruz
-  String payload = "\"" + stringVeri + "\"";
-
-  // PUT kullanarak doğrudan verinin üzerine yazıyoruz (Sabit anahtar yapısı için)
-  int httpResponseCode = http.PUT(payload); 
-
-  if (httpResponseCode > 0) {
-    Serial.printf("Yazma Başarılı! Kod: %d\n", httpResponseCode);
-  } else {
-    Serial.printf("Yazma Hatası: %s\n", http.errorToString(httpResponseCode).c_str());
-  }
-  http.end();
-    fbisleniyor=false;
-}
-
-// 2. NOKTA ATIŞI VERİ OKUMA (GET) FONKSİYONU
-String firebaseGetData(const char* url) {
-  fbisleniyor=true;
-  WiFiClientSecure client;
-  client.setInsecure();
-
-  HTTPClient http;
-  http.begin(client, url);
-
-  int httpResponseCode = http.GET(); 
-  String sonuc = "";
-
-  if (httpResponseCode == 200) {
-    sonuc = http.getString();
+  http.setTimeout(4000); // Zaman aşımını biraz daha düşürüp kuyruğu rahatlattık
+  
+  if (http.begin(fbClient, url)) { // fbClient kullanılıyor
+    http.addHeader("Content-Type", "application/json");
+    String payload = "\"" + stringVeri + "\"";
+    int httpResponseCode = http.PUT(payload); 
     
-    // Firebase'den gelen verinin başındaki ve sonundaki çift tırnakları temizliyoruz
-    if(sonuc.startsWith("\"") && sonuc.endsWith("\"")) {
-      sonuc = sonuc.substring(1, sonuc.length() - 1);
+    if (httpResponseCode > 0) {
+      Serial.printf("Yazma Basarili! Kod: %d\n", httpResponseCode);
+    } else {
+      Serial.printf("Yazma Hatasi: %s\n", http.errorToString(httpResponseCode).c_str());
     }
-  } else {
-    Serial.printf("Okuma Hatası: %s\n", http.errorToString(httpResponseCode).c_str());
+    http.end();
   }
-  http.end();
-    fbisleniyor=false;
-  return sonuc; // Temizlenmiş String'i döndürür
+  fbisleniyor = false;
 }
+
+String firebaseGetData(const char* url) {
+  fbisleniyor = true;
+  
+  fbClient.setInsecure();
+  fbClient.setBufferSizes(512, 512);
+
+  HTTPClient http;
+  http.setTimeout(4000);
+  
+  String sonuc = "";
+  if (http.begin(fbClient, url)) { // fbClient kullanılıyor
+    int httpResponseCode = http.GET(); 
+    if (httpResponseCode == 200) {
+      sonuc = http.getString();
+      sonuc.trim();
+      if(sonuc.startsWith("\"") && sonuc.endsWith("\"")) {
+        sonuc = sonuc.substring(1, sonuc.length() - 1);
+      }
+    } else {
+      Serial.printf("Okuma Hatasi: %s\n", http.errorToString(httpResponseCode).c_str());
+    }
+    http.end();
+  }
+  fbisleniyor = false;
+  return sonuc; 
+}
+
 
 /*
 void loop() {

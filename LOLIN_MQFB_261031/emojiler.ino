@@ -79,7 +79,7 @@ I %3D 0 %3B  %0D%0A   I+ %3D I %2B 1 %3B
 - 👍 I2C arayüzü — yalnızca 2 pin ile kolay bağlantı.
 - 🌡 Geniş çalışma sıcaklığı aralığı (-30°C ~ +70°C) — zorlu ortamlarda güvenilir performans.
 
-
+🌟
 
 🟢
 🔴
